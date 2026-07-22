@@ -1,23 +1,14 @@
-# GESTIONA ERP v5.0 — Mise en place Supabase
+# GESTIONA ERP v6.0 — Connexion Supabase
 
-Cette version prépare la fondation cloud, mais **la synchronisation n’est pas encore activée**.
+Le schéma SQL v5.1 doit afficher **Success** dans Supabase avant d'utiliser cette version.
 
-## Étapes
-1. Créer un projet Supabase.
-2. Ouvrir **SQL Editor** et exécuter `supabase_schema.sql`.
-3. Dans **Project Settings > API**, copier l’URL du projet et la clé publique `anon`.
-4. Ouvrir `supabase-config.js` et remplacer les deux valeurs de démonstration.
-5. Publier les fichiers avec GitHub Desktop.
+Au premier démarrage du site :
 
-## Sécurité
-- Ne jamais mettre la clé `service_role` dans GitHub Pages.
-- La clé `anon` est prévue pour le navigateur, à condition que les règles RLS restent actives.
-- Pour protéger davantage le code, le dépôt pourra ensuite être rendu privé et les fonctions sensibles déplacées côté serveur.
+1. Ouvrez Supabase > **Project Settings** > **API**.
+2. Copiez le **Project URL**.
+3. Copiez la clé **Publishable** ou **anon public**.
+4. Collez ces deux valeurs dans l'écran GESTIONA.
+5. Créez votre compte ou connectez-vous.
+6. Au premier compte, créez l'organisation et les établissements.
 
-## Ce qui est déjà préparé
-- organisations et établissements ;
-- comptes et rôles utilisateurs ;
-- fournisseurs et produits ;
-- mouvements de stock ;
-- journal d’audit ;
-- règles de sécurité par organisation.
+Ne copiez jamais le mot de passe de la base ni la clé `service_role`.

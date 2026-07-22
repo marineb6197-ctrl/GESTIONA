@@ -1,13 +1,17 @@
-GESTIONA v1 — PACKAGE DE MISE EN LIGNE
+GESTIONA ERP v6.0 CLOUD
 
-1. Décompressez le fichier ZIP sur un ordinateur.
-2. Connectez-vous à Netlify.
-3. Choisissez un déploiement manuel et déposez le DOSSIER GESTIONA_v1_Deploiement.
-4. Netlify fournit une adresse sécurisée se terminant par netlify.app.
-5. Ouvrez cette adresse dans Safari sur l'iPhone.
-6. Touchez Partager > Sur l'écran d'accueil > activez « Ouvrir comme app » > Ajouter.
+Cette version active réellement :
+- comptes Supabase par e-mail et mot de passe ;
+- synchronisation des produits et fournisseurs ;
+- séparation par organisation ;
+- établissements ;
+- calcul du coût unitaire, de la marge et de la valeur du stock ;
+- journal d'activité.
 
-IMPORTANT
-- Cette v1 conserve les données localement dans le navigateur de chaque appareil.
-- Elle ne synchronise pas encore téléphone et ordinateur.
-- Une vraie synchronisation nécessitera un compte utilisateur et une base de données en ligne.
+INSTALLATION GITHUB
+1. Remplacer index.html, sw.js et manifest.webmanifest.
+2. Conserver/ajouter le dossier icons.
+3. Commit to main puis Push origin.
+4. Ouvrir le site et saisir le Project URL et la clé publique Supabase.
+
+IMPORTANT : ne jamais saisir la clé service_role.
