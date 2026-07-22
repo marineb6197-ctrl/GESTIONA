@@ -1,0 +1,20 @@
+GESTIONA ERP v6.5 — ORION Import
+
+Cette livraison ajoute un écran ORION Import à l’application v6.4.1.
+
+Fonctionnel :
+- import local de fichiers Excel Sligro ;
+- détection des feuilles et produits ;
+- comparaison avec le catalogue Supabase de l’établissement choisi ;
+- aperçu Nouveaux / Modifiés / Inchangés / Absents ;
+- validation avant écriture ;
+- création et mise à jour des produits ;
+- archivage des absents uniquement si la case est cochée.
+
+Déploiement GitHub Pages : remplacez les fichiers du dépôt par le contenu de ce dossier, puis validez le commit.
+La migration v6.5 est facultative : l’import fonctionne avec les tables déjà installées.
+
+Limite actuelle : le schéma existant associe un produit à un seul établissement. La future migration multi-établissements utilisera une table d’association dédiée.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés

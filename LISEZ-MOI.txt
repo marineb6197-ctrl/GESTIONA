@@ -1,16 +1,9 @@
-GESTIONA ERP v6.3 — Produits professionnels
+GESTIONA ERP v6.4.1.1.0 — Commandes fournisseurs
 
-Nouveautés réelles :
-- duplication de produits ;
-- archivage et restauration ;
-- filtre Archivés ;
-- aperçu de la photo ;
-- scanner de code-barres lorsque le navigateur le permet ;
-- calcul du prix conseillé selon la marge cible ;
-- calcul de la valeur du stock sur la fiche produit.
+1. Exécutez migration_v6_4.sql dans Supabase SQL Editor.
+2. Remplacez sur GitHub : index.html, sw.js et manifest.webmanifest.
+3. Rechargez l'application en vidant éventuellement le cache.
 
-Installation : remplacez index.html, sw.js et manifest.webmanifest sur GitHub.
-Aucune nouvelle migration Supabase n'est nécessaire pour cette version.
+Fonctions incluses : création/modification de commandes, lignes de produits, calcul HTVA/TVA/TVAC, statuts, numérotation automatique, impression/PDF et annulation.
 
-Créé par Marine Bruynbroeck
-© 2026–2027 Marine Bruynbroeck – Tous droits réservés
+L'envoi direct par e-mail sera ajouté dans la v6.4.1.1.1 avec une Supabase Edge Function afin de ne jamais exposer de mot de passe ou clé secrète dans le navigateur.

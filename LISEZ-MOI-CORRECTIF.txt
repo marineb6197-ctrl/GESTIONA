@@ -1,0 +1,11 @@
+GESTIONA ERP v6.4.1 — CORRECTIF
+
+Commencez uniquement par : migration_v6_4_1_CORRIGEE.sql
+
+Ce correctif résout l'erreur Supabase :
+function public.current_organization_id() does not exist
+
+Après le message « Success. No rows returned », la prochaine étape sera l'installation de la fonction d'envoi sécurisée.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés
