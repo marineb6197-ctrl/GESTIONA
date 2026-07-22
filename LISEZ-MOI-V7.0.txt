@@ -1,0 +1,16 @@
+GESTIONA v7.0 — ORION Pilotage
+
+NOUVEAUTÉS
+- Tableau de bord ORION enrichi.
+- Conseils automatiques à partir des stocks, commandes, pertes et complétude du catalogue.
+- Budget indicatif de réapprovisionnement.
+- Commandes ouvertes visibles immédiatement.
+- Pertes des 30 derniers jours.
+- Bouton « Préparer la commande » qui ouvre directement les produits à stock faible.
+- Aucune migration SQL supplémentaire nécessaire.
+
+INSTALLATION
+Remplacez les fichiers du dépôt GitHub par le contenu de ce dossier, validez le commit, attendez le déploiement puis rechargez avec Cmd + Shift + R.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés
