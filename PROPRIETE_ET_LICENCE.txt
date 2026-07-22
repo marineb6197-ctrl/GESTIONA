@@ -1,6 +1,6 @@
 GESTIONA ERP — AVIS DE PROPRIÉTÉ ET LICENCE PROPRIÉTAIRE
 
-Projet original : Marine Bruynbroeck — L’Élysée & Danish, Liège (Belgique)
+Projet original : Marine Bruynbroeck — , Liège (Belgique)
 Copyright © 2026 Marine Bruynbroeck. Tous droits réservés.
 
 Ce logiciel, son interface, son organisation, ses textes et son code sont protégés.
@@ -8,5 +8,5 @@ Aucune autorisation n’est accordée pour copier, redistribuer, publier, revend
 
 L’utilisation est réservée aux établissements et personnes expressément autorisés par la titulaire.
 
-Signature de la version : GESTIONA-2026-MB-ELYSEE-DANISH-V4.0
+Signature de la version : GESTIONA-2026-MARINE-BRUYNBROECK-V5.0
 Date de version : 22 juillet 2026
