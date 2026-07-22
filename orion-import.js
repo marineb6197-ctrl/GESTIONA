@@ -30,10 +30,12 @@
         workbook.Sheets[sheetName],
         {header:1, blankrows:false, defval:''}
       ).slice(0,12);
+
       const text = rows.flat().join(' ').toLowerCase();
       if (/danish/.test(text)) return 'Danish';
       if (/elys[eé]e|elysee/.test(text)) return "L’Élysée";
     }
+
     return 'À confirmer';
   }
 
@@ -59,6 +61,7 @@
       workbook.Sheets[sheetName],
       {header:1, blankrows:false, defval:''}
     );
+
     const {headerRow, refCol, nameCol} = findColumns(rows);
     const area = detectArea(sheetName);
     let category = 'SANS CATÉGORIE';
@@ -70,6 +73,7 @@
       const row = rows[i] || [];
       const ref = normalize(row[refCol]);
       const name = normalize(row[nameCol]);
+
       if (!ref && !name) continue;
 
       if (looksLikeCategory(ref, name)) {
@@ -87,6 +91,7 @@
         });
         continue;
       }
+
       if (!name) {
         warnings.push({
           sheet:sheetName,
@@ -110,6 +115,7 @@
         source_row:i+1
       });
     }
+
     return {sheetName, area, products, warnings};
   }
 
@@ -130,6 +136,7 @@
       const current = byRef.get(p.reference);
       if (!current.areas.includes(p.area)) current.areas.push(p.area);
       if (!current.source_sheets.includes(p.source_sheet)) current.source_sheets.push(p.source_sheet);
+
       if (current.normalized_name !== p.normalized_name) {
         duplicates.push({
           reference:p.reference,
@@ -138,20 +145,34 @@
         });
       }
     }
-    return {products:[...byRef.values()], duplicates};
+
+    return {
+      products:[...byRef.values()],
+      duplicates
+    };
   }
 
   function analyzeWorkbook(arrayBuffer, filename='') {
-    if (!global.XLSX) throw new Error('La bibliothèque XLSX est absente. Rechargez la page.');
+    if (!global.XLSX) {
+      throw new Error('La bibliothèque XLSX est absente. Rechargez la page.');
+    }
+
     if (!(arrayBuffer instanceof ArrayBuffer) || arrayBuffer.byteLength === 0) {
       throw new Error('Le fichier sélectionné est vide ou illisible.');
     }
+
     if (filename && !/\.(xlsx|xls)$/i.test(filename)) {
       throw new Error('Choisissez un fichier Excel .xlsx ou .xls.');
     }
 
-    const workbook = global.XLSX.read(arrayBuffer, {type:'array', cellDates:true});
-    if (!workbook.SheetNames.length) throw new Error('Le classeur ne contient aucune feuille.');
+    const workbook = global.XLSX.read(arrayBuffer, {
+      type:'array',
+      cellDates:true
+    });
+
+    if (!workbook.SheetNames.length) {
+      throw new Error('Le classeur ne contient aucune feuille.');
+    }
 
     const sheets = workbook.SheetNames.map(name => parseSheet(workbook, name));
     const all = sheets.flatMap(s => s.products);
@@ -165,10 +186,14 @@
       supplier:'Sligro',
       establishment:detectEstablishment(workbook, filename),
       filename,
-      sheets:sheets.map(s=>({name:s.sheetName,area:s.area,count:s.products.length})),
+      sheets:sheets.map(s => ({
+        name:s.sheetName,
+        area:s.area,
+        count:s.products.length
+      })),
       products:deduped.products,
       duplicates:deduped.duplicates,
-      warnings:sheets.flatMap(s=>s.warnings),
+      warnings:sheets.flatMap(s => s.warnings),
       stats:{
         rowsRecognized:all.length,
         uniqueProducts:deduped.products.length,
@@ -178,39 +203,64 @@
   }
 
   function compareCatalog(existing, incoming) {
-    const oldMap = new Map((existing||[]).map(p=>[String(p.reference ?? p.sku ?? '').trim(),p]));
-    const newMap = new Map((incoming||[]).map(p=>[String(p.reference).trim(),p]));
-    const added=[], modified=[], unchanged=[], missing=[];
+    const oldMap = new Map(
+      (existing || []).map(p => [
+        String(p.reference ?? p.sku ?? '').trim(),
+        p
+      ])
+    );
 
-    for (const [ref,p] of newMap) {
+    const newMap = new Map(
+      (incoming || []).map(p => [
+        String(p.reference).trim(),
+        p
+      ])
+    );
+
+    const added = [];
+    const modified = [];
+    const unchanged = [];
+    const missing = [];
+
+    for (const [ref, p] of newMap) {
       const old = oldMap.get(ref);
+
       if (!old) {
         added.push(p);
         continue;
       }
 
-      const changes={};
+      const changes = {};
       const oldArea = old.area ?? old.location ?? '';
       const newArea = (p.areas || [p.area]).filter(Boolean).join(', ');
+
       const pairs = {
         name:[normalizeName(old.name), normalizeName(p.name)],
         category:[normalize(old.category), normalize(p.category)],
         area:[normalize(oldArea), normalize(newArea)]
       };
 
-      Object.entries(pairs).forEach(([key,[before,after]])=>{
-        if (before !== after) changes[key]={from:before,to:after};
+      Object.entries(pairs).forEach(([key, [before, after]]) => {
+        if (before !== after) {
+          changes[key] = {from:before, to:after};
+        }
       });
 
       if (Object.keys(changes).length || old.active === false) {
-        modified.push({before:old,after:p,changes});
+        modified.push({
+          before:old,
+          after:p,
+          changes
+        });
       } else {
         unchanged.push(p);
       }
     }
 
-    for (const [ref,p] of oldMap) {
-      if (ref && !newMap.has(ref)) missing.push(p);
+    for (const [ref, p] of oldMap) {
+      if (ref && !newMap.has(ref)) {
+        missing.push(p);
+      }
     }
 
     return {
@@ -227,31 +277,148 @@
     };
   }
 
-  function initializeOrionUi() {
-    const refreshVenues = () => {
-      try {
-        if (typeof global.fillOrionVenues === 'function') global.fillOrionVenues();
-      } catch (error) {
-        console.warn('ORION : chargement des établissements différé.', error);
-      }
-    };
+  function getVenueSelect() {
+    return global.document?.getElementById('orionVenue') || null;
+  }
 
-    global.addEventListener('load', () => setTimeout(refreshVenues, 150));
+  function fillVenueSelectFromGlobalData() {
+    const select = getVenueSelect();
+    if (!select) return false;
+
+    const currentValue = select.value;
+    const venueList = Array.isArray(global.venues) ? global.venues : [];
+
+    select.innerHTML =
+      '<option value="">Choisir l’établissement</option>' +
+      venueList.map(v =>
+        `<option value="${String(v.id)}">${String(v.name ?? '')}</option>`
+      ).join('');
+
+    if (currentValue && venueList.some(v => String(v.id) === String(currentValue))) {
+      select.value = currentValue;
+    } else if (global.selectedVenue && global.selectedVenue !== 'all') {
+      select.value = global.selectedVenue;
+    }
+
+    return venueList.length > 0;
+  }
+
+  function selectVenueByDetectedName(detectedName) {
+    const select = getVenueSelect();
+    if (!select || !detectedName || detectedName === 'À confirmer') return false;
+
+    const detected = normalizeName(detectedName);
+    const options = [...select.options];
+
+    const exact = options.find(option =>
+      normalizeName(option.textContent) === detected
+    );
+
+    const partial = options.find(option => {
+      const name = normalizeName(option.textContent);
+
+      if (detected.includes('DANISH')) {
+        return name.includes('DANISH');
+      }
+
+      if (detected.includes('ELYSEE')) {
+        return name.includes('ELYSEE');
+      }
+
+      return false;
+    });
+
+    const match = exact || partial;
+
+    if (!match) return false;
+
+    select.value = match.value;
+    select.dispatchEvent(new Event('change', {bubbles:true}));
+    return true;
+  }
+
+  function startVenueAutoRefresh() {
+    let attempts = 0;
+
+    const timer = global.setInterval(() => {
+      attempts += 1;
+
+      const filled =
+        (typeof global.fillOrionVenues === 'function' &&
+          (() => {
+            try {
+              global.fillOrionVenues();
+              return getVenueSelect()?.options.length > 1;
+            } catch {
+              return false;
+            }
+          })()
+        ) || fillVenueSelectFromGlobalData();
+
+      if (filled || attempts >= 20) {
+        global.clearInterval(timer);
+      }
+    }, 250);
+  }
+
+  function initializeOrionUi() {
+    global.addEventListener('load', () => {
+      startVenueAutoRefresh();
+    });
+
     global.document?.addEventListener('click', event => {
       const button = event.target.closest?.('[data-view="orion"]');
-      if (button) setTimeout(refreshVenues, 0);
+
+      if (button) {
+        startVenueAutoRefresh();
+      }
+    });
+
+    global.document?.addEventListener('change', async event => {
+      const input = event.target;
+
+      if (!input || input.id !== 'orionFile') return;
+
+      const file = input.files?.[0];
+      if (!file) return;
+
+      try {
+        const analysis = analyzeWorkbook(await file.arrayBuffer(), file.name);
+        const selected = selectVenueByDetectedName(analysis.establishment);
+        const message = global.document.getElementById('orionMessage');
+
+        if (message) {
+          if (selected) {
+            message.innerHTML =
+              `<div class="notice success">` +
+              `${analysis.establishment} détecté automatiquement. ` +
+              `L’établissement correspondant a été sélectionné.` +
+              `</div>`;
+          } else {
+            message.innerHTML =
+              `<div class="notice">` +
+              `${analysis.establishment} détecté. ` +
+              `Veuillez confirmer l’établissement avant l’analyse.` +
+              `</div>`;
+          }
+        }
+      } catch {
+        /* Le bouton Analyser affichera le message d’erreur complet. */
+      }
     });
   }
 
-  global.ORIONImport={
-    version:'0.2.0',
+  global.ORIONImport = {
+    version:'0.3.0',
     normalize,
     normalizeName,
     analyzeWorkbook,
     compareCatalog,
     parseSheet,
-    deduplicate
+    deduplicate,
+    selectVenueByDetectedName,
+    fillVenueSelectFromGlobalData
   };
 
   initializeOrionUi();
-})(typeof window!=='undefined'?window:globalThis);
+})(typeof window !== 'undefined' ? window : globalThis);
