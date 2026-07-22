@@ -1,0 +1,25 @@
+GESTIONA ERP v6.6 — COMMANDES INTELLIGENTES
+
+Nouveautés :
+- Préparation d’une commande depuis le catalogue importé.
+- Sélection établissement + fournisseur.
+- Recherche instantanée et filtres Favoris / Quantités saisies / Stock faible.
+- Produits regroupés par catégorie.
+- Boutons − et + et saisie directe de quantité.
+- Notes facultatives par produit.
+- Affichage du stock et de la dernière quantité commandée.
+- Estimation du total HTVA.
+- Sauvegarde automatique du brouillon dans le navigateur.
+- Transformation en commande fournisseur standard, prête à enregistrer, imprimer ou envoyer.
+- Gestion des favoris directement dans le catalogue de commande.
+
+Installation :
+1. Remplacer les fichiers du dépôt GitHub par ceux de ce dossier.
+2. Valider avec « Commit changes ».
+3. Attendre 1 à 3 minutes.
+4. Recharger GESTIONA avec Cmd + Shift + R.
+
+Aucune nouvelle migration SQL n’est nécessaire pour cette version.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés

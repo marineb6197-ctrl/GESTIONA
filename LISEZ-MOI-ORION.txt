@@ -18,11 +18,3 @@ Limite actuelle : le schéma existant associe un produit à un seul établisseme
 
 Créé par Marine Bruynbroeck
 © 2026–2027 Marine Bruynbroeck – Tous droits réservés
-
-
-CORRECTIF v6.5.1 — 22 juillet 2026
-- Remplissage de la liste des établissements dès la connexion.
-- Conservation du choix lors des actualisations.
-- Détection automatique Danish / L’Élysée dès la sélection du fichier.
-- Analyse possible avant sélection manuelle, puis sélection automatique.
-- Mise à jour du cache PWA pour forcer le chargement des fichiers corrigés.
