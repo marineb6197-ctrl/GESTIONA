@@ -1,0 +1,17 @@
+GESTIONA ERP v6.7 — Catalogue intelligent
+
+Nouveautés :
+- Filtres par catégorie, fournisseur et emplacement.
+- Indicateurs de qualité du catalogue.
+- Détection des fiches incomplètes.
+- Score de complétude pour chaque produit.
+- Favoris modifiables directement dans le tableau.
+- Export CSV du catalogue filtré.
+- Cache de l’application actualisé.
+
+Installation : remplacez le contenu du dépôt GitHub par les fichiers de ce dossier, validez le commit, attendez 1 à 3 minutes puis rechargez avec Cmd + Shift + R.
+
+Aucune migration SQL supplémentaire n’est nécessaire.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés
