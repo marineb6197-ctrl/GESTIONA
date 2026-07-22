@@ -1,0 +1,24 @@
+GESTIONA v7.1 — COMMANDES DEPUIS LE CATALOGUE
+
+Cette version relie le module Commandes au catalogue importé par ORION.
+
+Fonctions :
+- sélection Danish ou L’Élysée ;
+- sélection automatique de Sligro ;
+- affichage des produits du bon établissement ;
+- classement par catégories ;
+- recherche par produit, référence, catégorie ou emplacement ;
+- boutons moins et plus ;
+- saisie directe des quantités ;
+- favoris ;
+- notes par produit ;
+- stock, minimum, dernière commande et coût unitaire ;
+- total HTVA estimé ;
+- sauvegarde automatique du brouillon ;
+- création d’une commande à valider.
+
+INSTALLATION
+Remplacez les fichiers du dépôt GitHub par le contenu du dossier GESTIONA-main. Attendez le déploiement, puis fermez et rouvrez complètement GESTIONA.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés
