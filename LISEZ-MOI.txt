@@ -1,0 +1,13 @@
+GESTIONA v1 — PACKAGE DE MISE EN LIGNE
+
+1. Décompressez le fichier ZIP sur un ordinateur.
+2. Connectez-vous à Netlify.
+3. Choisissez un déploiement manuel et déposez le DOSSIER GESTIONA_v1_Deploiement.
+4. Netlify fournit une adresse sécurisée se terminant par netlify.app.
+5. Ouvrez cette adresse dans Safari sur l'iPhone.
+6. Touchez Partager > Sur l'écran d'accueil > activez « Ouvrir comme app » > Ajouter.
+
+IMPORTANT
+- Cette v1 conserve les données localement dans le navigateur de chaque appareil.
+- Elle ne synchronise pas encore téléphone et ordinateur.
+- Une vraie synchronisation nécessitera un compte utilisateur et une base de données en ligne.

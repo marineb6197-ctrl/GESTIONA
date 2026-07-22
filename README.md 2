@@ -1,0 +1,24 @@
+# GESTIONA v1.1
+
+Application web progressive de gestion pour L’Élysée et la Danish.
+
+## Fonctions disponibles
+- Tableau de bord
+- Factures et échéances
+- Commandes fournisseurs
+- Stocks et seuils d’alerte
+- Fournisseurs
+- Personnel et planning
+- Documents
+- Sauvegarde et restauration JSON
+- Installation sur iPhone/ordinateur (PWA)
+
+## Publication GitHub Pages
+1. Créer un dépôt public nommé `gestiona`.
+2. Ajouter tous les fichiers de ce dossier à la racine du dépôt.
+3. Ouvrir **Settings > Pages**.
+4. Choisir **Deploy from a branch**, branche `main`, dossier `/ (root)`.
+5. Le site sera disponible à l’adresse `https://VOTRE-PSEUDO.github.io/gestiona/`.
+
+## Données
+Cette première version conserve les données localement dans le navigateur de chaque appareil. Utiliser régulièrement le bouton d’export de sauvegarde.
