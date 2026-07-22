@@ -1,17 +1,16 @@
-GESTIONA ERP v6.0 CLOUD
+GESTIONA ERP v6.3 — Produits professionnels
 
-Cette version active réellement :
-- comptes Supabase par e-mail et mot de passe ;
-- synchronisation des produits et fournisseurs ;
-- séparation par organisation ;
-- établissements ;
-- calcul du coût unitaire, de la marge et de la valeur du stock ;
-- journal d'activité.
+Nouveautés réelles :
+- duplication de produits ;
+- archivage et restauration ;
+- filtre Archivés ;
+- aperçu de la photo ;
+- scanner de code-barres lorsque le navigateur le permet ;
+- calcul du prix conseillé selon la marge cible ;
+- calcul de la valeur du stock sur la fiche produit.
 
-INSTALLATION GITHUB
-1. Remplacer index.html, sw.js et manifest.webmanifest.
-2. Conserver/ajouter le dossier icons.
-3. Commit to main puis Push origin.
-4. Ouvrir le site et saisir le Project URL et la clé publique Supabase.
+Installation : remplacez index.html, sw.js et manifest.webmanifest sur GitHub.
+Aucune nouvelle migration Supabase n'est nécessaire pour cette version.
 
-IMPORTANT : ne jamais saisir la clé service_role.
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés
