@@ -27,16 +27,16 @@
 <body>
 <div class="app">
 <aside class="sidebar">
-  <div class="brand"><h1>GESTIONA</h1><small>Gestion de restaurants · v1.2</small><select class="venue" id="venueSelect"><option value="elysee">L'Élysée</option><option value="danish">Danish</option></select></div>
+  <div class="brand"><h1>GESTIONA</h1><small>Gestion de restaurants · v2 bêta</small><select class="venue" id="venueSelect"><option value="elysee">L'Élysée</option><option value="danish">Danish</option></select></div>
   <nav class="nav" id="desktopNav"></nav>
-  <div class="side-foot">Les données sont enregistrées sur cet appareil.<br><br><b>GESTIONA v1.2</b></div>
+  <div class="side-foot">Les données sont enregistrées séparément pour chaque établissement sur cet appareil.<br><br><b>GESTIONA v2 bêta</b></div>
 </aside>
 <main class="main">
 <header class="topbar"><h2 id="pageTitle">Accueil</h2><div class="top-actions"><button class="btn soft hide-mobile" data-action="export">Sauvegarder</button><button class="btn primary" data-action="quick-add">+ Ajouter</button></div></header>
 <div class="content">
 <section class="view active" id="dashboard">
  <div class="welcome"><div><h2>Bonjour Marine 👋</h2><p>Voici les priorités de L’Élysée aujourd’hui.</p></div><div class="date" id="todayLabel"></div></div>
- <div class="quick">
+ <div class="card" style="margin-top:16px;border-left:5px solid var(--gold)"><b>✨ GESTIONA v2 bêta est installée</b><p class="muted" style="margin:7px 0 0">Mode multi-établissements actif : L’Élysée et Danish disposent désormais de données séparées sur cet appareil.</p></div><div class="quick">
   <button data-go="orders">📦<b>Commande / livraison</b><span class="muted">Préparer ou suivre une livraison</span></button>
   <button data-go="invoices">🧾<b>Facture à payer</b><span class="muted">Ajouter et suivre l’échéance</span></button>
   <button data-go="stock">📋<b>Faire un inventaire</b><span class="muted">Contrôler les niveaux</span></button>
@@ -78,7 +78,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function storageKey(){return `gestiona_v1_${activeVenue}`}
 function venueName(){return activeVenue==='danish'?'Danish':"L’Élysée"}
-function loadState(){try{return Object.assign(clone(DEFAULT),JSON.parse(localStorage.getItem(storageKey())||'{}'))}catch(e){return clone(DEFAULT)}}
+function loadState(){try{let raw=localStorage.getItem(storageKey());if(!raw){const old=localStorage.getItem('gestiona_v1_'+activeVenue);if(old){raw=old;localStorage.setItem(storageKey(),old)}}return Object.assign(clone(DEFAULT),JSON.parse(raw||'{}'))}catch(e){return clone(DEFAULT)}}
 function save(){localStorage.setItem(storageKey(),JSON.stringify(state));renderAll();toastMsg('Enregistré')}
 function updateVenueUI(){venueSelect.value=activeVenue;document.querySelector('.welcome p').textContent=`Voici les priorités de ${venueName()} aujourd’hui.`}
 function euro(n){return Number(n||0).toLocaleString('fr-BE',{style:'currency',currency:'EUR'})}
@@ -121,7 +121,7 @@ function submitForm(e){e.preventDefault();let s=SCHEMAS[formContext.type],data=O
 function deleteItem(type,id){let s=SCHEMAS[type];if(!s||!confirm('Supprimer cet élément ?'))return;state[s.store]=state[s.store].filter(x=>x.id!==id);if(type==='staff')state.shifts=state.shifts.filter(x=>x.staffId!==id);save()}
 function toggleItem(type,id){let s=SCHEMAS[type],x=state[s.store].find(x=>x.id===id);if(!x)return;if(type==='invoice')x.status=x.status==='Payée'?'À payer':'Payée';else if(type==='order')x.status=x.status==='Livrée'?'Envoyée':'Livrée';else openForm(type,id);save()}
 function quickAdd(){let map={invoices:'invoice',orders:'order',stock:'stock',suppliers:'supplier',staff:'staff',planning:'shift',documents:'document'};openForm(map[currentView]||'invoice')}
-function exportData(){let blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),data:state},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`GESTIONA-sauvegarde-${todayISO()}.json`;a.click();URL.revokeObjectURL(a.href);toastMsg('Sauvegarde téléchargée')}
+function exportData(){let blob=new Blob([JSON.stringify({version:2,exportedAt:new Date().toISOString(),data:state},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`GESTIONA-sauvegarde-${todayISO()}.json`;a.click();URL.revokeObjectURL(a.href);toastMsg('Sauvegarde téléchargée')}
 function importData(file){let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);state=Object.assign(clone(DEFAULT),x.data||x);save();toastMsg('Sauvegarde importée')}catch(e){alert('Ce fichier ne semble pas être une sauvegarde GESTIONA valide.')}};r.readAsText(file)}
 document.addEventListener('click',e=>{let b=e.target.closest('button,[data-go]');if(!b)return;if(b.dataset.view)go(b.dataset.view);else if(b.dataset.go)go(b.dataset.go);else if(b.dataset.create)openForm(b.dataset.create);else if(b.dataset.edit)openForm(b.dataset.edit,b.dataset.id);else if(b.dataset.delete)deleteItem(b.dataset.delete,b.dataset.id);else if(b.dataset.toggle)toggleItem(b.dataset.toggle,b.dataset.id);else if(b.dataset.action==='close-modal')closeModal();else if(b.dataset.action==='quick-add')quickAdd();else if(b.dataset.action==='export')exportData();else if(b.dataset.action==='reset'&&confirm('Réinitialiser les données ajoutées ?')){state=clone(DEFAULT);save()}});
 ['salesSearch','salesSort','invoiceFilter','orderSearch','orderFilter','stockSearch','stockFilter','staffSearch','docSearch'].forEach(id=>document.getElementById(id)?.addEventListener('input',renderAll));
