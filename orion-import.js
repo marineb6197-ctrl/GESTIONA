@@ -11,12 +11,12 @@
     .replace(/[^A-Z0-9]/g, '');
 
   const isReference = (v) => /^\d{2,12}$/.test(normalize(v));
+
   const looksLikeCategory = (ref, name) => {
     const r = normalize(ref), n = normalize(name);
     if (!r && !n) return false;
     if (r && !n && !isReference(r)) return true;
-    if (!isReference(r) && !n) return true;
-    if (!isReference(r) && n === '') return true;
+    if (!r && n && !isReference(n)) return true;
     return false;
   };
 
@@ -24,8 +24,12 @@
     const haystack = [filename, ...workbook.SheetNames].join(' ').toLowerCase();
     if (/danish/.test(haystack)) return 'Danish';
     if (/elys[eé]e|elysee/.test(haystack)) return "L’Élysée";
+
     for (const sheetName of workbook.SheetNames) {
-      const rows = global.XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header:1, blankrows:false, defval:''}).slice(0,12);
+      const rows = global.XLSX.utils.sheet_to_json(
+        workbook.Sheets[sheetName],
+        {header:1, blankrows:false, defval:''}
+      ).slice(0,12);
       const text = rows.flat().join(' ').toLowerCase();
       if (/danish/.test(text)) return 'Danish';
       if (/elys[eé]e|elysee/.test(text)) return "L’Élysée";
@@ -43,16 +47,18 @@
   function findColumns(rows) {
     for (let i=0; i<Math.min(rows.length, 20); i++) {
       const row = rows[i].map(normalizeName);
-      const ref = row.findIndex(v => /REFERENCE|RÉFÉRENCE|REF\.?$/.test(v));
+      const ref = row.findIndex(v => /REFERENCE|REF/.test(v));
       const name = row.findIndex(v => /ARTICLES?|PRODUITS?|DESIGNATION|DESCRIPTION/.test(v));
       if (ref >= 0 && name >= 0) return {headerRow:i, refCol:ref, nameCol:name};
     }
-    // Sligro sheets usually use the first two useful columns.
     return {headerRow:5, refCol:0, nameCol:1};
   }
 
   function parseSheet(workbook, sheetName) {
-    const rows = global.XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header:1, blankrows:false, defval:''});
+    const rows = global.XLSX.utils.sheet_to_json(
+      workbook.Sheets[sheetName],
+      {header:1, blankrows:false, defval:''}
+    );
     const {headerRow, refCol, nameCol} = findColumns(rows);
     const area = detectArea(sheetName);
     let category = 'SANS CATÉGORIE';
@@ -67,24 +73,34 @@
       if (!ref && !name) continue;
 
       if (looksLikeCategory(ref, name)) {
-        category = normalizeName(ref || name);
+        category = normalize(ref || name).toUpperCase();
         categoryOrder += 1;
         continue;
       }
 
       if (!isReference(ref)) {
-        if (name || ref) warnings.push({sheet:sheetName,row:i+1,message:'Ligne ignorée : référence non reconnue',values:[ref,name]});
+        warnings.push({
+          sheet:sheetName,
+          row:i+1,
+          message:'Ligne ignorée : référence non reconnue',
+          values:[ref,name]
+        });
         continue;
       }
       if (!name) {
-        warnings.push({sheet:sheetName,row:i+1,message:'Ligne ignorée : nom de produit vide',values:[ref,name]});
+        warnings.push({
+          sheet:sheetName,
+          row:i+1,
+          message:'Ligne ignorée : nom de produit vide',
+          values:[ref,name]
+        });
         continue;
       }
 
       products.push({
         supplier:'Sligro',
         reference:ref,
-        name:name,
+        name,
         normalized_name:normalizeName(name),
         category,
         category_order:categoryOrder,
@@ -100,24 +116,51 @@
   function deduplicate(products) {
     const byRef = new Map();
     const duplicates = [];
+
     for (const p of products) {
-      if (!byRef.has(p.reference)) byRef.set(p.reference, {...p, areas:[p.area], source_sheets:[p.source_sheet]});
-      else {
-        const current = byRef.get(p.reference);
-        if (!current.areas.includes(p.area)) current.areas.push(p.area);
-        if (!current.source_sheets.includes(p.source_sheet)) current.source_sheets.push(p.source_sheet);
-        if (current.normalized_name !== p.normalized_name) duplicates.push({reference:p.reference, kept:current.name, alternative:p.name});
+      if (!byRef.has(p.reference)) {
+        byRef.set(p.reference, {
+          ...p,
+          areas:[p.area],
+          source_sheets:[p.source_sheet]
+        });
+        continue;
+      }
+
+      const current = byRef.get(p.reference);
+      if (!current.areas.includes(p.area)) current.areas.push(p.area);
+      if (!current.source_sheets.includes(p.source_sheet)) current.source_sheets.push(p.source_sheet);
+      if (current.normalized_name !== p.normalized_name) {
+        duplicates.push({
+          reference:p.reference,
+          kept:current.name,
+          alternative:p.name
+        });
       }
     }
     return {products:[...byRef.values()], duplicates};
   }
 
   function analyzeWorkbook(arrayBuffer, filename='') {
-    if (!global.XLSX) throw new Error('La bibliothèque XLSX est absente.');
+    if (!global.XLSX) throw new Error('La bibliothèque XLSX est absente. Rechargez la page.');
+    if (!(arrayBuffer instanceof ArrayBuffer) || arrayBuffer.byteLength === 0) {
+      throw new Error('Le fichier sélectionné est vide ou illisible.');
+    }
+    if (filename && !/\.(xlsx|xls)$/i.test(filename)) {
+      throw new Error('Choisissez un fichier Excel .xlsx ou .xls.');
+    }
+
     const workbook = global.XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+    if (!workbook.SheetNames.length) throw new Error('Le classeur ne contient aucune feuille.');
+
     const sheets = workbook.SheetNames.map(name => parseSheet(workbook, name));
     const all = sheets.flatMap(s => s.products);
     const deduped = deduplicate(all);
+
+    if (!deduped.products.length) {
+      throw new Error('Aucun produit Sligro reconnu. Vérifiez la structure du fichier.');
+    }
+
     return {
       supplier:'Sligro',
       establishment:detectEstablishment(workbook, filename),
@@ -126,32 +169,89 @@
       products:deduped.products,
       duplicates:deduped.duplicates,
       warnings:sheets.flatMap(s=>s.warnings),
-      stats:{rowsRecognized:all.length,uniqueProducts:deduped.products.length,duplicateReferences:all.length-deduped.products.length}
+      stats:{
+        rowsRecognized:all.length,
+        uniqueProducts:deduped.products.length,
+        duplicateReferences:all.length-deduped.products.length
+      }
     };
   }
 
   function compareCatalog(existing, incoming) {
-    const oldMap = new Map((existing||[]).map(p=>[String(p.reference),p]));
-    const newMap = new Map((incoming||[]).map(p=>[String(p.reference),p]));
+    const oldMap = new Map((existing||[]).map(p=>[String(p.reference ?? p.sku ?? '').trim(),p]));
+    const newMap = new Map((incoming||[]).map(p=>[String(p.reference).trim(),p]));
     const added=[], modified=[], unchanged=[], missing=[];
 
     for (const [ref,p] of newMap) {
       const old = oldMap.get(ref);
-      if (!old) added.push(p);
-      else {
-        const changes={};
-        ['name','category','area'].forEach(k=>{
-          const a = k==='name' ? normalizeName(old[k]) : normalize(old[k]);
-          const b = k==='name' ? normalizeName(p[k]) : normalize(p[k]);
-          if (a!==b) changes[k]={from:old[k]??'',to:p[k]??''};
-        });
-        if (Object.keys(changes).length) modified.push({before:old,after:p,changes});
-        else unchanged.push(p);
+      if (!old) {
+        added.push(p);
+        continue;
+      }
+
+      const changes={};
+      const oldArea = old.area ?? old.location ?? '';
+      const newArea = (p.areas || [p.area]).filter(Boolean).join(', ');
+      const pairs = {
+        name:[normalizeName(old.name), normalizeName(p.name)],
+        category:[normalize(old.category), normalize(p.category)],
+        area:[normalize(oldArea), normalize(newArea)]
+      };
+
+      Object.entries(pairs).forEach(([key,[before,after]])=>{
+        if (before !== after) changes[key]={from:before,to:after};
+      });
+
+      if (Object.keys(changes).length || old.active === false) {
+        modified.push({before:old,after:p,changes});
+      } else {
+        unchanged.push(p);
       }
     }
-    for (const [ref,p] of oldMap) if (!newMap.has(ref)) missing.push(p);
-    return {added,modified,unchanged,missing,summary:{added:added.length,modified:modified.length,unchanged:unchanged.length,missing:missing.length}};
+
+    for (const [ref,p] of oldMap) {
+      if (ref && !newMap.has(ref)) missing.push(p);
+    }
+
+    return {
+      added,
+      modified,
+      unchanged,
+      missing,
+      summary:{
+        added:added.length,
+        modified:modified.length,
+        unchanged:unchanged.length,
+        missing:missing.length
+      }
+    };
   }
 
-  global.ORIONImport={normalize,normalizeName,analyzeWorkbook,compareCatalog,parseSheet,deduplicate};
+  function initializeOrionUi() {
+    const refreshVenues = () => {
+      try {
+        if (typeof global.fillOrionVenues === 'function') global.fillOrionVenues();
+      } catch (error) {
+        console.warn('ORION : chargement des établissements différé.', error);
+      }
+    };
+
+    global.addEventListener('load', () => setTimeout(refreshVenues, 150));
+    global.document?.addEventListener('click', event => {
+      const button = event.target.closest?.('[data-view="orion"]');
+      if (button) setTimeout(refreshVenues, 0);
+    });
+  }
+
+  global.ORIONImport={
+    version:'0.2.0',
+    normalize,
+    normalizeName,
+    analyzeWorkbook,
+    compareCatalog,
+    parseSheet,
+    deduplicate
+  };
+
+  initializeOrionUi();
 })(typeof window!=='undefined'?window:globalThis);
