@@ -1,0 +1,18 @@
+GESTIONA v7.0.1 — Correctif sélecteurs Commandes
+
+Correction appliquée :
+- la liste des établissements est maintenant remplie dans Préparer une commande ;
+- la liste des fournisseurs est maintenant remplie ;
+- Danish ou L’Élysée peut être sélectionné ;
+- Sligro est sélectionné automatiquement lorsqu’il existe ;
+- le catalogue correspondant s’affiche après la sélection.
+
+Installation :
+1. Remplacer les fichiers du dépôt GitHub par le contenu de GESTIONA-main.
+2. Valider le commit.
+3. Attendre le déploiement GitHub Pages.
+4. Fermer l’ancien onglet GESTIONA et rouvrir le site.
+5. Si nécessaire, faire Cmd + Shift + R.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés
