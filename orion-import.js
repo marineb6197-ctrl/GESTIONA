@@ -1,11 +1,11 @@
-(fonction(globale){
-  'utiliser le strict';
+(function(global){
+  'use strict';
 
   const normalize = (v) => String(v ?? '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[''`´]/g, "'")
+    .replace(/[’‘`´]/g, "'")
     .replace(/\s+/g, ' ')
-    .garniture();
+    .trim();
 
   const normalizeName = (v) => normalize(v).toUpperCase()
     .replace(/[^A-Z0-9]/g, '');
@@ -13,164 +13,164 @@
   const isReference = (v) => /^\d{2,12}$/.test(normalize(v));
 
   const looksLikeCategory = (ref, name) => {
-    const r = normaliser(ref), n = normaliser(nom);
-    si (!r && !n) retourner faux ;
-    si (r && !n && !isReference(r)) retourner vrai ;
-    si (!r && n && !isReference(n)) retourner vrai ;
-    renvoyer faux ;
+    const r = normalize(ref), n = normalize(name);
+    if (!r && !n) return false;
+    if (r && !n && !isReference(r)) return true;
+    if (!r && n && !isReference(n)) return true;
+    return false;
   };
 
-  fonction detectEstablishment(workbook, nom_fichier='') {
+  function detectEstablishment(workbook, filename='') {
     const haystack = [filename, ...workbook.SheetNames].join(' ').toLowerCase();
-    si (/danish/.test(haystack)) retourner 'Danois';
-    if (/elys[eé]e|elysee/.test(haystack)) renvoie "L'Élysée";
+    if (/danish/.test(haystack)) return 'Danish';
+    if (/elys[eé]e|elysee/.test(haystack)) return "L’Élysée";
 
-    pour chaque feuille de classeur (const sheetName) {
-      const lignes = global.XLSX.utils.sheet_to_json(
-        classeur.Feuilles[nom_de_la_feuille],
+    for (const sheetName of workbook.SheetNames) {
+      const rows = global.XLSX.utils.sheet_to_json(
+        workbook.Sheets[sheetName],
         {header:1, blankrows:false, defval:''}
-      ).tranche(0,12);
+      ).slice(0,12);
 
       const text = rows.flat().join(' ').toLowerCase();
-      si (/danish/.test(texte)) retourner 'Danois';
-      if (/elys[eé]e|elysee/.test(text)) renvoie "L'Élysée";
+      if (/danish/.test(text)) return 'Danish';
+      if (/elys[eé]e|elysee/.test(text)) return "L’Élysée";
     }
 
-    retourner 'À confirmer';
+    return 'À confirmer';
   }
 
-  function détecterArea(sheetName) {
+  function detectArea(sheetName) {
     const s = normalizeName(sheetName);
-    si (/CUISINE|KITCHEN/.test(s)) retourner 'cuisine';
-    si (/BAR|SALLE|ROOM/.test(s)) retourner 'bar_salle';
-    renvoyer 'autre';
+    if (/CUISINE|KITCHEN/.test(s)) return 'cuisine';
+    if (/BAR|SALLE|ROOM/.test(s)) return 'bar_salle';
+    return 'autre';
   }
 
-  fonction findColumns(rows) {
-    pour (soit i=0; i<Math.min(rows.length, 20); i++) {
-      const ligne = lignes[i].map(normalizeName);
+  function findColumns(rows) {
+    for (let i=0; i<Math.min(rows.length, 20); i++) {
+      const row = rows[i].map(normalizeName);
       const ref = row.findIndex(v => /REFERENCE|REF/.test(v));
-      const nom = ligne.findIndex(v => /ARTICLES?|PRODUITS?|DESIGNATION|DESCRIPTION/.test(v));
-      si (ref >= 0 && name >= 0) retourner {headerRow:i, refCol:ref, nameCol:name};
+      const name = row.findIndex(v => /ARTICLES?|PRODUITS?|DESIGNATION|DESCRIPTION/.test(v));
+      if (ref >= 0 && name >= 0) return {headerRow:i, refCol:ref, nameCol:name};
     }
-    renvoie {headerRow:5, refCol:0, nameCol:1};
+    return {headerRow:5, refCol:0, nameCol:1};
   }
 
-  fonction analyserFeuille(classeur, nomFeuille) {
-    const lignes = global.XLSX.utils.sheet_to_json(
-      classeur.Feuilles[nom_de_la_feuille],
+  function parseSheet(workbook, sheetName) {
+    const rows = global.XLSX.utils.sheet_to_json(
+      workbook.Sheets[sheetName],
       {header:1, blankrows:false, defval:''}
     );
 
     const {headerRow, refCol, nameCol} = findColumns(rows);
-    const zone = détecterArea(sheetName);
-    soit catégorie = 'SANS CATÉGORIE';
-    soit categoryOrder = 0 ;
-    const produits = [];
-    const avertissements = [];
+    const area = detectArea(sheetName);
+    let category = 'SANS CATÉGORIE';
+    let categoryOrder = 0;
+    const products = [];
+    const warnings = [];
 
-    pour (soit i=headerRow+1; i<rows.length; i++) {
-      const ligne = lignes[i] || [];
+    for (let i=headerRow+1; i<rows.length; i++) {
+      const row = rows[i] || [];
       const ref = normalize(row[refCol]);
-      const nom = normaliser(ligne[nomCol]);
+      const name = normalize(row[nameCol]);
 
-      si (!ref && !name) continuer;
+      if (!ref && !name) continue;
 
-      si (ressemble à la catégorie(ref, nom)) {
-        catégorie = normaliser(ref || nom).toUpperCase();
-        catégorieOrdre += 1;
-        continuer;
+      if (looksLikeCategory(ref, name)) {
+        category = normalize(ref || name).toUpperCase();
+        categoryOrder += 1;
+        continue;
       }
 
-      si (!isReference(ref)) {
-        avertissements.push({
-          feuille:nom_de_la_feuille,
-          ligne : i+1,
+      if (!isReference(ref)) {
+        warnings.push({
+          sheet:sheetName,
+          row:i+1,
           message:'Ligne ignorée : référence non reconnue',
-          valeurs:[ref,name]
+          values:[ref,name]
         });
-        continuer;
+        continue;
       }
 
-      si (!nom) {
-        avertissements.push({
-          feuille:nom_de_la_feuille,
-          ligne : i+1,
+      if (!name) {
+        warnings.push({
+          sheet:sheetName,
+          row:i+1,
           message:'Ligne ignorée : nom de produit vide',
-          valeurs:[ref,name]
+          values:[ref,name]
         });
-        continuer;
+        continue;
       }
 
-      produits.push({
-        fournisseur : 'Sligro',
-        référence : réf,
-        nom,
-        nom_normalisé:normaliserNom(nom),
-        catégorie,
-        ordre_catégorie : ordre_catégorie,
-        commande_produit:produits.longueur,
-        zone,
-        feuille_source:nom_de_la_feuille,
-        ligne_source:i+1
+      products.push({
+        supplier:'Sligro',
+        reference:ref,
+        name,
+        normalized_name:normalizeName(name),
+        category,
+        category_order:categoryOrder,
+        product_order:products.length,
+        area,
+        source_sheet:sheetName,
+        source_row:i+1
       });
     }
 
-    renvoie {sheetName, area, products, warnings};
+    return {sheetName, area, products, warnings};
   }
 
-  fonction deduplication(produits) {
+  function deduplicate(products) {
     const byRef = new Map();
     const duplicates = [];
 
-    pour (const p de produits) {
-      si (!byRef.has(p.reference)) {
-        parRef.set(p.reference, {
+    for (const p of products) {
+      if (!byRef.has(p.reference)) {
+        byRef.set(p.reference, {
           ...p,
-          zones:[p.area],
-          feuilles_sources:[p.source_sheet]
+          areas:[p.area],
+          source_sheets:[p.source_sheet]
         });
-        continuer;
+        continue;
       }
 
-      const courant = par référence.get(p.reference);
+      const current = byRef.get(p.reference);
       if (!current.areas.includes(p.area)) current.areas.push(p.area);
       if (!current.source_sheets.includes(p.source_sheet)) current.source_sheets.push(p.source_sheet);
 
-      si (current.normalized_name !== p.normalized_name) {
+      if (current.normalized_name !== p.normalized_name) {
         duplicates.push({
-          référence : p.référence,
-          conservé : nom.actuel,
-          alternative : p.nom
+          reference:p.reference,
+          kept:current.name,
+          alternative:p.name
         });
       }
     }
 
-    retour {
-      produits:[...parRef.valeurs()],
-      doublons
+    return {
+      products:[...byRef.values()],
+      duplicates
     };
   }
 
-  fonction analyzeWorkbook(arrayBuffer, nom_fichier='') {
-    si (!global.XLSX) {
+  function analyzeWorkbook(arrayBuffer, filename='') {
+    if (!global.XLSX) {
       throw new Error('La bibliothèque XLSX est absente. Rechargez la page.');
     }
 
-    si (!(arrayBuffer instanceof ArrayBuffer) || arrayBuffer.byteLength === 0) {
+    if (!(arrayBuffer instanceof ArrayBuffer) || arrayBuffer.byteLength === 0) {
       throw new Error('Le fichier sélectionné est vide ou illisible.');
     }
 
-    si (nom_de_fichier && !/\.(xlsx|xls)$/i.test(nom_de_fichier)) {
+    if (filename && !/\.(xlsx|xls)$/i.test(filename)) {
       throw new Error('Choisissez un fichier Excel .xlsx ou .xls.');
     }
 
-    const classeur = global.XLSX.read(arrayBuffer, {
-      type:'tableau',
+    const workbook = global.XLSX.read(arrayBuffer, {
+      type:'array',
       cellDates:true
     });
 
-    si (!workbook.SheetNames.length) {
+    if (!workbook.SheetNames.length) {
       throw new Error('Le classeur ne contient aucune feuille.');
     }
 
@@ -178,247 +178,247 @@
     const all = sheets.flatMap(s => s.products);
     const deduped = deduplicate(all);
 
-    si (!deduped.products.length) {
+    if (!deduped.products.length) {
       throw new Error('Aucun produit Sligro reconnu. Vérifiez la structure du fichier.');
     }
 
-    retour {
-      fournisseur : 'Sligro',
-      établissement:détecÉtablissement(classeur, nom_de_fichier),
-      nom de fichier,
-      feuilles:sheets.map(s => ({
-        nom:s.sheetName,
-        zone:s.zone,
-        nombre:s.produits.longueur
+    return {
+      supplier:'Sligro',
+      establishment:detectEstablishment(workbook, filename),
+      filename,
+      sheets:sheets.map(s => ({
+        name:s.sheetName,
+        area:s.area,
+        count:s.products.length
       })),
-      produits:deduped.products,
-      doublons:deduped.doublons,
-      avertissements :sheets.flatMap(s => s.warnings),
-      statistiques:{
-        lignesReconnues:all.length,
+      products:deduped.products,
+      duplicates:deduped.duplicates,
+      warnings:sheets.flatMap(s => s.warnings),
+      stats:{
+        rowsRecognized:all.length,
         uniqueProducts:deduped.products.length,
         duplicateReferences:all.length-deduped.products.length
       }
     };
   }
 
-  fonction compareCatalog(existant, entrant) {
+  function compareCatalog(existing, incoming) {
     const oldMap = new Map(
-      (existant || []).map(p => [
-        Chaîne(p.reference ?? p.sku ?? '').trim(),
+      (existing || []).map(p => [
+        String(p.reference ?? p.sku ?? '').trim(),
         p
       ])
     );
 
     const newMap = new Map(
-      (entrant || []).map(p => [
-        Chaîne(p.reference).trim(),
+      (incoming || []).map(p => [
+        String(p.reference).trim(),
         p
       ])
     );
 
-    const ajouté = [];
-    const modifié = [];
-    const inchangé = [];
-    const manquant = [];
+    const added = [];
+    const modified = [];
+    const unchanged = [];
+    const missing = [];
 
-    pour (const [ref, p] de newMap) {
-      const vieux = vieuxMap.get(ref);
+    for (const [ref, p] of newMap) {
+      const old = oldMap.get(ref);
 
-      si (!ancien) {
-        ajouté.pousser(p);
-        continuer;
+      if (!old) {
+        added.push(p);
+        continue;
       }
 
       const changes = {};
       const oldArea = old.area ?? old.location ?? '';
       const newArea = (p.areas || [p.area]).filter(Boolean).join(', ');
 
-      paires constantes = {
-        nom:[normalizeName(old.name), normalizeName(p.name)],
-        catégorie:[normaliser(ancienne.catégorie), normaliser(p.catégorie)],
-        zone : [normaliser (ancienne zone), normaliser (nouvelle zone)]
+      const pairs = {
+        name:[normalizeName(old.name), normalizeName(p.name)],
+        category:[normalize(old.category), normalize(p.category)],
+        area:[normalize(oldArea), normalize(newArea)]
       };
 
-      Objet.entrées(paires).forEach(([clé, [avant, après]]) => {
-        si (avant !== après) {
-          changements[clé] = {de:avant, à:après};
+      Object.entries(pairs).forEach(([key, [before, after]]) => {
+        if (before !== after) {
+          changes[key] = {from:before, to:after};
         }
       });
 
-      si (Object.keys(changes).length || old.active === false) {
-        modifié.push({
-          avant : vieux,
-          après:p,
-          changements
+      if (Object.keys(changes).length || old.active === false) {
+        modified.push({
+          before:old,
+          after:p,
+          changes
         });
-      } autre {
-        inchangé.pousser(p);
+      } else {
+        unchanged.push(p);
       }
     }
 
-    pour (const [ref, p] de oldMap) {
-      si (ref && !newMap.has(ref)) {
-        manquant.pousser(p);
+    for (const [ref, p] of oldMap) {
+      if (ref && !newMap.has(ref)) {
+        missing.push(p);
       }
     }
 
-    retour {
-      ajouta
-      modifié,
-      inchangé,
-      manquant,
-      résumé:{
-        ajouté:ajouté.longueur,
-        modifié:longueur.modifiée,
-        inchangé:longueur inchangée,
-        manquant:longueur manquante
+    return {
+      added,
+      modified,
+      unchanged,
+      missing,
+      summary:{
+        added:added.length,
+        modified:modified.length,
+        unchanged:unchanged.length,
+        missing:missing.length
       }
     };
   }
 
-  fonction getVenueSelect() {
-    retourner global.document?.getElementById('orionVenue') || null;
+  function getVenueSelect() {
+    return global.document?.getElementById('orionVenue') || null;
   }
 
-  fonction fillVenueSelectFromGlobalData() {
+  function fillVenueSelectFromGlobalData() {
     const select = getVenueSelect();
-    si (!select) retourner faux ;
+    if (!select) return false;
 
     const currentValue = select.value;
     const venueList = Array.isArray(global.venues) ? global.venues : [];
 
-    sélectionner.innerHTML =
-      '<option value="">Choisir l'établissement</option>' +
+    select.innerHTML =
+      '<option value="">Choisir l’établissement</option>' +
       venueList.map(v =>
         `<option value="${String(v.id)}">${String(v.name ?? '')}</option>`
-      ).rejoindre('');
+      ).join('');
 
-    si (currentValue && venueList.some(v => String(v.id) === String(currentValue))) {
-      sélectionner.valeur = valeur_actuelle;
+    if (currentValue && venueList.some(v => String(v.id) === String(currentValue))) {
+      select.value = currentValue;
     } else if (global.selectedVenue && global.selectedVenue !== 'all') {
-      sélectionner.valeur = global.lieu sélectionné;
+      select.value = global.selectedVenue;
     }
 
-    retourner venueList.length > 0 ;
+    return venueList.length > 0;
   }
 
-  fonction selectVenueByDetectedName(detectedName) {
+  function selectVenueByDetectedName(detectedName) {
     const select = getVenueSelect();
     if (!select || !detectedName || detectedName === 'À confirmer') return false;
 
-    const détecté = normaliserNom(nomdétecté);
+    const detected = normalizeName(detectedName);
     const options = [...select.options];
 
     const exact = options.find(option =>
-      normalizeName(option.textContent) === détecté
+      normalizeName(option.textContent) === detected
     );
 
     const partial = options.find(option => {
-      const nom = normalizeName(option.textContent);
+      const name = normalizeName(option.textContent);
 
-      si (détecté.inclut('DANISH')) {
-        retourner nom.includes('DANISH');
+      if (detected.includes('DANISH')) {
+        return name.includes('DANISH');
       }
 
-      si (détecté.include('ELYSEE')) {
-        retourner nom.includes('ELYSEE');
+      if (detected.includes('ELYSEE')) {
+        return name.includes('ELYSEE');
       }
 
-      renvoyer faux ;
+      return false;
     });
 
-    const correspondance = exact || partiel;
+    const match = exact || partial;
 
-    si (!match) retourner faux ;
+    if (!match) return false;
 
-    sélectionner.valeur = match.valeur;
+    select.value = match.value;
     select.dispatchEvent(new Event('change', {bubbles:true}));
-    renvoyer vrai ;
+    return true;
   }
 
-  fonction startVenueAutoRefresh() {
-    soit tentatives = 0 ;
+  function startVenueAutoRefresh() {
+    let attempts = 0;
 
     const timer = global.setInterval(() => {
-      tentatives += 1 ;
+      attempts += 1;
 
-      const remplie =
+      const filled =
         (typeof global.fillOrionVenues === 'function' &&
           (() => {
-            essayer {
+            try {
               global.fillOrionVenues();
-              retourner getVenueSelect()?.options.length > 1;
-            } attraper {
-              renvoyer faux ;
+              return getVenueSelect()?.options.length > 1;
+            } catch {
+              return false;
             }
-          })(
-        ) || remplirVenueSelectFromGlobalData();
+          })()
+        ) || fillVenueSelectFromGlobalData();
 
-      si (rempli || tentatives >= 20) {
+      if (filled || attempts >= 20) {
         global.clearInterval(timer);
       }
     }, 250);
   }
 
-  fonction initialiserOrionUi() {
+  function initializeOrionUi() {
     global.addEventListener('load', () => {
-      démarrerVenueAutoRefresh();
+      startVenueAutoRefresh();
     });
 
     global.document?.addEventListener('click', event => {
       const button = event.target.closest?.('[data-view="orion"]');
 
-      si (bouton) {
-        démarrerVenueAutoRefresh();
+      if (button) {
+        startVenueAutoRefresh();
       }
     });
 
     global.document?.addEventListener('change', async event => {
       const input = event.target;
 
-      si (!input || input.id !== 'orionFile') retourner;
+      if (!input || input.id !== 'orionFile') return;
 
-      const fichier = input.files?.[0];
-      si (!fichier) retourner;
+      const file = input.files?.[0];
+      if (!file) return;
 
-      essayer {
-        const analyse = analyzeWorkbook(await file.arrayBuffer(), file.name);
-        const sélectionné = sélectionnerVenueByNomDétecté(analyse.établissement);
+      try {
+        const analysis = analyzeWorkbook(await file.arrayBuffer(), file.name);
+        const selected = selectVenueByDetectedName(analysis.establishment);
         const message = global.document.getElementById('orionMessage');
 
-        si (message) {
-          si (sélectionné) {
+        if (message) {
+          if (selected) {
             message.innerHTML =
               `<div class="notice success">` +
               `${analysis.establishment} détecté automatiquement. ` +
-              `L'établissement correspondant a été sélectionné.` +
+              `L’établissement correspondant a été sélectionné.` +
               `</div>`;
-          } autre {
+          } else {
             message.innerHTML =
               `<div class="notice">` +
               `${analysis.establishment} détecté. ` +
-              `Veuillez confirmer l'établissement avant l'analyse.` +
+              `Veuillez confirmer l’établissement avant l’analyse.` +
               `</div>`;
           }
         }
-      } attraper {
-        /* Le bouton Analyser affichera le message d'erreur complet. */
+      } catch {
+        /* Le bouton Analyser affichera le message d’erreur complet. */
       }
     });
   }
 
   global.ORIONImport = {
-    version : '0.3.0',
-    normaliser,
-    normaliserNom,
-    analyser le classeur,
-    comparerCatalogue,
-    analyserSheet,
-    dédupliquer,
-    sélectionnerLieuParNomDétecté,
-    remplirVenueSelectFromGlobalData
+    version:'0.3.0',
+    normalize,
+    normalizeName,
+    analyzeWorkbook,
+    compareCatalog,
+    parseSheet,
+    deduplicate,
+    selectVenueByDetectedName,
+    fillVenueSelectFromGlobalData
   };
 
-  initialiserOrionUi();
+  initializeOrionUi();
 })(typeof window !== 'undefined' ? window : globalThis);
