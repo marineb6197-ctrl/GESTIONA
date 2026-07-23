@@ -1,0 +1,9 @@
+GESTIONA v18.2 — Nouvel établissement
+
+- Nouvel onglet Établissements
+- Cartes pour les établissements existants
+- Bouton Nouvel établissement
+- Assistant en 4 étapes : informations, identité, modules/banque, résumé
+- Création réelle de l’établissement dans Supabase
+- Couleurs et fiche détaillée enregistrées localement sur l’appareil
+- Ajout automatique au sélecteur principal après création

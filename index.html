@@ -20,7 +20,7 @@
 <div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div>
 <div class="theme-onboarding-row"><div class="field"><label>Couleur principale</label><input id="venueTwoColor" type="color" value="#173f2b"></div><div class="field"><label>Couleur d’accent</label><input id="venueTwoAccent" type="color" value="#c59a43"></div></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><div class="side-head"><h1>GESTIONA</h1><p class="version">ERP v17.0 — Thèmes dynamiques</p><select id="venueSelect" class="venue-select"></select></div><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="actions">✅ Centre d’actions</button><button data-view="activity">🛡️ Sécurité & activité</button><button data-view="settings">⚙️ Paramètres</button></nav></aside>
+<div class="app"><aside class="side"><div class="side-head"><h1>GESTIONA</h1><p class="version">ERP v17.0 — Thèmes dynamiques</p><select id="venueSelect" class="venue-select"></select></div><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="venues">🏢 Établissements</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="actions">✅ Centre d’actions</button><button data-view="activity">🛡️ Sécurité & activité</button><button data-view="settings">⚙️ Paramètres</button></nav></aside>
 <main class="main"><header class="top"><h2 id="pageTitle">ORION Copilote</h2><div class="row"><span id="roleBadge" class="badge ok">Utilisateur</span><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
 <section id="view-dashboard" class="view active">
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">Votre journée est analysée : priorités, risques et économies sont regroupés ici.</p></div><span class="orion-live">● ORION ACTIF</span></div>
@@ -326,6 +326,13 @@
     <div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Date</th><th>Action</th><th>Catégorie</th><th>Détails</th></tr></thead><tbody id="activityBody"></tbody></table></div>
   </div>
 </section>
+<section id="view-venues" class="view">
+  <div class="venue-page-head">
+    <div><span class="eyebrow">GESTION MULTI-ÉTABLISSEMENTS</span><h2>Vos établissements</h2><p class="muted">Consultez les informations de chaque site ou créez un nouvel établissement.</p></div>
+    <button class="btn primary" id="newVenueBtn">＋ Nouvel établissement</button>
+  </div>
+  <div id="venueDirectory" class="venue-directory"></div>
+</section>
 <section id="view-settings" class="view"><div class="card theme-settings-card"><div class="mission-title"><div><h3>🎨 Apparence des établissements</h3><p class="tiny">Chaque établissement possède ses propres couleurs. Le thème change automatiquement selon la sélection.</p></div><span class="badge ok">Aperçu instantané</span></div><div id="venueThemeSettings" class="venue-theme-settings"></div><div class="notice" style="margin-top:12px">Lorsque plusieurs établissements sont sélectionnés, GESTIONA crée automatiquement un dégradé avec leurs couleurs principales.</div></div><div class="grid two" style="margin-top:15px"><div class="card"><h3>Cloud Supabase</h3><p class="muted">Connexion active. Les données enregistrées dans cette version sont partagées entre vos appareils connectés au même compte.</p><p class="tiny" id="projectInfo"></p><button class="btn soft" id="resetConfig">Modifier la connexion Supabase</button></div><div class="card"><h3>Envoi des commandes</h3><p class="muted">GESTIONA prépare le message et l’ouvre dans la messagerie de l’utilisateur. Aucun compte Resend, domaine vérifié ou clé API n’est nécessaire.</p><div id="emailConfigStatus" class="notice success">Prêt : envoi depuis votre propre boîte mail.</div><button class="btn primary" id="openEmailConfigBtn" style="margin-top:12px">Voir le fonctionnement</button></div><div class="card"><h3>Propriété</h3><p><b>GESTIONA ERP</b><br>Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés.</p></div></div></section>
 </div></main></div>
 <nav class="mobile-nav"><button data-view="dashboard" class="active">🧠<br>Copilote</button><button data-view="products">📦<br>Produits</button><button data-view="recipes">🍽️<br>Recettes</button><button data-view="menus">📋<br>Menus</button><button data-view="pos">🧾<br>Caisse</button><button data-view="suppliers">🚚<br>Fournisseurs</button><button data-view="orders">🛒<br>Commandes</button><button data-view="reception">📷<br>Réception</button><button data-view="finance">💶<br>Finance</button><button data-view="orion">🤖<br>ORION</button><button data-view="actions">✅<br>Actions</button><button data-view="activity">🛡️<br>Activité</button><button data-view="settings">⚙️<br>Réglages</button></nav></section>
@@ -525,7 +532,42 @@
   <div id="productionNotice" class="notice hidden"></div>
   <div class="actions"><button class="btn soft" type="button" data-close="productionPlanModal">Fermer</button><button class="btn primary" id="executeProductionPlanBtn" type="button">Valider et retirer du stock</button></div>
 </div></div>
+
+<div id="venueWizardModal" class="modal-bg"><div class="modal venue-wizard-modal">
+  <div class="modal-head"><div><span class="eyebrow">NOUVEL ÉTABLISSEMENT</span><h3 id="venueWizardTitle">Informations générales</h3></div><button class="btn soft" data-close="venueWizardModal">✕</button></div>
+  <div class="wizard-progress"><span class="active" data-wizard-dot="1">1</span><i></i><span data-wizard-dot="2">2</span><i></i><span data-wizard-dot="3">3</span><i></i><span data-wizard-dot="4">4</span></div>
+  <form id="venueWizardForm">
+    <section class="wizard-step active" data-wizard-step="1">
+      <div class="form-grid">
+        <div class="field"><label>Nom de l’établissement *</label><input id="nvName" required placeholder="Ex. Brasserie Centrale"></div>
+        <div class="field"><label>Type d’activité</label><select id="nvType"><option>Restaurant</option><option>Brasserie</option><option>Café</option><option>Bar</option><option>Hôtel</option><option>Commerce</option><option>Autre</option></select></div>
+        <div class="field"><label>Numéro d’entreprise</label><input id="nvCompany" placeholder="BE 0123.456.789"></div>
+        <div class="field"><label>Numéro de TVA</label><input id="nvVat" placeholder="BE 0123.456.789"></div>
+        <div class="field full"><label>Adresse</label><input id="nvAddress" placeholder="Rue et numéro"></div>
+        <div class="field"><label>Code postal</label><input id="nvZip"></div><div class="field"><label>Ville</label><input id="nvCity"></div>
+        <div class="field"><label>Pays</label><input id="nvCountry" value="Belgique"></div><div class="field"><label>Téléphone</label><input id="nvPhone" type="tel"></div>
+        <div class="field"><label>E-mail</label><input id="nvEmail" type="email"></div><div class="field"><label>Site internet</label><input id="nvWebsite" type="url" placeholder="https://"></div>
+      </div>
+    </section>
+    <section class="wizard-step" data-wizard-step="2">
+      <div class="identity-grid">
+        <div class="field"><label>Logo</label><input id="nvLogo" type="file" accept="image/*"><p class="tiny">Le logo est enregistré sur cet appareil dans cette version.</p></div>
+        <div class="theme-picker"><label>Couleur principale<input id="nvPrimary" type="color" value="#64142a"></label><label>Couleur d’accent<input id="nvAccent" type="color" value="#c59a43"></label></div>
+        <div id="nvThemePreview" class="new-venue-preview"><span>APERÇU</span><b id="nvPreviewName">Nouvel établissement</b><small>GESTIONA</small></div>
+      </div>
+    </section>
+    <section class="wizard-step" data-wizard-step="3">
+      <h3>Modules activés</h3><div class="module-checks">
+        <label><input type="checkbox" name="nvModule" value="stocks" checked> 📦 Stocks</label><label><input type="checkbox" name="nvModule" value="suppliers" checked> 🚚 Fournisseurs</label><label><input type="checkbox" name="nvModule" value="orders" checked> 🛒 Commandes</label><label><input type="checkbox" name="nvModule" value="finance" checked> 💶 Finance</label><label><input type="checkbox" name="nvModule" value="staff" checked> 👥 Personnel</label><label><input type="checkbox" name="nvModule" value="planning" checked> 📅 Planning</label><label><input type="checkbox" name="nvModule" value="pos" checked> 🧾 Caisse</label><label><input type="checkbox" name="nvModule" value="recipes" checked> 🍽️ Recettes</label>
+      </div>
+      <div class="form-grid" style="margin-top:18px"><div class="field"><label>IBAN</label><input id="nvIban"></div><div class="field"><label>BIC</label><input id="nvBic"></div><div class="field full"><label>Conditions de paiement</label><input id="nvPayment" placeholder="Ex. 30 jours fin de mois"></div></div>
+    </section>
+    <section class="wizard-step" data-wizard-step="4"><div id="venueWizardSummary" class="venue-summary"></div></section>
+    <div id="venueWizardMsg"></div>
+    <div class="actions wizard-actions"><button type="button" class="btn soft hidden" id="venueWizardPrev">← Retour</button><button type="button" class="btn primary" id="venueWizardNext">Continuer →</button><button type="submit" class="btn primary hidden" id="venueWizardCreate">Créer l’établissement</button></div>
+  </form>
+</div></div>
 <div id="toast" class="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="assets/js/app.js?v=17.0-dynamic-themes"></script>
+<script src="assets/js/app.js?v=18.2-new-venue"></script>
 </body></html>
