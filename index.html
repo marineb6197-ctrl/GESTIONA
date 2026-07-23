@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v7.6 — ORION Stock Intelligent</title>
+<title>GESTIONA ERP v7.7 — ORION Finance</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -30,6 +30,16 @@
 
 /* GESTIONA v7.6 — ORION Stock Intelligent */
 .stock-intel-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stock-intel-kpi{padding:12px;border:1px solid var(--line);border-radius:13px;background:#fff}.stock-intel-kpi span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800}.stock-intel-kpi b{display:block;margin-top:5px;font-size:21px;color:var(--wine)}.stock-intel-list{display:grid;gap:8px;margin-top:12px}.stock-intel-item{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff}.stock-intel-item .ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:#f4e9e1}.stock-intel-item small{display:block;color:var(--muted);margin-top:3px}.stock-intel-actions{display:flex;gap:6px;flex-wrap:wrap}.stock-intel-note{padding:10px 12px;border-radius:11px;background:#fff8e7;border:1px solid #e6ce96;font-size:13px}.stock-intel-progress{height:7px;background:#eee3da;border-radius:999px;overflow:hidden;margin-top:7px}.stock-intel-progress i{display:block;height:100%;background:var(--gold)}@media(max-width:850px){.stock-intel-grid{grid-template-columns:repeat(2,1fr)}.stock-intel-item{grid-template-columns:36px 1fr}.stock-intel-actions{grid-column:2}}
+
+.finance-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.finance-alerts{display:grid;gap:9px}
+.finance-alert{display:grid;grid-template-columns:40px 1fr auto;gap:11px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.finance-alert.bad{border-color:#e8a7ac;background:#fff7f7}.finance-alert.warn{border-color:#ead29c;background:#fffaf0}.finance-alert.ok{border-color:#b8ddc8;background:#f7fff9}
+.finance-alert small{display:block;color:var(--muted);margin-top:3px}
+.finance-bar{height:9px;border-radius:999px;background:#eee4dc;overflow:hidden;margin-top:7px}.finance-bar i{display:block;height:100%;background:var(--wine);border-radius:999px}
+.finance-category{padding:11px 0;border-bottom:1px solid var(--line)}.finance-category:last-child{border-bottom:0}
+@media(max-width:850px){.finance-kpis{grid-template-columns:repeat(2,1fr)}.finance-alert{grid-template-columns:36px 1fr}.finance-alert .badge{grid-column:2}}
+
 </style>
 </head>
 <body>
@@ -37,7 +47,7 @@
 <section id="authScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">ERP cloud — Créé par Marine Bruynbroeck</p><div id="authMsg"></div><div class="field"><label>Nom complet</label><input id="authName" placeholder="Marine Bruynbroeck"></div><div class="field"><label>Email</label><input id="authEmail" type="email"></div><div class="field"><label>Mot de passe</label><input id="authPassword" type="password" minlength="6"></div><div class="row"><button class="btn primary" id="loginBtn">Se connecter</button><button class="btn gold" id="signupBtn">Créer mon compte</button><button class="btn soft" id="changeConfigBtn">Modifier Supabase</button></div></div></section>
 <section id="onboardingScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">Création de votre espace professionnel</p><div id="onboardMsg"></div><div class="field"><label>Nom de l'organisation</label><input id="orgName" value="GESTIONA"></div><div class="field"><label>Votre nom complet</label><input id="ownerName" value="Marine Bruynbroeck"></div><div class="field"><label>Premier établissement</label><input id="venueOne" placeholder="Nom de l'établissement"></div><div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v7.6 — ORION Stock Intelligent</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🏠 Tableau de bord</button><button data-view="products">📦 Produits & stocks</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
+<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v7.7 — ORION Finance</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🏠 Tableau de bord</button><button data-view="products">📦 Produits & stocks</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
 <main class="main"><header class="top"><h2 id="pageTitle">Tableau de bord</h2><div class="row"><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
 <section id="view-dashboard" class="view active">
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">ORION analyse votre activité et prépare vos priorités.</p></div><span class="orion-live">● ORION ACTIF</span></div>
@@ -82,6 +92,28 @@
 </div>
 <div class="card" style="margin-top:16px"><div class="toolbar"><input id="orderSearch" class="grow" placeholder="Rechercher un numéro ou un fournisseur"><select id="orderFilter"><option value="all">Tous les statuts</option><option value="draft">Brouillons</option><option value="sent">Envoyées</option><option value="confirmed">Confirmées</option><option value="partially_received">Partiellement reçues</option><option value="received">Reçues</option><option value="cancelled">Annulées</option></select><button class="btn gold" id="addOrderBtn">+ Commande libre</button></div><div class="table-wrap"><table class="table"><thead><tr><th>N°</th><th>Fournisseur</th><th>Établissement</th><th>Date souhaitée</th><th>Statut</th><th>Total HTVA</th><th></th></tr></thead><tbody id="ordersBody"></tbody></table></div></div></section>
 
+
+<section id="view-finance" class="view">
+  <div class="welcome"><h2>💶 ORION Finance</h2><p>Analyse vos achats, vos marges et les variations de prix à partir des données déjà enregistrées.</p></div>
+  <div class="finance-kpis">
+    <div class="card kpi"><span>Achats sur 30 jours</span><strong id="financeSpend30">0,00 €</strong></div>
+    <div class="card kpi"><span>Marge moyenne</span><strong id="financeAvgMargin">0 %</strong></div>
+    <div class="card kpi"><span>Produits sous objectif</span><strong id="financeBelowTarget">0</strong></div>
+    <div class="card kpi"><span>Alertes prix</span><strong id="financePriceAlerts">0</strong></div>
+  </div>
+  <div class="grid two" style="margin-top:15px">
+    <div class="card orion-card">
+      <div class="row between"><div><h3 style="margin-bottom:4px">🤖 Diagnostic ORION</h3><div class="tiny">Les contrôles sont recalculés à chaque ouverture.</div></div><button class="btn gold mini" id="financeRefreshBtn">Actualiser</button></div>
+      <div id="financeAlerts" class="finance-alerts" style="margin-top:13px"></div>
+    </div>
+    <div class="card"><h3>Dépenses par fournisseur — 30 jours</h3><div id="financeSupplierSpend"></div></div>
+  </div>
+  <div class="grid two" style="margin-top:15px">
+    <div class="card"><h3>Marges par catégorie</h3><div id="financeCategoryMargins"></div></div>
+    <div class="card"><h3>Produits à contrôler</h3><div class="table-wrap"><table class="table"><thead><tr><th>Produit</th><th>Coût unitaire</th><th>Prix vente HTVA</th><th>Marge</th><th>Objectif</th><th>Écart</th></tr></thead><tbody id="financeProductsBody"></tbody></table></div></div>
+  </div>
+</section>
+
 <section id="view-orion" class="view">
   <div class="welcome"><h2>ORION Import</h2><p>Analyse et actualise votre liste de commande Sligro à partir d’un fichier Excel.</p></div>
   <div class="card">
@@ -112,7 +144,7 @@
 </section>
 <section id="view-settings" class="view"><div class="grid two"><div class="card"><h3>Cloud Supabase</h3><p class="muted">Connexion active. Les données enregistrées dans cette version sont partagées entre vos appareils connectés au même compte.</p><p class="tiny" id="projectInfo"></p><button class="btn soft" id="resetConfig">Modifier la connexion Supabase</button></div><div class="card"><h3>Envoi des commandes</h3><p class="muted">GESTIONA prépare le message et l’ouvre dans la messagerie de l’utilisateur. Aucun compte Resend, domaine vérifié ou clé API n’est nécessaire.</p><div id="emailConfigStatus" class="notice success">Prêt : envoi depuis votre propre boîte mail.</div><button class="btn primary" id="openEmailConfigBtn" style="margin-top:12px">Voir le fonctionnement</button></div><div class="card"><h3>Propriété</h3><p><b>GESTIONA ERP</b><br>Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés.</p></div></div></section>
 </div></main></div>
-<nav class="mobile-nav"><button data-view="dashboard" class="active">🏠<br>Accueil</button><button data-view="products">📦<br>Produits</button><button data-view="suppliers">🚚<br>Fournisseurs</button><button data-view="orders">🛒<br>Commandes</button><button data-view="orion">🤖<br>ORION</button><button data-view="settings">⚙️<br>Réglages</button></nav></section>
+<nav class="mobile-nav"><button data-view="dashboard" class="active">🏠<br>Accueil</button><button data-view="products">📦<br>Produits</button><button data-view="suppliers">🚚<br>Fournisseurs</button><button data-view="orders">🛒<br>Commandes</button><button data-view="finance">💶<br>Finance</button><button data-view="orion">🤖<br>ORION</button><button data-view="settings">⚙️<br>Réglages</button></nav></section>
 <div id="productModal" class="modal-bg"><div class="modal"><div class="modal-head"><h3 id="productModalTitle">Ajouter un produit</h3><button class="btn soft" data-close="productModal">✕</button></div><form id="productForm"><input type="hidden" id="productId"><div class="form-grid">
 <div class="field"><label>Nom du produit</label><input id="pName" required></div><div class="field"><label>Photo (URL facultative)</label><input id="pImage" type="url" placeholder="https://..."><div id="imagePreview" class="tiny" style="margin-top:7px">Aucun aperçu</div></div>
 <div class="field"><label>Référence interne</label><input id="pSku" placeholder="Ex. BOIS-COCA-20"></div><div class="field"><label>Code-barres</label><div class="row"><input id="pBarcode" inputmode="numeric" style="flex:1"><button type="button" class="btn soft" id="scanBarcodeBtn">Scanner</button></div></div>
@@ -137,21 +169,22 @@
 <div id="sendEmailModal" class="modal-bg"><div class="modal" style="max-width:760px"><div class="modal-head"><h3>Préparer la commande</h3><button class="btn soft" data-close="sendEmailModal">✕</button></div><form id="sendEmailForm"><div class="form-grid"><div class="field full"><label>Destinataire</label><input id="sendTo" type="email" required></div><div class="field full"><label>Objet</label><input id="sendSubject" required></div><div class="field full"><label>Message</label><textarea id="sendBody" rows="12" required></textarea></div></div><div class="notice">Le message s’ouvrira dans votre propre messagerie. Les navigateurs ne permettent pas de joindre automatiquement un PDF : utilisez « Imprimer / PDF » si une pièce jointe est nécessaire.</div><div class="actions"><button type="button" class="btn soft" id="openGmailBtn">Ouvrir dans Gmail</button><button class="btn primary" type="submit" id="confirmSendBtn">Ouvrir dans ma messagerie</button></div></form></div></div>
 <div id="movementModal" class="modal-bg"><div class="modal" style="max-width:620px"><div class="modal-head"><h3>Mouvement de stock</h3><button class="btn soft" data-close="movementModal">✕</button></div><form id="movementForm"><input type="hidden" id="mProductId"><div class="notice" id="movementProductLabel"></div><div class="form-grid"><div class="field"><label>Type de mouvement</label><select id="mType"><option value="purchase">Réception / achat (+)</option><option value="correction">Correction (+ ou −)</option><option value="inventory">Inventaire (nouveau stock)</option><option value="waste">Perte / casse (−)</option><option value="sale">Sortie / consommation (−)</option></select></div><div class="field"><label>Quantité</label><input id="mQuantity" type="number" step="0.001" min="0" required></div><div class="field full"><label>Remarque</label><textarea id="mNote" rows="3" placeholder="Ex. Livraison Sligro, casse, correction inventaire…"></textarea></div></div><div class="actions"><button type="button" class="btn soft" data-close="movementModal">Annuler</button><button class="btn primary" type="submit">Enregistrer le mouvement</button></div></form><h3 style="margin-top:22px">Historique récent</h3><div id="movementHistory" class="history-list"></div></div></div><div id="toast" class="toast"></div>
 <script>
-const LS_URL='gestiona_supabase_url',LS_KEY='gestiona_supabase_key',LS_SCHEDULES='gestiona_order_schedules_v1',LS_NOTIF_STATE='gestiona_notification_state_v1';let sb=null,user=null,profile=null,orgId=null,venues=[],products=[],suppliers=[],orders=[],orderItems=[],activity=[],movements=[],selectedVenue='all';let quickOrder={quantities:{},notes:{}};let orionOrderSuggestions=[];
+const LS_URL='gestiona_supabase_url',LS_KEY='gestiona_supabase_key',LS_SCHEDULES='gestiona_order_schedules_v1',LS_NOTIF_STATE='gestiona_notification_state_v1';let sb=null,user=null,profile=null,orgId=null,venues=[],products=[],suppliers=[],orders=[],orderItems=[],activity=[],movements=[],priceHistoryRows=[],selectedVenue='all';let quickOrder={quantities:{},notes:{}};let orionOrderSuggestions=[];
 const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('fr-BE',{style:'currency',currency:'EUR'}).format(Number(n||0));const num=n=>Number(n||0);const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function show(id){['setupScreen','authScreen','onboardingScreen','appScreen'].forEach(x=>$(x).classList.add('hidden'));$(id).classList.remove('hidden')}function msg(id,text,type='notice'){$(id).innerHTML=text?`<div class="notice ${type}">${esc(text)}</div>`:''}function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2400)}
 function initClient(){const url=localStorage.getItem(LS_URL),key=localStorage.getItem(LS_KEY);if(!url||!key)return false;try{sb=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});return true}catch(e){return false}}
 async function boot(){if(!initClient()){show('setupScreen');return}const {data:{session}}=await sb.auth.getSession();if(!session){show('authScreen');return}user=session.user;await loadProfile()}
 async function loadProfile(){const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();if(error){msg('authMsg',error.message,'error');show('authScreen');return}profile=data;if(!profile?.organization_id){$('ownerName').value=profile?.full_name||user.user_metadata?.full_name||'';show('onboardingScreen');return}orgId=profile.organization_id;await loadApp()}
-async function loadApp(){show('appScreen');$('userLabel').textContent=profile?.full_name||user.email;$('hello').textContent=`Bonjour ${(profile?.full_name||'').split(' ')[0]||''} 👋`;$('projectInfo').textContent=localStorage.getItem(LS_URL)||'';await Promise.all([loadVenues(),loadSuppliers(),loadProducts(),loadMovements(),loadOrders(),loadActivity()]);renderAll()}
+async function loadApp(){show('appScreen');$('userLabel').textContent=profile?.full_name||user.email;$('hello').textContent=`Bonjour ${(profile?.full_name||'').split(' ')[0]||''} 👋`;$('projectInfo').textContent=localStorage.getItem(LS_URL)||'';await Promise.all([loadVenues(),loadSuppliers(),loadProducts(),loadMovements(),loadPriceHistoryRows(),loadOrders(),loadActivity()]);renderAll()}
 async function loadVenues(){const {data,error}=await sb.from('venues').select('*').order('name');if(error)throw error;venues=data||[];const opts=['<option value="all">Tous les établissements</option>',...venues.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`)];$('venueSelect').innerHTML=opts.join('');$('venueSelect').value=selectedVenue}
 async function loadSuppliers(){const {data,error}=await sb.from('suppliers').select('*').order('name');if(error)throw error;suppliers=data||[]}
 async function loadProducts(){let q=sb.from('products').select('*').order('name');const {data,error}=await q;if(error)throw error;products=data||[]}
 async function loadMovements(){const {data,error}=await sb.from('stock_movements').select('*').order('created_at',{ascending:false}).limit(200);if(error)throw error;movements=data||[]}
+async function loadPriceHistoryRows(){const {data,error}=await sb.from('product_prices').select('product_id,supplier_id,package_price_excl_vat,units_per_package,unit_price_excl_vat,effective_at,created_at').order('effective_at',{ascending:false}).limit(2000);if(error&&error.code!=='42P01')throw error;priceHistoryRows=data||[]}
 async function loadOrders(){const {data,error}=await sb.from('purchase_orders').select('*,suppliers(name),venues(name),purchase_order_items(*)').order('created_at',{ascending:false});if(error)throw error;orders=data||[]}
 async function loadActivity(){const {data}=await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(8);activity=data||[]}
 function visibleProducts(includeArchived=false){return products.filter(p=>(includeArchived||p.active!==false)&&(selectedVenue==='all'||!p.venue_id||p.venue_id===selectedVenue))}function unitCost(p){return num(p.package_price_excl_vat)/Math.max(num(p.units_per_package),1)}function saleEx(p){return num(p.sale_price_incl_vat)/(1+num(p.sale_vat)/100)}function marginPct(p){const c=unitCost(p),s=saleEx(p);return s>0?((s-c)/s)*100:0}function status(p){if(num(p.stock)<=0)return['Rupture','bad'];if(num(p.stock)<=num(p.minimum_stock))return['À commander','warn'];return['En stock','ok']}
-function renderAll(){renderDashboard();renderSmartNotifications();renderCatalogFilters();renderProducts();renderStockIntelligence();renderSuppliers();renderOrders();renderSupplierOptions();renderOrderOptions();fillQuickOrderOptions()}
+function renderAll(){renderDashboard();renderSmartNotifications();renderCatalogFilters();renderProducts();renderStockIntelligence();renderFinance();renderSuppliers();renderOrders();renderSupplierOptions();renderOrderOptions();fillQuickOrderOptions()}
 function renderDashboard(){
  const list=visibleProducts(),low=list.filter(p=>num(p.stock)<=num(p.minimum_stock)),value=list.reduce((a,p)=>a+num(p.stock)*unitCost(p),0),margins=list.filter(p=>num(p.sale_price_incl_vat)>0).map(marginPct);
  const openOrders=orders.filter(o=>o.status&&!['received','cancelled'].includes(o.status)&&(selectedVenue==='all'||!o.venue_id||o.venue_id===selectedVenue));
@@ -177,6 +210,61 @@ function renderDashboard(){
  renderMissionCenter({list,low,openOrders,suggested,waste,completeness});
 }
 
+
+
+function financeVisibleOrders(){
+ const since=new Date();since.setDate(since.getDate()-30);
+ return orders.filter(o=>new Date(o.created_at)>=since&&(selectedVenue==='all'||!o.venue_id||o.venue_id===selectedVenue)&&o.status!=='cancelled');
+}
+function financePriceChanges(){
+ const byProduct=new Map();
+ priceHistoryRows.forEach(r=>{if(!byProduct.has(r.product_id))byProduct.set(r.product_id,[]);byProduct.get(r.product_id).push(r)});
+ const alerts=[];
+ visibleProducts().forEach(p=>{
+   const rows=(byProduct.get(p.id)||[]).sort((a,b)=>new Date(b.effective_at||b.created_at)-new Date(a.effective_at||a.created_at));
+   if(rows.length<2)return;
+   const current=num(rows[0].unit_price_excl_vat)||num(rows[0].package_price_excl_vat)/Math.max(num(rows[0].units_per_package),1);
+   const previous=num(rows[1].unit_price_excl_vat)||num(rows[1].package_price_excl_vat)/Math.max(num(rows[1].units_per_package),1);
+   if(previous<=0)return;
+   const pct=(current-previous)/previous*100;
+   if(Math.abs(pct)>=5)alerts.push({product:p,current,previous,pct});
+ });
+ return alerts.sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct));
+}
+function renderFinance(){
+ if(!$('financeSpend30'))return;
+ const list=visibleProducts();
+ const recentOrders=financeVisibleOrders();
+ const spend=recentOrders.reduce((sum,o)=>sum+orderTotal(o),0);
+ const marginProducts=list.filter(p=>saleEx(p)>0&&unitCost(p)>0);
+ const avgMargin=marginProducts.length?marginProducts.reduce((s,p)=>s+marginPct(p),0)/marginProducts.length:0;
+ const below=marginProducts.filter(p=>{const target=num(p.target_margin_percent)||65;return marginPct(p)<target});
+ const priceAlerts=financePriceChanges();
+ $('financeSpend30').textContent=money(spend);
+ $('financeAvgMargin').textContent=avgMargin.toFixed(1)+' %';
+ $('financeBelowTarget').textContent=below.length;
+ $('financePriceAlerts').textContent=priceAlerts.filter(x=>x.pct>0).length;
+
+ const alerts=[];
+ priceAlerts.filter(x=>x.pct>0).slice(0,5).forEach(x=>alerts.push({cls:x.pct>=15?'bad':'warn',icon:'📈',title:`${x.product.name} a augmenté de ${x.pct.toFixed(1)} %`,detail:`${money(x.previous)} → ${money(x.current)} par unité`,badge:'Prix'}));
+ below.sort((a,b)=>(marginPct(a)-(num(a.target_margin_percent)||65))-(marginPct(b)-(num(b.target_margin_percent)||65))).slice(0,5).forEach(p=>alerts.push({cls:marginPct(p)<40?'bad':'warn',icon:'📉',title:`Marge faible : ${p.name}`,detail:`Marge ${marginPct(p).toFixed(1)} % · objectif ${num(p.target_margin_percent)||65} %`,badge:'Marge'}));
+ if(!alerts.length)alerts.push({cls:'ok',icon:'✅',title:'Aucune anomalie financière importante',detail:'Les prix et marges disponibles sont cohérents.',badge:'OK'});
+ $('financeAlerts').innerHTML=alerts.slice(0,8).map(a=>`<div class="finance-alert ${a.cls}"><span style="font-size:22px">${a.icon}</span><div><b>${esc(a.title)}</b><small>${esc(a.detail)}</small></div><span class="badge ${a.cls==='bad'?'bad':a.cls==='warn'?'warn':'ok'}">${a.badge}</span></div>`).join('');
+
+ const supplierTotals={};
+ recentOrders.forEach(o=>{const name=o.suppliers?.name||'Sans fournisseur';supplierTotals[name]=(supplierTotals[name]||0)+orderTotal(o)});
+ const supplierRows=Object.entries(supplierTotals).sort((a,b)=>b[1]-a[1]);
+ const maxSupplier=supplierRows[0]?.[1]||1;
+ $('financeSupplierSpend').innerHTML=supplierRows.length?supplierRows.map(([name,total])=>`<div class="finance-category"><div class="row between"><b>${esc(name)}</b><span class="money">${money(total)}</span></div><div class="finance-bar"><i style="width:${Math.max(3,total/maxSupplier*100)}%"></i></div></div>`).join(''):'<div class="empty">Aucune commande enregistrée sur les 30 derniers jours.</div>';
+
+ const cats={};
+ marginProducts.forEach(p=>{const c=p.category||'Sans catégorie';(cats[c]??=[]).push(marginPct(p))});
+ const catRows=Object.entries(cats).map(([name,vals])=>[name,vals.reduce((a,b)=>a+b,0)/vals.length,vals.length]).sort((a,b)=>b[1]-a[1]);
+ $('financeCategoryMargins').innerHTML=catRows.length?catRows.map(([name,margin,count])=>`<div class="finance-category"><div class="row between"><b>${esc(name)}</b><span>${margin.toFixed(1)} % · ${count} produit(s)</span></div><div class="finance-bar"><i style="width:${Math.max(2,Math.min(100,margin))}%"></i></div></div>`).join(''):'<div class="empty">Ajoutez des prix d’achat et de vente pour calculer les marges.</div>';
+
+ const rows=below.slice(0,20);
+ $('financeProductsBody').innerHTML=rows.length?rows.map(p=>{const margin=marginPct(p),target=num(p.target_margin_percent)||65,diff=margin-target;return `<tr><td><b>${esc(p.name)}</b><div class="tiny">${esc(p.category||'Sans catégorie')}</div></td><td>${money(unitCost(p))}</td><td>${money(saleEx(p))}</td><td><span class="badge ${margin<40?'bad':'warn'}">${margin.toFixed(1)} %</span></td><td>${target.toFixed(1)} %</td><td class="${diff<0?'movement-negative':'movement-positive'}">${diff.toFixed(1)} pts</td></tr>`}).join(''):'<tr><td colspan="6" class="empty">Aucun produit sous son objectif de marge.</td></tr>';
+}
 
 function missionOpenView(view){document.querySelector(`[data-view="${view}"]`)?.click()}
 function renderMissionCenter(ctx){
@@ -315,7 +403,7 @@ function exportCatalogCsv(){const list=catalogFilteredProducts();if(!list.length
 function resetProduct(){ $('productForm').reset();$('productId').value='';$('pUnit').value='pièce';$('pUnits').value='1';$('pPurchaseVat').value='21';$('pSaleVat').value='21';$('pFavorite').value='false';$('deleteProductBtn').classList.add('hidden');$('duplicateProductBtn').classList.add('hidden');renderImagePreview();$('productModalTitle').textContent='Ajouter un produit';renderSupplierOptions();loadPriceHistory(null);updateProductCalculations()}
 window.editProduct=async id=>{const p=products.find(x=>x.id===id);if(!p)return;resetProduct();$('productId').value=p.id;$('pName').value=p.name;$('pImage').value=p.image_url||'';$('pSku').value=p.sku||'';$('pBarcode').value=p.barcode||'';$('pCategory').value=p.category||'';$('pSubcategory').value=p.subcategory||'';$('pSupplier').value=p.supplier_id||'';$('pUnit').value=p.unit||'pièce';$('pStock').value=p.stock;$('pMin').value=p.minimum_stock;$('pPackage').value=p.package_price_excl_vat;$('pUnits').value=p.units_per_package;$('pPurchaseVat').value=p.purchase_vat;$('pSale').value=p.sale_price_incl_vat;$('pSaleVat').value=p.sale_vat;$('pTargetMargin').value=p.target_margin_percent??'';$('pLocation').value=p.location||'';$('pFavorite').value=String(!!p.favorite);$('pNotes').value=p.notes||'';$('deleteProductBtn').classList.remove('hidden');$('duplicateProductBtn').classList.remove('hidden');renderImagePreview();$('productModalTitle').textContent='Fiche produit';updateProductCalculations();await loadPriceHistory(id);openModal('productModal')}
 function resetSupplier(){ $('supplierForm').reset();$('supplierId').value='';$('deleteSupplierBtn').classList.add('hidden');$('supplierModalTitle').textContent='Ajouter un fournisseur'}window.editSupplier=id=>{const s=suppliers.find(x=>x.id===id);if(!s)return;resetSupplier();$('supplierId').value=s.id;$('sName').value=s.name;$('sContact').value=s.contact_name||'';$('sEmail').value=s.email||'';$('sPhone').value=s.phone||'';$('sDays').value=s.delivery_days||'';$('sTerms').value=s.payment_terms||'';$('sNotes').value=s.notes||'';$('deleteSupplierBtn').classList.remove('hidden');$('supplierModalTitle').textContent='Modifier le fournisseur';openModal('supplierModal')}
-async function refresh(){await Promise.all([loadSuppliers(),loadProducts(),loadMovements(),loadOrders(),loadActivity()]);renderAll();fillOrionVenues()}
+async function refresh(){await Promise.all([loadSuppliers(),loadProducts(),loadMovements(),loadPriceHistoryRows(),loadOrders(),loadActivity()]);renderAll();fillOrionVenues()}
 $('saveConfig').onclick=()=>{const u=$('setupUrl').value.trim().replace(/\/$/,''),k=$('setupKey').value.trim();if(!u.includes('.supabase.co')||k.length<20){msg('setupMsg','Vérifiez l’URL et la clé publique.','error');return}localStorage.setItem(LS_URL,u);localStorage.setItem(LS_KEY,k);location.reload()};$('changeConfigBtn').onclick=()=>{localStorage.removeItem(LS_URL);localStorage.removeItem(LS_KEY);location.reload()};$('resetConfig').onclick=$('changeConfigBtn').onclick;
 $('loginBtn').onclick=async()=>{msg('authMsg','');const {error}=await sb.auth.signInWithPassword({email:$('authEmail').value.trim(),password:$('authPassword').value});if(error){msg('authMsg',error.message,'error');return}location.reload()};$('signupBtn').onclick=async()=>{msg('authMsg','');const email=$('authEmail').value.trim(),password=$('authPassword').value,name=$('authName').value.trim();const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});if(error){msg('authMsg',error.message,'error');return}if(!data.session){msg('authMsg','Compte créé. Confirmez votre adresse e-mail, puis connectez-vous.','success')}else location.reload()};$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};
 $('createOrgBtn').onclick=async()=>{msg('onboardMsg','');const {data,error}=await sb.rpc('bootstrap_organization',{organization_name:$('orgName').value.trim(),user_full_name:$('ownerName').value.trim()});if(error){msg('onboardMsg',error.message,'error');return}orgId=data;const names=[$('venueOne').value.trim(),$('venueTwo').value.trim()].filter(Boolean);if(names.length){const rows=names.map(name=>({organization_id:orgId,name}));const {error:e}=await sb.from('venues').insert(rows);if(e){msg('onboardMsg',e.message,'error');return}}location.reload()};
@@ -376,6 +464,7 @@ async function applyOrionImport(){if(!orionComparison||!orionAnalysis)return;con
  for(const x of orionComparison.rows.filter(x=>x.action==='modify')){const {error}=await sb.from('products').update({supplier_id:supplier.id,name:x.incoming.name,category:x.incoming.category||null,location:(x.incoming.areas||[]).join(', ')||null,active:true,notes:'Actualisé par ORION Import — '+orionAnalysis.filename}).eq('id',x.existing.id);if(error)throw error}
  if($('orionArchiveMissing').checked&&orionComparison.missing.length){const ids=orionComparison.missing.map(x=>x.existing.id);const {error}=await sb.from('products').update({active:false}).in('id',ids);if(error)throw error}
  await audit('Catalogue actualisé par ORION Import','catalog_import',null,{filename:orionAnalysis.filename,venue_id:venueId,summary:orionComparison.summary,archive_missing:$('orionArchiveMissing').checked});await refresh();fillOrionVenues();$('orionResults').classList.add('hidden');$('orionFile').value='';orionAnalysis=null;orionComparison=null;toast('Catalogue Sligro actualisé avec succès')}catch(e){toast('Import impossible : '+(e.message||e))}finally{$('orionApplyBtn').disabled=false;$('orionApplyBtn').textContent='Valider la mise à jour'}}
+$('financeRefreshBtn')?.addEventListener('click',async()=>{await Promise.all([loadProducts(),loadOrders(),loadPriceHistoryRows()]);renderFinance();toast('Analyse financière actualisée')});
 $('orionAnalyzeBtn').onclick=async()=>{const f=$('orionFile').files[0],venueId=orionSelectedVenue();if(!venueId){toast('Choisissez l’établissement');return}if(!f){toast('Choisissez un fichier Excel');return}try{$('orionMessage').innerHTML='<div class="notice">Analyse en cours…</div>';orionAnalysis=ORIONImport.analyzeWorkbook(await f.arrayBuffer(),f.name);orionComparison=orionCompare(orionAnalysis,venueId);$('orionMessage').innerHTML=`<div class="success notice">${esc(orionAnalysis.establishment)} détecté · ${orionAnalysis.stats.uniqueProducts} produits uniques · ${orionAnalysis.warnings.length} avertissement(s)</div>`;renderOrionComparison()}catch(e){$('orionMessage').innerHTML=`<div class="error notice">${esc(e.message||e)}</div>`}};
 $('orionApplyBtn').onclick=applyOrionImport;$('orionCancelBtn').onclick=()=>{$('orionResults').classList.add('hidden');orionAnalysis=null;orionComparison=null};
 

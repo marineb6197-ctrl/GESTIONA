@@ -1,0 +1,18 @@
+GESTIONA v7.7 — ORION Finance
+
+Nouveautés :
+- tableau de bord financier dédié ;
+- dépenses fournisseurs sur les 30 derniers jours ;
+- marge moyenne et marges par catégorie ;
+- détection des produits sous leur objectif de marge ;
+- alertes sur les variations de prix d'achat d'au moins 5 % ;
+- classement des dépenses par fournisseur ;
+- diagnostic ORION actualisable à la demande.
+
+Cette version utilise les tables déjà présentes :
+products, product_prices, purchase_orders et purchase_order_items.
+Aucune nouvelle migration Supabase n'est nécessaire.
+
+Important :
+Les analyses dépendent des prix d'achat, prix de vente et historiques réellement enregistrés.
+ORION ne modifie aucun prix et n'envoie aucune commande automatiquement.
