@@ -1,0 +1,12 @@
+GESTIONA v8.3 — Réception intelligente
+
+- Le bon de livraison est lié à une commande.
+- Les produits et quantités restant à recevoir sont repris automatiquement.
+- L’utilisateur corrige les quantités réellement livrées.
+- ORION indique les produits et quantités manquants.
+- Après confirmation, le stock est augmenté produit par produit.
+- Les quantités reçues et le statut de la commande sont mis à jour.
+- Une réception enregistrée ne peut pas être appliquée deux fois depuis le même document.
+
+Sans service OCR externe, le scan sert de justificatif et ouvre le contrôle. Les lignes viennent
+de la commande liée et doivent être vérifiées avant validation.

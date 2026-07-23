@@ -42,8 +42,8 @@ function renderDashboard(){
 
 
 
-const SUPPLIER_DOC_KEY='gestiona_supplier_documents_v82';
-let supplierDocuments=[];let supplierDocumentFileMeta=null;
+const SUPPLIER_DOC_KEY='gestiona_supplier_documents_v83';
+let supplierDocuments=[];let supplierDocumentFileMeta=null;let deliveryReceiptLines=[];
 function loadSupplierDocuments(){try{supplierDocuments=JSON.parse(localStorage.getItem(SUPPLIER_DOC_KEY)||'[]');if(!Array.isArray(supplierDocuments))supplierDocuments=[]}catch{supplierDocuments=[]}}
 function saveSupplierDocuments(){localStorage.setItem(SUPPLIER_DOC_KEY,JSON.stringify(supplierDocuments));renderSupplierDocuments()}
 function docOrderTotal(o){return orderTotal(o)}
@@ -60,13 +60,13 @@ function renderSupplierDocuments(){
  if(!$('supplierDocsBody'))return;const q=($('docSearch')?.value||'').toLowerCase(),filter=$('docTypeFilter')?.value||'all';
  const rows=supplierDocuments.filter(d=>(filter==='all'||d.kind===filter)&&[d.number,d.filename,d.supplierName].join(' ').toLowerCase().includes(q)).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
  $('docTotalCount').textContent=supplierDocuments.length;$('docPendingCount').textContent=supplierDocuments.filter(d=>d.status==='pending').length;$('docIssueCount').textContent=supplierDocuments.filter(d=>d.status==='issue').length;
- $('supplierDocsBody').innerHTML=rows.length?rows.map(d=>`<tr><td><span class="doc-type-icon">${d.kind==='delivery'?'🚚':'📄'}</span> <button class="link-btn doc-link" data-doc-open="${d.id}">${esc(d.number||d.filename||documentTypeLabel(d.kind))}</button><div class="tiny">${esc(documentTypeLabel(d.kind))} · ${esc(d.filename||'sans fichier')}</div></td><td>${esc(d.supplierName||'À identifier')}</td><td>${d.date?new Date(d.date+'T12:00:00').toLocaleDateString('fr-BE'):'—'}</td><td>${esc(d.orderNumber||'—')}</td><td>${money(num(d.subtotal))}</td><td>${documentStatusBadge(d.status)}</td><td><button class="btn soft mini" data-doc-open="${d.id}">Ouvrir</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">Aucun document fournisseur enregistré.</td></tr>';
+ $('supplierDocsBody').innerHTML=rows.length?rows.map(d=>`<tr><td><span class="doc-type-icon">${d.kind==='delivery'?'🚚':'📄'}</span> <button class="link-btn doc-link" data-doc-open="${d.id}">${esc(d.number||d.filename||documentTypeLabel(d.kind))}</button><div class="tiny">${esc(documentTypeLabel(d.kind))} · ${esc(d.filename||'sans fichier')}</div></td><td>${esc(d.supplierName||'À identifier')}</td><td>${d.date?new Date(d.date+'T12:00:00').toLocaleDateString('fr-BE'):'—'}</td><td>${esc(d.orderNumber||'—')}</td><td>${money(num(d.subtotal))}</td><td>${documentStatusBadge(d.status)}${d.kind==='delivery'&&d.missingProducts?.length?`<div class="tiny">${d.missingProducts.length} produit(s) manquant(s)</div>`:''}${d.stockApplied?'<div class="tiny">Stock actualisé</div>':''}</td><td><button class="btn soft mini" data-doc-open="${d.id}">Ouvrir</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">Aucun document fournisseur enregistré.</td></tr>';
  document.querySelectorAll('[data-doc-open]').forEach(b=>b.onclick=()=>openSupplierDocument(b.dataset.docOpen));
 }
 function resetSupplierDocumentForm(kind='invoice'){
- $('supplierDocumentForm').reset();$('docEditId').value='';$('docKind').value=kind;$('docKindSelect').value=kind;$('docDate').value=new Date().toISOString().slice(0,10);$('docStatus').value='pending';$('deleteSupplierDocumentBtn').classList.add('hidden');supplierDocumentFileMeta=null;$('docFilePreview').classList.add('hidden');$('docFilePreview').innerHTML='';fillSupplierDocumentOptions();if(selectedVenue!=='all')$('docVenue').value=selectedVenue;updateDocumentOrderOptions();$('supplierDocumentTitle').textContent=kind==='delivery'?'🚚 Scanner un bon de livraison':'📄 Scanner une facture';renderDocumentComparison();openModal('supplierDocumentModal')
+ $('supplierDocumentForm').reset();$('docEditId').value='';$('docKind').value=kind;$('docKindSelect').value=kind;$('docDate').value=new Date().toISOString().slice(0,10);$('docStatus').value='pending';$('deleteSupplierDocumentBtn').classList.add('hidden');supplierDocumentFileMeta=null;$('docFilePreview').classList.add('hidden');$('docFilePreview').innerHTML='';fillSupplierDocumentOptions();if(selectedVenue!=='all')$('docVenue').value=selectedVenue;updateDocumentOrderOptions();$('supplierDocumentTitle').textContent=kind==='delivery'?'🚚 Scanner un bon de livraison':'📄 Scanner une facture';deliveryReceiptLines=[];renderDocumentComparison();openModal('supplierDocumentModal')
 }
-function openSupplierDocument(id){const d=supplierDocuments.find(x=>x.id===id);if(!d)return;resetSupplierDocumentForm(d.kind);$('docEditId').value=d.id;$('docKindSelect').value=d.kind;$('docKind').value=d.kind;$('docVenue').value=d.venueId||'';$('docSupplier').value=d.supplierId||'';updateDocumentOrderOptions();$('docOrder').value=d.orderId||'';$('docNumber').value=d.number||'';$('docDate').value=d.date||'';$('docSubtotal').value=d.subtotal||0;$('docVat').value=d.vat||0;$('docTotal').value=d.total||0;$('docStatus').value=d.status||'pending';$('docNotes').value=d.notes||'';supplierDocumentFileMeta={filename:d.filename,mime:d.mime,size:d.size,preview:d.preview||null};showSupplierDocumentFile();$('deleteSupplierDocumentBtn').classList.remove('hidden');renderDocumentComparison()}
+function openSupplierDocument(id){const d=supplierDocuments.find(x=>x.id===id);if(!d)return;resetSupplierDocumentForm(d.kind);$('docEditId').value=d.id;$('docKindSelect').value=d.kind;$('docKind').value=d.kind;$('docVenue').value=d.venueId||'';$('docSupplier').value=d.supplierId||'';updateDocumentOrderOptions();$('docOrder').value=d.orderId||'';$('docNumber').value=d.number||'';$('docDate').value=d.date||'';$('docSubtotal').value=d.subtotal||0;$('docVat').value=d.vat||0;$('docTotal').value=d.total||0;$('docStatus').value=d.status||'pending';$('docNotes').value=d.notes||'';supplierDocumentFileMeta={filename:d.filename,mime:d.mime,size:d.size,preview:d.preview||null};showSupplierDocumentFile();$('deleteSupplierDocumentBtn').classList.remove('hidden');deliveryReceiptLines=(d.deliveryLines||[]).map(x=>({...x}));renderDocumentComparison()}
 function showSupplierDocumentFile(){if(!supplierDocumentFileMeta)return;const m=supplierDocumentFileMeta;const visual=m.preview?`<img src="${m.preview}" alt="Aperçu">`:`<span class="file-icon">${m.mime==='application/pdf'?'📕':'🖼️'}</span>`;$('docFilePreview').innerHTML=`${visual}<div><b>${esc(m.filename||'Document')}</b><div class="tiny">${esc(m.mime||'fichier')} · ${m.size?Math.round(m.size/1024)+' Ko':'taille inconnue'}</div></div>`;$('docFilePreview').classList.remove('hidden')}
 function handleSupplierDocumentFile(file){if(!file)return;if(file.size>12*1024*1024){toast('Le fichier dépasse 12 Mo');return}supplierDocumentFileMeta={filename:file.name,mime:file.type||'application/octet-stream',size:file.size,preview:null};if(file.type.startsWith('image/')&&file.size<=1200000){const r=new FileReader();r.onload=()=>{supplierDocumentFileMeta.preview=r.result;showSupplierDocumentFile()};r.readAsDataURL(file)}else showSupplierDocumentFile();if(!$('docNumber').value)$('docNumber').value=file.name.replace(/\.[^.]+$/,'')}
 function compareSupplierDocument(){
@@ -74,9 +74,91 @@ function compareSupplierDocument(){
  if(order){const expected=docOrderTotal(order),diff=subtotal-expected;checks.push({ok:Math.abs(diff)<0.02,icon:Math.abs(diff)<0.02?'✅':'⚠️',label:'Total HTVA comparé à la commande',detail:`Commande ${money(expected)} · document ${money(subtotal)}${Math.abs(diff)>=0.02?' · écart '+money(diff):''}`});if(Math.abs(diff)>=0.02)issue=true;if(supplierId&&order.supplier_id!==supplierId){checks.push({ok:false,icon:'⚠️',label:'Fournisseur différent de la commande',detail:'Vérifiez le fournisseur sélectionné.'});issue=true}else checks.push({ok:true,icon:'✅',label:'Fournisseur cohérent',detail:'Le fournisseur correspond à la commande liée.'})
  }else checks.push({ok:false,icon:'ℹ️',label:'Aucune commande liée',detail:'Le contrôle des montants et quantités restera manuel.'});
  if(total>0&&subtotal>0){const vat=total-subtotal,entered=num($('docVat').value);const ok=Math.abs(vat-entered)<0.02;checks.push({ok,icon:ok?'✅':'⚠️',label:'Cohérence HTVA / TVA / TVAC',detail:`TVA calculée ${money(vat)} · TVA saisie ${money(entered)}`});if(!ok)issue=true}
- $('docComparison').innerHTML=checks.map(c=>`<div class="doc-check"><span>${c.icon}</span><div><b>${esc(c.label)}</b><div class="tiny">${esc(c.detail)}</div></div><span class="badge ${c.ok?'ok':'warn'}">${c.ok?'OK':'À voir'}</span></div>`).join('');if(order)$('docStatus').value=issue?'issue':'matched';return {issue,checks}
+ $('docComparison').innerHTML=checks.map(c=>`<div class="doc-check"><span>${c.icon}</span><div><b>${esc(c.label)}</b><div class="tiny">${esc(c.detail)}</div></div><span class="badge ${c.ok?'ok':'warn'}">${c.ok?'OK':'À voir'}</span></div>`).join('');if(order&&$('docKindSelect')?.value!=='delivery')$('docStatus').value=issue?'issue':'matched';return {issue,checks}
 }
-function renderDocumentComparison(){if(!$('docComparison'))return;compareSupplierDocument()}
+
+function selectedDeliveryOrder(){return orders.find(o=>o.id===$('docOrder')?.value)}
+function buildDeliveryReceiptLines(force=false){
+ const kind=$('docKindSelect')?.value;
+ const order=selectedDeliveryOrder();
+ const box=$('deliveryReceptionBox'),apply=$('applyDeliveryReceiptBtn');
+ if(!box||!apply)return;
+ if(kind!=='delivery'||!order){deliveryReceiptLines=[];box.classList.add('hidden');apply.classList.add('hidden');return}
+ box.classList.remove('hidden');
+ const savedId=$('docEditId')?.value;
+ const saved=supplierDocuments.find(d=>d.id===savedId);
+ if(!force&&saved?.deliveryLines?.length){
+   deliveryReceiptLines=saved.deliveryLines.map(x=>({...x,receivedNow:num(x.receivedNow)}));
+ }else{
+   deliveryReceiptLines=(order.purchase_order_items||[]).map(item=>{
+     const ordered=num(item.quantity_ordered),already=num(item.quantity_received),remaining=Math.max(0,ordered-already);
+     return {itemId:item.id,productId:item.product_id||null,description:item.description||products.find(p=>p.id===item.product_id)?.name||'Produit',ordered,alreadyReceived:already,receivedNow:remaining,unit:products.find(p=>p.id===item.product_id)?.unit||'unité'};
+   });
+ }
+ renderDeliveryReceiptLines();
+ apply.classList.toggle('hidden',!!saved?.stockApplied);
+ if(saved?.stockApplied)apply.textContent='✅ Réception déjà appliquée au stock';else apply.textContent='✅ Valider la réception et mettre le stock à jour';
+ apply.disabled=!!saved?.stockApplied||!deliveryReceiptLines.length;
+}
+function setDeliveryReceived(index,value){
+ if(!deliveryReceiptLines[index])return;
+ const max=Math.max(0,deliveryReceiptLines[index].ordered-deliveryReceiptLines[index].alreadyReceived);
+ deliveryReceiptLines[index].receivedNow=Math.max(0,Math.min(num(value),max));
+ renderDeliveryReceiptLines();
+ compareSupplierDocument();
+}
+function renderDeliveryReceiptLines(){
+ const body=$('deliveryLinesBody'),summary=$('deliverySummary');if(!body||!summary)return;
+ if(!deliveryReceiptLines.length){body.innerHTML='<tr><td colspan="6" class="empty">Cette commande ne contient aucune ligne.</td></tr>';summary.innerHTML='';return}
+ let expected=0,received=0,missing=0;
+ body.innerHTML=deliveryReceiptLines.map((l,i)=>{
+   const remaining=Math.max(0,l.ordered-l.alreadyReceived),miss=Math.max(0,remaining-l.receivedNow);
+   expected+=remaining;received+=l.receivedNow;missing+=miss;
+   return `<tr class="${miss>0?'delivery-missing':'delivery-complete'}"><td><b>${esc(l.description)}</b><div class="tiny">${esc(l.unit||'unité')}</div></td><td>${l.ordered}</td><td>${l.alreadyReceived}</td><td><input type="number" min="0" max="${remaining}" step="0.001" value="${l.receivedNow}" onchange="setDeliveryReceived(${i},this.value)"></td><td><b>${miss}</b></td><td><span class="badge ${miss>0?'bad':'ok'}">${miss>0?'Manquant':'Reçu'}</span></td></tr>`;
+ }).join('');
+ summary.innerHTML=`<div class="delivery-summary-grid"><div><span>Attendu</span><b>${expected}</b></div><div><span>Reçu</span><b>${received}</b></div><div><span>Manquant</span><b>${missing}</b></div></div>`;
+ if($('docStatus'))$('docStatus').value=missing>0?'issue':'matched';
+}
+function deliveryMissingProducts(){
+ return deliveryReceiptLines.map(l=>({...l,missing:Math.max(0,l.ordered-l.alreadyReceived-l.receivedNow)})).filter(l=>l.missing>0);
+}
+async function applyDeliveryReceipt(){
+ const order=selectedDeliveryOrder();
+ if(!order){toast('Sélectionnez la commande liée');return}
+ if($('docKindSelect').value!=='delivery'){toast('Cette action concerne les bons de livraison');return}
+ const editId=$('docEditId').value;
+ const existing=supplierDocuments.find(d=>d.id===editId);
+ if(existing?.stockApplied){toast('Cette réception a déjà été appliquée');return}
+ const receivedLines=deliveryReceiptLines.filter(l=>num(l.receivedNow)>0);
+ const missing=deliveryMissingProducts();
+ if(!deliveryReceiptLines.length){toast('Aucune ligne de réception');return}
+ if(!confirm(`Confirmer la réception de ${receivedLines.length} produit(s) ?\n\nLe stock sera augmenté. ${missing.length?missing.length+' produit(s) sont signalés comme manquants.':'Aucun produit manquant.'}`))return;
+ const btn=$('applyDeliveryReceiptBtn');btn.disabled=true;btn.textContent='Mise à jour du stock…';
+ try{
+   for(const l of receivedLines){
+     if(l.productId){
+       const {error}=await sb.rpc('record_stock_movement',{p_product_id:l.productId,p_quantity:num(l.receivedNow),p_movement_type:'purchase',p_note:`Réception ${$('docNumber').value||'bon de livraison'} · commande ${order.order_number||''}`});
+       if(error)throw error;
+     }
+     const {error:itemError}=await sb.from('purchase_order_items').update({quantity_received:num(l.alreadyReceived)+num(l.receivedNow)}).eq('id',l.itemId);
+     if(itemError)throw itemError;
+   }
+   const allComplete=deliveryReceiptLines.every(l=>num(l.alreadyReceived)+num(l.receivedNow)>=num(l.ordered));
+   const {error:orderError}=await sb.from('purchase_orders').update({status:allComplete?'received':'partially_received'}).eq('id',order.id);
+   if(orderError)throw orderError;
+   const id=editId||('doc-'+Date.now()),supplier=suppliers.find(s=>s.id===$('docSupplier').value),venue=venues.find(v=>v.id===$('docVenue').value),old=supplierDocuments.find(d=>d.id===id);
+   const notesMissing=missing.length?`Produits manquants : ${missing.map(x=>`${x.description} (${x.missing})`).join(', ')}`:'Livraison complète';
+   const d={id,kind:'delivery',venueId:$('docVenue').value||order.venue_id||null,venueName:venue?.name||order.venues?.name||'',supplierId:$('docSupplier').value||order.supplier_id||null,supplierName:supplier?.name||order.suppliers?.name||'',orderId:order.id,orderNumber:order.order_number||'',number:$('docNumber').value.trim(),date:$('docDate').value,subtotal:num($('docSubtotal').value),vat:num($('docVat').value),total:num($('docTotal').value),status:missing.length?'issue':'matched',notes:[$('docNotes').value.trim(),notesMissing].filter(Boolean).join('\n'),filename:supplierDocumentFileMeta?.filename||old?.filename||'',mime:supplierDocumentFileMeta?.mime||old?.mime||'',size:supplierDocumentFileMeta?.size||old?.size||0,preview:supplierDocumentFileMeta?.preview||old?.preview||null,deliveryLines:deliveryReceiptLines.map(x=>({...x})),missingProducts:missing.map(x=>({productId:x.productId,description:x.description,missing:x.missing})),stockApplied:true,stockAppliedAt:new Date().toISOString(),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+   supplierDocuments=supplierDocuments.filter(x=>x.id!==id);supplierDocuments.push(d);saveSupplierDocuments();
+   await audit('Bon de livraison validé','purchase_order',order.id,{document_number:d.number,received:receivedLines.map(x=>({product_id:x.productId,quantity:x.receivedNow})),missing:d.missingProducts,status:allComplete?'received':'partially_received'});
+   $('docEditId').value=id;
+   await refresh();openSupplierDocument(id);
+   toast(missing.length?`Stock mis à jour · ${missing.length} produit(s) manquant(s)`:'Stock mis à jour · livraison complète');
+ }catch(e){toast('Réception impossible : '+(e.message||e))}
+ finally{btn.disabled=false;btn.textContent='✅ Valider la réception et mettre le stock à jour'}
+}
+function renderDocumentComparison(){if(!$('docComparison'))return;compareSupplierDocument();buildDeliveryReceiptLines()}
+
 function exportSupplierDocuments(){const data=JSON.stringify(supplierDocuments.map(({preview,...d})=>d),null,2),blob=new Blob([data],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gestiona-documents-fournisseurs.json';a.click();URL.revokeObjectURL(a.href)}
 
 function financeVisibleOrders(){
@@ -381,12 +463,15 @@ $('scanInvoiceBtn')?.addEventListener('click',()=>resetSupplierDocumentForm('inv
 $('scanDeliveryBtn')?.addEventListener('click',()=>resetSupplierDocumentForm('delivery'));
 $('chooseDocumentBtn')?.addEventListener('click',()=>$('supplierDocumentFile').click());
 $('supplierDocumentFile')?.addEventListener('change',e=>handleSupplierDocumentFile(e.target.files[0]));
-$('docKindSelect')?.addEventListener('change',e=>{$('docKind').value=e.target.value;$('supplierDocumentTitle').textContent=e.target.value==='delivery'?'🚚 Scanner un bon de livraison':'📄 Scanner une facture'});
-$('docSupplier')?.addEventListener('change',()=>{updateDocumentOrderOptions();renderDocumentComparison()});$('docVenue')?.addEventListener('change',()=>{updateDocumentOrderOptions();renderDocumentComparison()});$('docOrder')?.addEventListener('change',renderDocumentComparison);['docSubtotal','docVat','docTotal'].forEach(id=>$(id)?.addEventListener('input',renderDocumentComparison));
+$('docKindSelect')?.addEventListener('change',e=>{$('docKind').value=e.target.value;$('supplierDocumentTitle').textContent=e.target.value==='delivery'?'🚚 Scanner un bon de livraison':'📄 Scanner une facture';deliveryReceiptLines=[];renderDocumentComparison()});
+$('docSupplier')?.addEventListener('change',()=>{updateDocumentOrderOptions();renderDocumentComparison()});$('docVenue')?.addEventListener('change',()=>{updateDocumentOrderOptions();renderDocumentComparison()});$('docOrder')?.addEventListener('change',()=>{deliveryReceiptLines=[];renderDocumentComparison()});['docSubtotal','docVat','docTotal'].forEach(id=>$(id)?.addEventListener('input',renderDocumentComparison));
 $('compareSupplierDocumentBtn')?.addEventListener('click',()=>{compareSupplierDocument();toast('Comparaison actualisée')});
+$('resetDeliveryLinesBtn')?.addEventListener('click',()=>buildDeliveryReceiptLines(true));
+$('applyDeliveryReceiptBtn')?.addEventListener('click',applyDeliveryReceipt);
 $('docSearch')?.addEventListener('input',renderSupplierDocuments);$('docTypeFilter')?.addEventListener('change',renderSupplierDocuments);$('exportDocsBtn')?.addEventListener('click',exportSupplierDocuments);
-$('supplierDocumentForm')?.addEventListener('submit',e=>{e.preventDefault();const id=$('docEditId').value||('doc-'+Date.now()),supplier=suppliers.find(s=>s.id===$('docSupplier').value),order=orders.find(o=>o.id===$('docOrder').value),venue=venues.find(v=>v.id===$('docVenue').value);const old=supplierDocuments.find(d=>d.id===id);const d={id,kind:$('docKindSelect').value,venueId:$('docVenue').value||null,venueName:venue?.name||'',supplierId:$('docSupplier').value||null,supplierName:supplier?.name||'',orderId:$('docOrder').value||null,orderNumber:order?.order_number||'',number:$('docNumber').value.trim(),date:$('docDate').value,subtotal:num($('docSubtotal').value),vat:num($('docVat').value),total:num($('docTotal').value),status:$('docStatus').value,notes:$('docNotes').value.trim(),filename:supplierDocumentFileMeta?.filename||old?.filename||'',mime:supplierDocumentFileMeta?.mime||old?.mime||'',size:supplierDocumentFileMeta?.size||old?.size||0,preview:supplierDocumentFileMeta?.preview||old?.preview||null,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};supplierDocuments=supplierDocuments.filter(x=>x.id!==id);supplierDocuments.push(d);saveSupplierDocuments();closeModal('supplierDocumentModal');toast('Document fournisseur enregistré')});
+$('supplierDocumentForm')?.addEventListener('submit',e=>{e.preventDefault();const id=$('docEditId').value||('doc-'+Date.now()),supplier=suppliers.find(s=>s.id===$('docSupplier').value),order=orders.find(o=>o.id===$('docOrder').value),venue=venues.find(v=>v.id===$('docVenue').value);const old=supplierDocuments.find(d=>d.id===id);const d={id,kind:$('docKindSelect').value,venueId:$('docVenue').value||null,venueName:venue?.name||'',supplierId:$('docSupplier').value||null,supplierName:supplier?.name||'',orderId:$('docOrder').value||null,orderNumber:order?.order_number||'',number:$('docNumber').value.trim(),date:$('docDate').value,subtotal:num($('docSubtotal').value),vat:num($('docVat').value),total:num($('docTotal').value),status:$('docStatus').value,notes:$('docNotes').value.trim(),filename:supplierDocumentFileMeta?.filename||old?.filename||'',mime:supplierDocumentFileMeta?.mime||old?.mime||'',size:supplierDocumentFileMeta?.size||old?.size||0,preview:supplierDocumentFileMeta?.preview||old?.preview||null,deliveryLines:$('docKindSelect').value==='delivery'?deliveryReceiptLines.map(x=>({...x})):[],missingProducts:$('docKindSelect').value==='delivery'?deliveryMissingProducts().map(x=>({productId:x.productId,description:x.description,missing:x.missing})):[],stockApplied:old?.stockApplied||false,stockAppliedAt:old?.stockAppliedAt||null,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};supplierDocuments=supplierDocuments.filter(x=>x.id!==id);supplierDocuments.push(d);saveSupplierDocuments();closeModal('supplierDocumentModal');toast('Document fournisseur enregistré')});
 $('deleteSupplierDocumentBtn')?.addEventListener('click',()=>{const id=$('docEditId').value;if(!id||!confirm('Supprimer ce document ?'))return;supplierDocuments=supplierDocuments.filter(d=>d.id!==id);saveSupplierDocuments();closeModal('supplierDocumentModal');toast('Document supprimé')});
 const dz=$('docDropZone');if(dz){['dragenter','dragover'].forEach(n=>dz.addEventListener(n,e=>{e.preventDefault();dz.classList.add('drag')}));['dragleave','drop'].forEach(n=>dz.addEventListener(n,e=>{e.preventDefault();dz.classList.remove('drag')}));dz.addEventListener('drop',e=>handleSupplierDocumentFile(e.dataTransfer.files[0]))}
 
+window.setDeliveryReceived=setDeliveryReceived;
 window.addEventListener('load',boot);if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
