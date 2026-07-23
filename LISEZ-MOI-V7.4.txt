@@ -1,0 +1,21 @@
+GESTIONA ERP v7.4 — CENTRE DE MISSION ORION
+
+NOUVEAUTÉS
+- Centre de Mission sur le tableau de bord.
+- Score de sérénité calculé à partir des données réellement présentes.
+- Priorités du jour classées par niveau d'urgence.
+- Temps administratif estimé pour traiter les actions proposées.
+- Nombre de risques détectés.
+- Recommandation ORION contextualisée.
+- Actions rapides vers les commandes, les stocks, l'import ORION et les rappels.
+
+INSTALLATION
+Remplacez les fichiers de votre dépôt GitHub Pages par le contenu de cette version, puis validez les changements.
+Aucune migration Supabase n'est nécessaire.
+
+IMPORTANT
+Les indicateurs utilisent les données actuellement disponibles dans GESTIONA : stocks, commandes, pertes, complétude du catalogue et rappels de commande.
+Les futures données de livraisons, factures, DLC et ventes enrichiront ensuite le Centre de Mission.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés
