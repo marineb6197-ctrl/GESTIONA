@@ -1,0 +1,22 @@
+GESTIONA V25.0 — FACTURES FOURNISSEURS & CONTRÔLE ORION
+
+Fonctions réellement ajoutées :
+- écran dédié aux factures fournisseurs ;
+- import photo ou PDF et pré-remplissage OCR lorsque le document est lisible ;
+- suivi des statuts : à contrôler, validée, à payer, payée, contestée, archivée ;
+- contrôle du calcul HTVA + TVA = TTC ;
+- détection locale des doublons fournisseur + numéro ;
+- comparaison du montant HTVA avec la commande liée ;
+- prise en compte des écarts du bon de livraison ;
+- contrôle indicatif du taux de TVA ;
+- tableau des échéances et retards ;
+- export CSV et fiche imprimable ;
+- migration Supabase fournie.
+
+IMPORTANT
+Dans cette livraison, les factures sont enregistrées localement dans le navigateur afin que le module soit utilisable immédiatement. Le fichier migration_v25_supplier_invoices.sql prépare la synchronisation Supabase pour une prochaine étape.
+
+INSTALLATION
+1. Décompressez le ZIP.
+2. Ouvrez index.html dans un navigateur moderne ou publiez le dossier sur Netlify.
+3. Pour préparer Supabase, exécutez migration_v25_supplier_invoices.sql dans SQL Editor.
