@@ -1,3 +1,3 @@
-# GESTIONA ERP v7.4 — Centre de Mission ORION
+GESTIONA ERP v7.5 — ORION Achats IA
 
-Version avec tableau de bord intelligent, priorités, score de sérénité et notifications de commande.
+Voir LISEZ-MOI-V7.5.txt.

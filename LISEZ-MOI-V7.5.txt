@@ -1,0 +1,11 @@
+GESTIONA ERP v7.5 — ORION Achats IA
+
+Nouveautés :
+- Panneau Proposition ORION dans Commandes.
+- Analyse locale du stock actuel, du stock minimum et de l’historique des commandes.
+- Quantités suggérées avec indice de confiance et raisons explicites.
+- Application en un clic dans le brouillon existant.
+- Validation humaine obligatoire : ORION ne crée ni n’envoie aucune commande automatiquement.
+
+Installation : remplacez les fichiers de votre dépôt par ceux de cette archive, puis publiez comme pour la version précédente.
+Aucune migration Supabase supplémentaire n’est nécessaire.
