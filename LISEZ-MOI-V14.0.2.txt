@@ -1,0 +1,7 @@
+GESTIONA v14.0.2 — Correctif définitif du menu gauche
+
+- La signature est placée dans une rangée séparée du menu.
+- Elle ne peut plus recouvrir Sécurité & activité ni Paramètres.
+- La liste des onglets défile indépendamment.
+- Sur les écrans très bas, la signature est automatiquement raccourcie.
+- Le numéro de version du fichier CSS évite l’ancien affichage conservé en cache.
