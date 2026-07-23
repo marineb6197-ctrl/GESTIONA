@@ -1,0 +1,11 @@
+GESTIONA v17.0 — Thèmes dynamiques par établissement
+
+Fonctions ajoutées :
+- thème automatique selon l’établissement sélectionné ;
+- L’Élysée : grenat et doré par défaut ;
+- Danish : vert foncé et doré par défaut ;
+- dégradé automatique lorsque tous les établissements sont sélectionnés ;
+- choix des couleurs à la création des établissements ;
+- modification et aperçu des couleurs dans Paramètres.
+
+Stockage actuel des préférences de couleur : navigateur local (localStorage). Aucune migration Supabase nécessaire pour tester cette version.

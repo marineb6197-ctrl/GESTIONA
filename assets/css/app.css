@@ -657,3 +657,26 @@ textarea{min-height:90px;resize:vertical}
     min-height:96px;
   }
 }
+
+
+/* v17.0 — Moteur de thèmes dynamiques par établissement */
+:root{--theme-primary:var(--wine);--theme-secondary:var(--wine);--theme-accent:var(--gold);--theme-gradient:linear-gradient(135deg,var(--wine),var(--wine));--theme-gradient-vertical:linear-gradient(180deg,var(--wine2),var(--wine))}
+.side{background:var(--theme-gradient-vertical)!important;transition:background .28s ease}
+.welcome,.orion-welcome{background:var(--theme-gradient)!important;transition:background .28s ease}
+.btn.primary{background:var(--theme-primary)!important}.btn.gold{background:var(--theme-accent)!important}
+.nav button.active,.nav button:hover{box-shadow:inset 3px 0 0 var(--theme-accent)}
+.stock-category-tab.active{background:var(--theme-primary)!important}
+.logo,.side h1{color:var(--theme-accent)!important}
+.theme-onboarding-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.theme-onboarding-row input[type=color]{height:48px;padding:5px;cursor:pointer}
+.theme-settings-card{overflow:hidden}
+.venue-theme-settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;margin-top:14px}
+.venue-theme-card{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
+.venue-theme-preview{min-height:105px;padding:18px;color:#fff;background:linear-gradient(135deg,var(--preview-primary),color-mix(in srgb,var(--preview-primary) 72%,#000));display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.venue-theme-preview span{font-weight:900;font-size:18px}.venue-theme-preview b{font-family:Georgia,serif;letter-spacing:.12em;color:var(--preview-accent);font-size:17px}
+.venue-theme-controls{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;padding:13px}
+.venue-theme-controls label{font-size:11px;font-weight:800;color:var(--muted)}
+.venue-theme-controls input[type=color]{display:block;width:100%;height:38px;margin-top:6px;border:1px solid var(--line);border-radius:9px;padding:3px;background:#fff;cursor:pointer}
+body[data-venue-theme="combined"] .side{background:var(--theme-gradient-vertical)!important}
+body[data-venue-theme="combined"] .welcome{background:var(--theme-gradient)!important}
+@media(max-width:650px){.theme-onboarding-row,.venue-theme-controls{grid-template-columns:1fr 1fr}.venue-theme-controls .btn{grid-column:1/-1}.venue-theme-settings{grid-template-columns:1fr}}
