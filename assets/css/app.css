@@ -290,3 +290,12 @@
   .side>.signature{padding-top:6px;font-size:9px}
   .side>.signature small{display:none}
 }
+
+
+/* GESTIONA v14.0.3 — suppression définitive de la signature dans la barre latérale */
+.side{
+  display:grid !important;
+  grid-template-rows:auto minmax(0,1fr) !important;
+}
+.side>.signature{display:none !important;}
+.side>.nav{padding-bottom:14px !important;}

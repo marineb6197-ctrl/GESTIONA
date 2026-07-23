@@ -1,0 +1,8 @@
+GESTIONA v14.0.3 — Correctif définitif du menu gauche
+
+- La signature a été retirée de la barre latérale.
+- Les informations de propriété restent disponibles dans Paramètres > Propriété.
+- Le menu peut défiler jusqu’au dernier bouton sans chevauchement.
+- Le cache CSS a été renouvelé pour Safari.
+
+Remplacez votre ancienne version par le contenu de ce dossier.
