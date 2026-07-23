@@ -1,0 +1,23 @@
+GESTIONA v7.6 — ORION STOCK INTELLIGENT
+
+Nouveautés :
+- Tableau ORION Stock dans « Produits & stocks ».
+- Détection des ruptures et stocks sous le minimum.
+- Détection des produits sans mouvement depuis 30 jours.
+- Suggestions de stock minimum basées sur les sorties et pertes des 30 derniers jours.
+- Application d’un minimum suggéré uniquement après confirmation.
+- Ajout direct d’un produit au brouillon de commande depuis l’analyse.
+- Aucune commande n’est envoyée automatiquement.
+
+Installation :
+1. Remplacez les fichiers de votre dépôt GitHub Pages par ceux de cette archive.
+2. Conservez votre configuration Supabase existante.
+3. Aucune nouvelle migration SQL n’est nécessaire.
+4. Ouvrez GESTIONA puis « Produits & stocks ».
+
+Important :
+Les recommandations deviennent plus précises lorsque les mouvements de stock
+(sorties, pertes, réceptions et inventaires) sont enregistrés régulièrement.
+
+Créé par Marine Bruynbroeck
+© 2026–2027 Marine Bruynbroeck – Tous droits réservés
