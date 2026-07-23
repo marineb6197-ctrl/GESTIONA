@@ -1,0 +1,7 @@
+GESTIONA v18.3 — Correctif thème Tous les établissements
+
+Correction appliquée :
+- La sélection « Tous les établissements » active désormais réellement le thème ivoire et doré.
+- Le mélange grenat/vert est supprimé de la vue globale.
+- Les thèmes individuels restent inchangés : L’Élysée en grenat/doré et Danish en vert/doré.
+- Les cartes, tableaux, navigation, boutons et ORION suivent le thème ivoire/doré dans la vue globale.
