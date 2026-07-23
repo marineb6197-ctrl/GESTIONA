@@ -1339,3 +1339,15 @@ const dz=$('docDropZone');if(dz){['dragenter','dragover'].forEach(n=>dz.addEvent
 $('mType')?.addEventListener('change',updateMovementFormUi);
 window.setDeliveryReceived=setDeliveryReceived;
 window.addEventListener('load',boot);if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+/* GESTIONA v10.0 — accès direct Réception */
+function renderReceptionIssuesSummary(){
+ const box=document.getElementById('receptionIssuesSummary');if(!box)return;
+ const docs=(supplierDocuments||[]).filter(d=>d.kind==='delivery'&&d.status==='issue').sort((a,b)=>new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt));
+ const missing=docs.flatMap(d=>(d.missingProducts||[]).map(x=>({...x,document:d.number||d.filename||'Bon',supplier:d.supplierName||'Fournisseur'})));
+ box.innerHTML=missing.length?missing.slice(0,12).map(x=>`<div class="item"><div><b>${esc(x.description||'Produit')}</b><small>${esc(x.supplier)} · ${esc(x.document)}</small></div><span class="badge low">Manque ${formatQty(x.missing||0)}</span></div>`).join(''):'<div class="empty">Aucun manquement de livraison enregistré.</div>';
+}
+document.getElementById('openReceptionFromStockBtn')?.addEventListener('click',()=>{document.querySelector('[data-view="reception"]')?.click();setTimeout(()=>document.getElementById('scanDeliveryBtn')?.focus(),120)});
+document.querySelectorAll('[data-view="reception"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderReceptionIssuesSummary,0)));
+const _saveSupplierDocumentsV10=saveSupplierDocuments;saveSupplierDocuments=function(){_saveSupplierDocumentsV10();renderReceptionIssuesSummary()};
+setTimeout(renderReceptionIssuesSummary,0);

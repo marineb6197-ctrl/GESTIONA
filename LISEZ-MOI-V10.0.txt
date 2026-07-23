@@ -1,0 +1,26 @@
+GESTIONA ERP v10.0 — RÉCEPTION INTELLIGENTE
+
+NOUVEAUTÉS
+- Nouvel onglet principal « Réception » sur ordinateur et téléphone.
+- Accès direct au scan des bons de livraison et factures.
+- Comparaison d'un bon avec la commande liée.
+- Affichage : commandé, déjà reçu, reçu sur ce bon, manquant et état.
+- Validation obligatoire avant toute mise à jour du stock.
+- Les quantités réellement reçues sont ajoutées au stock.
+- Les manquements restent en alerte et dans l'historique.
+- Raccourci « Scanner une livraison » depuis Produits & stocks.
+- Résumé des écarts de livraison dans le module Réception.
+
+UTILISATION
+1. Ouvrez « Réception ».
+2. Cliquez sur « Scanner un bon » ou « Scanner une facture ».
+3. Prenez une photo ou choisissez un PDF/image.
+4. Sélectionnez la commande liée.
+5. Cliquez sur « Comparer avec la commande ».
+6. Corrigez les quantités reçues si nécessaire.
+7. Cliquez sur « Valider la réception et mettre le stock à jour ».
+
+IMPORTANT
+Le fichier est enregistré pour le contrôle, mais cette première version n'envoie pas la photo à un service OCR externe. La reconnaissance 100 % automatique du texte nécessitera une connexion OCR/IA sécurisée. La comparaison, les alertes et l'ajustement du stock sont déjà opérationnels après sélection de la commande et validation des quantités.
+
+Aucune nouvelle migration Supabase n'est nécessaire pour cette version.
