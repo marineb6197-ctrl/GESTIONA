@@ -1,0 +1,12 @@
+GESTIONA v13.0 — CENTRE D’ACTIONS ORION
+
+Nouveautés réellement ajoutées :
+- nouvel onglet Centre d’actions ;
+- priorités automatiques issues des ruptures, stocks faibles, commandes ouvertes, écarts de livraison et hausses de prix ;
+- classement Urgent / Aujourd’hui / Cette semaine / Information ;
+- tâches manuelles avec établissement, priorité et note ;
+- possibilité de terminer, rouvrir ou supprimer une tâche ;
+- filtres et recherche ;
+- stockage local des tâches manuelles sur l’appareil.
+
+Cette version conserve l’architecture web/Supabase actuelle. Elle ne constitue pas encore une migration React ou une application native.
