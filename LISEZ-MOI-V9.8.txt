@@ -1,0 +1,11 @@
+GESTIONA v9.8 — CORBEILLE DU STOCK
+
+Nouveautés :
+- Bouton Corbeille dans Produits & stocks.
+- Sélection multiple des produits archivés.
+- Restauration groupée.
+- Suppression définitive individuelle ou groupée.
+- Confirmation par le mot EFFACER avant toute suppression définitive.
+- Compatible avec les données existantes, sans migration Supabase.
+
+Conseil : utilisez l'archivage pour les suppressions courantes. La suppression définitive doit rester exceptionnelle.
