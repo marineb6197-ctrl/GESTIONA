@@ -1,0 +1,11 @@
+GESTIONA v10.1 — Réception automatique
+
+Nouveautés :
+- OCR automatique des photos de bons de livraison (connexion internet nécessaire au premier chargement du moteur OCR)
+- Rapprochement automatique avec la commande sélectionnée
+- Détail commandé / détecté / manquant
+- Comparaison prix commandé / prix détecté
+- Alertes orange et rouge en cas de hausse fournisseur
+- Validation unique avant mise à jour du stock
+
+Important : la reconnaissance OCR reste à vérifier avant validation, surtout si la photo est floue ou si le bon utilise des abréviations. Les PDF peuvent être importés mais la lecture OCR automatique de cette version est optimisée pour les photos/images.

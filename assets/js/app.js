@@ -105,7 +105,7 @@ function buildDeliveryReceiptLines(force=false){
  }else{
    deliveryReceiptLines=(order.purchase_order_items||[]).map(item=>{
      const ordered=num(item.quantity_ordered),already=num(item.quantity_received),remaining=Math.max(0,ordered-already);
-     return {itemId:item.id,productId:item.product_id||null,description:item.description||products.find(p=>p.id===item.product_id)?.name||'Produit',ordered,alreadyReceived:already,receivedNow:remaining,unit:products.find(p=>p.id===item.product_id)?.unit||'unité'};
+     return {itemId:item.id,productId:item.product_id||null,description:item.description||products.find(p=>p.id===item.product_id)?.name||'Produit',ordered,alreadyReceived:already,receivedNow:remaining,detectedQty:null,orderedUnitPrice:num(item.unit_price_excl_vat),detectedUnitPrice:num(item.unit_price_excl_vat),scanConfidence:0,unit:products.find(p=>p.id===item.product_id)?.unit||'unité'};
    });
  }
  renderDeliveryReceiptLines();
@@ -120,18 +120,25 @@ function setDeliveryReceived(index,value){
  renderDeliveryReceiptLines();
  compareSupplierDocument();
 }
+function receptionPriceAlert(l){
+ const old=num(l.orderedUnitPrice),now=num(l.detectedUnitPrice);if(!old||!now)return {level:'neutral',text:'Non contrôlé',pct:0};
+ const pct=(now-old)/old*100;if(pct>10)return {level:'bad',text:`+${pct.toFixed(1)} %`,pct};if(pct>0.5)return {level:'warn',text:`+${pct.toFixed(1)} %`,pct};if(pct<-0.5)return {level:'ok',text:`${pct.toFixed(1)} %`,pct};return {level:'ok',text:'Stable',pct};
+}
+function setDeliveryPrice(index,value){if(!deliveryReceiptLines[index])return;deliveryReceiptLines[index].detectedUnitPrice=Math.max(0,num(value));renderDeliveryReceiptLines();compareSupplierDocument()}
 function renderDeliveryReceiptLines(){
  const body=$('deliveryLinesBody'),summary=$('deliverySummary');if(!body||!summary)return;
- if(!deliveryReceiptLines.length){body.innerHTML='<tr><td colspan="6" class="empty">Cette commande ne contient aucune ligne.</td></tr>';summary.innerHTML='';return}
- let expected=0,received=0,missing=0;
+ if(!deliveryReceiptLines.length){body.innerHTML='<tr><td colspan="7" class="empty">Cette commande ne contient aucune ligne.</td></tr>';summary.innerHTML='';return}
+ let expected=0,received=0,missing=0,priceUps=0,totalOld=0,totalNew=0;
  body.innerHTML=deliveryReceiptLines.map((l,i)=>{
-   const remaining=Math.max(0,l.ordered-l.alreadyReceived),miss=Math.max(0,remaining-l.receivedNow);
-   expected+=remaining;received+=l.receivedNow;missing+=miss;
-   return `<tr class="${miss>0?'delivery-missing':'delivery-complete'}"><td><b>${esc(l.description)}</b><div class="tiny">${esc(l.unit||'unité')}</div></td><td>${l.ordered}</td><td>${l.alreadyReceived}</td><td><input type="number" min="0" max="${remaining}" step="0.001" value="${l.receivedNow}" onchange="setDeliveryReceived(${i},this.value)"></td><td><b>${miss}</b></td><td><span class="badge ${miss>0?'bad':'ok'}">${miss>0?'Manquant':'Reçu'}</span></td></tr>`;
+   const remaining=Math.max(0,l.ordered-l.alreadyReceived),miss=Math.max(0,remaining-l.receivedNow),pa=receptionPriceAlert(l);
+   expected+=remaining;received+=l.receivedNow;missing+=miss;if(pa.pct>0.5)priceUps++;totalOld+=num(l.receivedNow)*num(l.orderedUnitPrice);totalNew+=num(l.receivedNow)*num(l.detectedUnitPrice);
+   const status=miss>0?'<span class="badge bad">Manquant</span>':pa.pct>10?'<span class="badge bad">Hausse forte</span>':pa.pct>0.5?'<span class="badge warn">Prix en hausse</span>':'<span class="badge ok">OK</span>';
+   return `<tr class="${miss>0?'delivery-missing':'delivery-complete'}"><td><b>${esc(l.description)}</b><div class="tiny">${esc(l.unit||'unité')}${l.scanConfidence?` · scan ${Math.round(l.scanConfidence)} %`:''}</div></td><td>${l.ordered}</td><td><input type="number" min="0" max="${remaining}" step="0.001" value="${l.receivedNow}" onchange="setDeliveryReceived(${i},this.value)"></td><td>${money(l.orderedUnitPrice)}</td><td><input type="number" min="0" step="0.0001" value="${num(l.detectedUnitPrice)}" onchange="setDeliveryPrice(${i},this.value)" style="width:105px"></td><td><span class="badge ${pa.level}">${esc(pa.text)}</span>${miss?`<div class="tiny">Manque ${miss}</div>`:''}</td><td>${status}</td></tr>`;
  }).join('');
- summary.innerHTML=`<div class="delivery-summary-grid"><div><span>Attendu</span><b>${expected}</b></div><div><span>Reçu</span><b>${received}</b></div><div><span>Manquant</span><b>${missing}</b></div></div>`;
- if($('docStatus'))$('docStatus').value=missing>0?'issue':'matched';
+ summary.innerHTML=`<div class="delivery-summary-grid"><div><span>Attendu</span><b>${expected}</b></div><div><span>Reçu</span><b>${received}</b></div><div><span>Manquant</span><b>${missing}</b></div></div><div class="notice ${priceUps?'warn':'success'}" style="margin-top:9px"><b>${priceUps?priceUps+' augmentation(s) de prix détectée(s)':'Aucune hausse de prix détectée'}</b><div class="tiny">Valeur au prix commandé ${money(totalOld)} · valeur détectée ${money(totalNew)} · écart ${money(totalNew-totalOld)}</div></div>`;
+ if($('docStatus'))$('docStatus').value=missing>0||priceUps>0?'issue':'matched';
 }
+
 function deliveryMissingProducts(){
  return deliveryReceiptLines.map(l=>({...l,missing:Math.max(0,l.ordered-l.alreadyReceived-l.receivedNow)})).filter(l=>l.missing>0);
 }
@@ -169,6 +176,21 @@ async function applyDeliveryReceipt(){
    toast(missing.length?`Stock mis à jour · ${missing.length} produit(s) manquant(s)`:'Stock mis à jour · livraison complète');
  }catch(e){toast('Réception impossible : '+(e.message||e))}
  finally{btn.disabled=false;btn.textContent='✅ Valider la réception et mettre le stock à jour'}
+}
+function normalizeScanText(v){return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9.,%\s-]/g,' ').replace(/\s+/g,' ').trim()}
+function scanTokens(v){return normalizeScanText(v).split(' ').filter(x=>x.length>2&&!['avec','pour','prix','total','tva','eur','piece','colis'].includes(x))}
+function scanLineScore(description,line){const tokens=scanTokens(description);if(!tokens.length)return 0;const norm=normalizeScanText(line);return tokens.filter(t=>norm.includes(t)).length/tokens.length}
+function parseNumbersFromScanLine(line){return (String(line).match(/\d+(?:[.,]\d+)?/g)||[]).map(x=>num(x.replace(',','.')))}
+async function analyzeDeliveryScan(){
+ const order=selectedDeliveryOrder(),file=$('supplierDocumentFile')?.files?.[0],status=$('scanAnalysisStatus');
+ if(!order){toast('Sélectionnez d’abord la commande liée');return}if(!file){toast('Choisissez ou photographiez le bon de livraison');return}
+ buildDeliveryReceiptLines(true);const btn=$('analyzeDeliveryScanBtn');btn.disabled=true;btn.textContent='Lecture en cours…';if(status){status.className='notice';status.textContent='ORION lit le document et rapproche les lignes de la commande…'}
+ try{
+  let text='';if(file.type.startsWith('image/')){if(!window.Tesseract)throw new Error('Le moteur de lecture OCR n’est pas disponible');const result=await Tesseract.recognize(file,'fra+eng',{logger:m=>{if(status&&m.progress)status.textContent=`Lecture automatique : ${Math.round(m.progress*100)} %`}});text=result?.data?.text||''}else throw new Error('Pour cette version automatique, utilisez une photo ou une image. Le PDF reste importable mais doit être vérifié manuellement.');
+  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);let matched=0;
+  deliveryReceiptLines.forEach(l=>{let best='',score=0;for(const line of lines){const sc=scanLineScore(l.description,line);if(sc>score){score=sc;best=line}}if(score>=0.34){const nums=parseNumbersFromScanLine(best);const remaining=Math.max(0,l.ordered-l.alreadyReceived);let qty=nums.find(n=>n>0&&n<=remaining*2);if(qty==null)qty=remaining;l.receivedNow=Math.min(remaining,qty);l.detectedQty=l.receivedNow;const plausible=nums.filter(n=>n>0.05&&n<5000&&Math.abs(n-qty)>0.0001);if(plausible.length)l.detectedUnitPrice=plausible[plausible.length-1];l.scanConfidence=Math.min(99,Math.round(score*100));matched++}else{l.receivedNow=0;l.detectedQty=0;l.scanConfidence=0}});
+  renderDeliveryReceiptLines();compareSupplierDocument();if(status){status.className=`notice ${matched===deliveryReceiptLines.length?'success':'warn'}`;status.innerHTML=`<b>Analyse terminée : ${matched}/${deliveryReceiptLines.length} ligne(s) rapprochée(s).</b><div class="tiny">Vérifiez uniquement les lignes marquées manquantes ou avec hausse de prix, puis validez.</div>`}toast('Scan comparé à la commande');
+ }catch(e){if(status){status.className='notice warn';status.textContent=e.message||String(e)}toast(e.message||String(e))}finally{btn.disabled=false;btn.textContent='🤖 Analyser le scan'}
 }
 function renderDocumentComparison(){if(!$('docComparison'))return;compareSupplierDocument();buildDeliveryReceiptLines()}
 
@@ -1325,10 +1347,10 @@ $('orionApplyBtn').onclick=applyOrionImport;$('orionCancelBtn').onclick=()=>clea
 $('scanInvoiceBtn')?.addEventListener('click',()=>resetSupplierDocumentForm('invoice'));
 $('scanDeliveryBtn')?.addEventListener('click',()=>resetSupplierDocumentForm('delivery'));
 $('chooseDocumentBtn')?.addEventListener('click',()=>$('supplierDocumentFile').click());
-$('supplierDocumentFile')?.addEventListener('change',e=>handleSupplierDocumentFile(e.target.files[0]));
+$('supplierDocumentFile')?.addEventListener('change',e=>{handleSupplierDocumentFile(e.target.files[0]);if($('docKindSelect')?.value==='delivery'&&$('docOrder')?.value)setTimeout(analyzeDeliveryScan,100)});
 $('docKindSelect')?.addEventListener('change',e=>{$('docKind').value=e.target.value;$('supplierDocumentTitle').textContent=e.target.value==='delivery'?'🚚 Scanner un bon de livraison':'📄 Scanner une facture';deliveryReceiptLines=[];renderDocumentComparison()});
-$('docSupplier')?.addEventListener('change',()=>{updateDocumentOrderOptions();renderDocumentComparison()});$('docVenue')?.addEventListener('change',()=>{updateDocumentOrderOptions();renderDocumentComparison()});$('docOrder')?.addEventListener('change',()=>{deliveryReceiptLines=[];renderDocumentComparison()});['docSubtotal','docVat','docTotal'].forEach(id=>$(id)?.addEventListener('input',renderDocumentComparison));
-$('compareSupplierDocumentBtn')?.addEventListener('click',()=>{compareSupplierDocument();toast('Comparaison actualisée')});
+$('docSupplier')?.addEventListener('change',()=>{updateDocumentOrderOptions();renderDocumentComparison()});$('docVenue')?.addEventListener('change',()=>{updateDocumentOrderOptions();renderDocumentComparison()});$('docOrder')?.addEventListener('change',()=>{deliveryReceiptLines=[];renderDocumentComparison();if($('docKindSelect')?.value==='delivery'&&$('supplierDocumentFile')?.files?.[0])setTimeout(analyzeDeliveryScan,100)});['docSubtotal','docVat','docTotal'].forEach(id=>$(id)?.addEventListener('input',renderDocumentComparison));
+$('analyzeDeliveryScanBtn')?.addEventListener('click',analyzeDeliveryScan);$('compareSupplierDocumentBtn')?.addEventListener('click',()=>{compareSupplierDocument();renderDeliveryReceiptLines();toast('Comparaison actualisée')});
 $('resetDeliveryLinesBtn')?.addEventListener('click',()=>buildDeliveryReceiptLines(true));
 $('applyDeliveryReceiptBtn')?.addEventListener('click',applyDeliveryReceipt);
 $('docSearch')?.addEventListener('input',renderSupplierDocuments);$('docTypeFilter')?.addEventListener('change',renderSupplierDocuments);$('exportDocsBtn')?.addEventListener('click',exportSupplierDocuments);
@@ -1337,7 +1359,7 @@ $('deleteSupplierDocumentBtn')?.addEventListener('click',()=>{const id=$('docEdi
 const dz=$('docDropZone');if(dz){['dragenter','dragover'].forEach(n=>dz.addEventListener(n,e=>{e.preventDefault();dz.classList.add('drag')}));['dragleave','drop'].forEach(n=>dz.addEventListener(n,e=>{e.preventDefault();dz.classList.remove('drag')}));dz.addEventListener('drop',e=>handleSupplierDocumentFile(e.dataTransfer.files[0]))}
 
 $('mType')?.addEventListener('change',updateMovementFormUi);
-window.setDeliveryReceived=setDeliveryReceived;
+window.setDeliveryReceived=setDeliveryReceived;window.setDeliveryPrice=setDeliveryPrice;
 window.addEventListener('load',boot);if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
 /* GESTIONA v10.0 — accès direct Réception */

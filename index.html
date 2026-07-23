@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v10.0 — Réception intelligente</title>
+<title>GESTIONA ERP v10.1 — Réception automatique</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -17,7 +17,7 @@
 <section id="authScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">ERP cloud — Créé par Marine Bruynbroeck</p><div id="authMsg"></div><div class="field"><label>Nom complet</label><input id="authName" placeholder="Marine Bruynbroeck"></div><div class="field"><label>Email</label><input id="authEmail" type="email"></div><div class="field"><label>Mot de passe</label><input id="authPassword" type="password" minlength="6"></div><div class="row"><button class="btn primary" id="loginBtn">Se connecter</button><button class="btn gold" id="signupBtn">Créer mon compte</button><button class="btn soft" id="changeConfigBtn">Modifier Supabase</button></div></div></section>
 <section id="onboardingScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">Création de votre espace professionnel</p><div id="onboardMsg"></div><div class="field"><label>Nom de l'organisation</label><input id="orgName" value="GESTIONA"></div><div class="field"><label>Votre nom complet</label><input id="ownerName" value="Marine Bruynbroeck"></div><div class="field"><label>Premier établissement</label><input id="venueOne" placeholder="Nom de l'établissement"></div><div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v10.0 — Réception intelligente</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
+<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v10.1 — Réception automatique</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
 <main class="main"><header class="top"><h2 id="pageTitle">ORION Copilote</h2><div class="row"><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
 <section id="view-dashboard" class="view active">
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">Votre journée est analysée : priorités, risques et économies sont regroupés ici.</p></div><span class="orion-live">● ORION ACTIF</span></div>
@@ -290,7 +290,7 @@
   </div>
   <div class="table-wrap">
     <table class="table delivery-lines-table">
-      <thead><tr><th>Produit</th><th>Commandé</th><th>Déjà reçu</th><th>Sur ce bon</th><th>Manquant</th><th>État</th></tr></thead>
+      <thead><tr><th>Produit</th><th>Commandé</th><th>Détecté / reçu</th><th>Prix commande</th><th>Prix détecté</th><th>Écart</th><th>État</th></tr></thead>
       <tbody id="deliveryLinesBody"></tbody>
     </table>
   </div>
@@ -298,8 +298,8 @@
 </div>
 <div class="field full"><label>Notes / anomalies constatées</label><textarea id="docNotes" rows="3" placeholder="Produit manquant, quantité différente, marchandise refusée…"></textarea></div>
 </div>
-<div class="notice doc-honesty">Pour un bon de livraison, GESTIONA reprend les produits de la commande liée. Vérifiez les quantités puis cliquez sur « Valider la réception ». Le stock ne change jamais avant cette confirmation.</div>
-<div class="actions"><button type="button" class="btn danger hidden" id="deleteSupplierDocumentBtn">Supprimer</button><button type="button" class="btn gold" id="compareSupplierDocumentBtn">Comparer avec la commande</button><button type="button" class="btn primary hidden" id="applyDeliveryReceiptBtn">✅ Valider la réception et mettre le stock à jour</button><button class="btn primary" type="submit">Enregistrer le document</button></div>
+<div id="scanAnalysisStatus" class="notice doc-honesty">Après le choix du fichier et de la commande, GESTIONA lance la lecture automatique. Vérifiez uniquement les lignes signalées, puis validez. Le stock ne change jamais avant confirmation.</div>
+<div class="actions"><button type="button" class="btn danger hidden" id="deleteSupplierDocumentBtn">Supprimer</button><button type="button" class="btn gold" id="analyzeDeliveryScanBtn">🤖 Analyser le scan</button><button type="button" class="btn soft" id="compareSupplierDocumentBtn">Actualiser la comparaison</button><button type="button" class="btn primary hidden" id="applyDeliveryReceiptBtn">✅ Valider la réception et mettre le stock à jour</button><button class="btn primary" type="submit">Enregistrer le document</button></div>
 </form></div></div>
 
 
@@ -448,5 +448,6 @@
 <div class="actions"><button class="btn soft" type="button" data-close="stockRemovalPickerModal">Annuler</button><button class="btn danger" id="continueStockRemovalBtn" type="button">Continuer</button></div>
 </div></div>
 <div id="movementModal" class="modal-bg"><div class="modal" style="max-width:660px"><div class="modal-head"><h3 id="movementModalTitle">Mouvement de stock</h3><button class="btn soft" data-close="movementModal">✕</button></div><form id="movementForm"><input type="hidden" id="mProductId"><div class="notice" id="movementProductLabel"></div><div class="form-grid"><div class="field"><label>Type de mouvement</label><select id="mType"><option value="purchase">Réception / achat (+)</option><option value="removal">Retirer du stock (−)</option><option value="waste">Perte / casse (−)</option><option value="sale">Sortie / consommation (−)</option><option value="inventory">Inventaire (nouveau stock)</option><option value="correction">Correction manuelle (+)</option></select></div><div class="field"><label id="mQuantityLabel">Quantité</label><input id="mQuantity" type="number" step="0.001" min="0" required></div><div class="field full hidden" id="mRemovalReasonField"><label>Raison du retrait</label><select id="mRemovalReason"><option value="">Choisir une raison</option><option value="Erreur de stock">Erreur de stock</option><option value="Produit périmé">Produit périmé</option><option value="Casse">Casse</option><option value="Consommation interne">Consommation interne</option><option value="Produit offert">Produit offert</option><option value="Transfert vers un autre établissement">Transfert vers un autre établissement</option><option value="Autre">Autre</option></select></div><div class="field full"><label>Remarque</label><textarea id="mNote" rows="3" placeholder="Ajoutez une précision si nécessaire…"></textarea></div></div><div id="movementWarning" class="notice warn hidden" style="margin-top:12px"></div><div class="actions"><button type="button" class="btn soft" data-close="movementModal">Annuler</button><button class="btn primary" id="movementSubmitBtn" type="submit">Enregistrer le mouvement</button></div></form><h3 style="margin-top:22px">Historique récent</h3><div id="movementHistory" class="history-list"></div></div></div><div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="assets/js/app.js"></script>
 </body></html>
