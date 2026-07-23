@@ -1,0 +1,13 @@
+GESTIONA v15.1 — Design Grenat & Doré
+
+Modifications :
+- identité générale rétablie en grenat ;
+- nom GESTIONA conservé en doré ;
+- menu latéral grenat avec accents dorés ;
+- boutons principaux grenat ;
+- boutons secondaires premium dorés ;
+- cartes, tableaux et cockpit harmonisés ;
+- signature masquée dans le menu afin d’éviter tout chevauchement ;
+- cache CSS renouvelé.
+
+Aucune migration Supabase nécessaire.

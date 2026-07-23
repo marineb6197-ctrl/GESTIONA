@@ -367,3 +367,54 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:#c39a3b!important
   .top{height:62px}
   .content{background:linear-gradient(180deg,#f8f5ed,#f3efe6)}
 }
+
+/* GESTIONA v15.1 — Identité grenat & dorée */
+:root{
+  --wine:#64142a;
+  --wine2:#3e0b1a;
+  --wine3:#851f3d;
+  --gold:#c8a24d;
+  --gold-deep:#a77d25;
+  --gold-light:#f3e4b5;
+  --gold-pale:#fbf5df;
+  --cream:#f7f1e8;
+  --paper:#fffdf9;
+  --ink:#2d2528;
+  --muted:#786d71;
+  --line:#e8ddd2;
+  --shadow:0 12px 34px rgba(58,20,31,.10);
+}
+html,body{background:radial-gradient(circle at 90% 0,rgba(200,162,77,.10),transparent 28%),var(--cream)}
+.logo{color:var(--gold-deep);text-shadow:0 1px 0 #fff}
+.side{background:linear-gradient(180deg,var(--wine2) 0%,var(--wine) 100%);border-right:1px solid rgba(200,162,77,.28);box-shadow:8px 0 30px rgba(62,11,26,.15)}
+.side h1{color:#e2c36f;text-shadow:0 0 20px rgba(226,195,111,.18)}
+.side .version{color:#e1cbd1}
+.venue-select{background:rgba(255,255,255,.10);border-color:rgba(226,195,111,.38);color:#fff5dc}
+.nav{scrollbar-color:rgba(226,195,111,.46) transparent}
+.nav::-webkit-scrollbar-thumb{background:rgba(226,195,111,.46)}
+.nav button{color:#f4e6ea}
+.nav button:hover{background:rgba(255,255,255,.10);color:#fff;border-color:rgba(226,195,111,.18)}
+.nav button.active{background:linear-gradient(90deg,rgba(200,162,77,.25),rgba(255,255,255,.08));color:#fff7df;border-color:rgba(226,195,111,.28);box-shadow:inset 3px 0 0 var(--gold)}
+.btn.primary{background:linear-gradient(135deg,var(--wine3),var(--wine));color:#fff;border-color:var(--wine2);box-shadow:0 7px 18px rgba(100,20,42,.22)}
+.btn.primary:hover{filter:brightness(1.05);box-shadow:0 9px 22px rgba(100,20,42,.28)}
+.btn.gold{background:linear-gradient(135deg,#dfc16f,#c69a38 55%,#a9791d);color:#211a0c;border-color:#b88c2d;box-shadow:0 7px 18px rgba(171,126,31,.20)}
+.btn.gold:hover{filter:brightness(1.04);box-shadow:0 9px 22px rgba(171,126,31,.28)}
+.btn.soft{background:#f2e5e9;color:var(--wine);border-color:#e4cfd6}
+.top{background:rgba(255,253,249,.94);border-bottom-color:var(--line);box-shadow:0 4px 20px rgba(100,20,42,.05)}
+.top h2{color:var(--wine);font-family:Georgia,serif}
+.card{border-color:rgba(100,20,42,.12);box-shadow:var(--shadow)}
+.card:hover{border-color:rgba(100,20,42,.20)}
+.card h3{color:var(--wine2)}
+.welcome{background:linear-gradient(120deg,var(--wine2),var(--wine) 55%,#7f2440);color:#fff;border:1px solid rgba(200,162,77,.48);box-shadow:0 18px 40px rgba(100,20,42,.22)}
+.welcome:after{content:"";position:absolute;right:-45px;top:-70px;width:180px;height:180px;border-radius:50%;border:1px solid rgba(226,195,111,.22)}
+.welcome h2{color:#fff}.welcome p{color:#f3dfe5}.orion-live{background:rgba(200,162,77,.18);color:#fff5d7;border:1px solid rgba(226,195,111,.28)}
+.kpi:before{background:linear-gradient(var(--gold),var(--wine))}
+.kpi strong,.mini-kpi b,.money{color:var(--wine)}
+.orion-card{border-color:rgba(200,162,77,.48);background:linear-gradient(145deg,#fffdf9,#fff9e9)}
+.product-kpi,.stock-intel-kpi{background:linear-gradient(145deg,#fffdf9,#fbf2f5)!important;border-color:#e7d3d9!important}
+.table-wrap{border-color:var(--line)}.table th{background:#faf3f5;color:var(--wine2)}.table tbody tr:hover{background:#fff8fa}
+.calc-box{background:#fbf3f5}.modal{border-top:4px solid var(--wine);box-shadow:0 -15px 55px rgba(58,20,31,.18)}
+.mobile-nav{background:rgba(255,253,249,.97);border-top-color:#dec7ce;box-shadow:0 -7px 25px rgba(100,20,42,.10)}
+.mobile-nav button.active{color:var(--wine)}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--wine)!important;box-shadow:0 0 0 3px rgba(100,20,42,.12)}
+.side>.signature{display:none!important}
