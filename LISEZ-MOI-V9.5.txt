@@ -1,0 +1,13 @@
+GESTIONA v9.5 — INVENTAIRE RAPIDE
+
+Nouveautés :
+- Bouton « Inventaire rapide » dans Produits & stocks.
+- Saisie de plusieurs quantités réelles dans une seule fenêtre.
+- Recherche instantanée pendant le comptage.
+- Calcul automatique des écarts positifs et négatifs.
+- Enregistrement uniquement des produits réellement modifiés.
+- Historique conservé comme mouvements de type inventaire.
+- Confirmation récapitulative avant validation.
+- Interface adaptée aux téléphones et à Safari.
+
+Aucune nouvelle migration Supabase n’est nécessaire.
