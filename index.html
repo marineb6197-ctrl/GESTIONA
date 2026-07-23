@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v9.0 — Recettes intelligentes</title>
+<title>GESTIONA ERP v9.1 — Menus & Caisse intelligente</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -17,7 +17,7 @@
 <section id="authScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">ERP cloud — Créé par Marine Bruynbroeck</p><div id="authMsg"></div><div class="field"><label>Nom complet</label><input id="authName" placeholder="Marine Bruynbroeck"></div><div class="field"><label>Email</label><input id="authEmail" type="email"></div><div class="field"><label>Mot de passe</label><input id="authPassword" type="password" minlength="6"></div><div class="row"><button class="btn primary" id="loginBtn">Se connecter</button><button class="btn gold" id="signupBtn">Créer mon compte</button><button class="btn soft" id="changeConfigBtn">Modifier Supabase</button></div></div></section>
 <section id="onboardingScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">Création de votre espace professionnel</p><div id="onboardMsg"></div><div class="field"><label>Nom de l'organisation</label><input id="orgName" value="GESTIONA"></div><div class="field"><label>Votre nom complet</label><input id="ownerName" value="Marine Bruynbroeck"></div><div class="field"><label>Premier établissement</label><input id="venueOne" placeholder="Nom de l'établissement"></div><div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v9.0 — Recettes intelligentes</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
+<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v9.1 — Menus & Caisse intelligente</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
 <main class="main"><header class="top"><h2 id="pageTitle">ORION Copilote</h2><div class="row"><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
 <section id="view-dashboard" class="view active">
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">Votre journée est analysée : priorités, risques et économies sont regroupés ici.</p></div><span class="orion-live">● ORION ACTIF</span></div>
@@ -78,6 +78,58 @@
       <button class="btn primary" id="addRecipeBtn" type="button">+ Nouvelle recette</button>
     </div>
     <div id="recipesGrid" class="recipes-grid"></div>
+  </div>
+</section>
+
+
+<section id="view-menus" class="view">
+  <div class="recipe-kpis">
+    <div class="product-kpi"><span>Menus affichés</span><b id="menuCount">0</b></div>
+    <div class="product-kpi"><span>Coût moyen</span><b id="menuAvgCost">0,00 €</b></div>
+    <div class="product-kpi"><span>Marge moyenne</span><b id="menuAvgMargin">0 %</b></div>
+    <div class="product-kpi"><span>À surveiller</span><b id="menuLowMargin">0</b></div>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <input id="menuSearch" class="grow" placeholder="Rechercher un menu">
+      <button class="btn primary" id="addMenuBtn" type="button">+ Nouveau menu</button>
+    </div>
+    <div id="menusGrid" class="recipes-grid"></div>
+  </div>
+</section>
+
+<section id="view-pos" class="view">
+  <div class="pos-layout">
+    <div class="card">
+      <div class="toolbar">
+        <input id="posSearch" class="grow" placeholder="Rechercher une recette ou un menu">
+        <select id="posTypeFilter"><option value="all">Tout afficher</option><option value="recipe">Recettes</option><option value="menu">Menus</option></select>
+      </div>
+      <div id="posCatalog" class="pos-catalog"></div>
+    </div>
+    <div class="card pos-cart-card">
+      <div class="row between"><h3 style="margin:0">🧾 Ticket en cours</h3><button class="btn soft mini" id="clearPosCartBtn" type="button">Vider</button></div>
+      <div class="form-grid" style="margin-top:12px">
+        <div class="field"><label>Établissement</label><select id="posVenue"></select></div>
+        <div class="field"><label>Service</label><select id="posService"><option value="midi">Midi</option><option value="soir">Soir</option><option value="autre">Autre</option></select></div>
+        <div class="field"><label>Nombre de couverts</label><input id="posCovers" type="number" min="0" step="1" value="1"></div>
+        <div class="field"><label>Mode de paiement</label><select id="posPayment"><option value="card">Carte</option><option value="cash">Espèces</option><option value="mixed">Mixte</option><option value="other">Autre</option></select></div>
+      </div>
+      <div id="posCart" class="pos-cart"></div>
+      <div class="pos-total"><span>Total TVAC</span><b id="posTotal">0,00 €</b></div>
+      <button class="btn primary pos-checkout" id="validateSaleBtn" type="button">Valider la vente et déstocker</button>
+    </div>
+  </div>
+
+  <div class="recipe-kpis" style="margin-top:15px">
+    <div class="product-kpi"><span>CA aujourd’hui</span><b id="salesTodayRevenue">0,00 €</b></div>
+    <div class="product-kpi"><span>Tickets aujourd’hui</span><b id="salesTodayTickets">0</b></div>
+    <div class="product-kpi"><span>Ticket moyen</span><b id="salesAverageTicket">0,00 €</b></div>
+    <div class="product-kpi"><span>Couverts</span><b id="salesTodayCovers">0</b></div>
+  </div>
+  <div class="card">
+    <div class="row between"><h3 style="margin:0">Historique récent des ventes</h3><button class="btn soft" id="exportSalesBtn" type="button">Exporter CSV</button></div>
+    <div id="salesHistory" class="history-list" style="margin-top:12px"></div>
   </div>
 </section>
 
@@ -183,7 +235,7 @@
 </section>
 <section id="view-settings" class="view"><div class="grid two"><div class="card"><h3>Cloud Supabase</h3><p class="muted">Connexion active. Les données enregistrées dans cette version sont partagées entre vos appareils connectés au même compte.</p><p class="tiny" id="projectInfo"></p><button class="btn soft" id="resetConfig">Modifier la connexion Supabase</button></div><div class="card"><h3>Envoi des commandes</h3><p class="muted">GESTIONA prépare le message et l’ouvre dans la messagerie de l’utilisateur. Aucun compte Resend, domaine vérifié ou clé API n’est nécessaire.</p><div id="emailConfigStatus" class="notice success">Prêt : envoi depuis votre propre boîte mail.</div><button class="btn primary" id="openEmailConfigBtn" style="margin-top:12px">Voir le fonctionnement</button></div><div class="card"><h3>Propriété</h3><p><b>GESTIONA ERP</b><br>Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés.</p></div></div></section>
 </div></main></div>
-<nav class="mobile-nav"><button data-view="dashboard" class="active">🧠<br>Copilote</button><button data-view="products">📦<br>Produits</button><button data-view="recipes">🍽️<br>Recettes</button><button data-view="suppliers">🚚<br>Fournisseurs</button><button data-view="orders">🛒<br>Commandes</button><button data-view="finance">💶<br>Finance</button><button data-view="orion">🤖<br>ORION</button><button data-view="settings">⚙️<br>Réglages</button></nav></section>
+<nav class="mobile-nav"><button data-view="dashboard" class="active">🧠<br>Copilote</button><button data-view="products">📦<br>Produits</button><button data-view="recipes">🍽️<br>Recettes</button><button data-view="menus">📋<br>Menus</button><button data-view="pos">🧾<br>Caisse</button><button data-view="suppliers">🚚<br>Fournisseurs</button><button data-view="orders">🛒<br>Commandes</button><button data-view="finance">💶<br>Finance</button><button data-view="orion">🤖<br>ORION</button><button data-view="settings">⚙️<br>Réglages</button></nav></section>
 
 <div id="supplierDocumentModal" class="modal-bg"><div class="modal doc-modal"><div class="modal-head"><h3 id="supplierDocumentTitle">Nouveau document fournisseur</h3><button class="btn soft" data-close="supplierDocumentModal">✕</button></div>
 <form id="supplierDocumentForm"><input type="hidden" id="docEditId"><input type="hidden" id="docKind" value="invoice">
@@ -277,6 +329,35 @@
       <button class="btn danger hidden" id="deleteRecipeBtn" type="button">Supprimer</button>
       <button class="btn soft hidden" id="prepareRecipeBtn" type="button">🍳 Enregistrer une préparation</button>
       <button class="btn primary" type="submit">Enregistrer la recette</button>
+    </div>
+  </form>
+</div></div>
+
+
+<div id="menuModal" class="modal-bg"><div class="modal" style="max-width:900px">
+  <div class="modal-head"><h3 id="menuModalTitle">Nouveau menu</h3><button class="btn soft" data-close="menuModal">✕</button></div>
+  <form id="menuForm">
+    <input type="hidden" id="menuId">
+    <div class="form-grid">
+      <div class="field"><label>Nom du menu</label><input id="menuName" required></div>
+      <div class="field"><label>Établissement</label><select id="menuVenue"></select></div>
+      <div class="field"><label>Prix de vente TVAC</label><input id="menuSalePrice" type="number" min="0" step="0.01" value="0"></div>
+      <div class="field"><label>TVA vente</label><select id="menuVat"><option value="6">6 %</option><option value="12" selected>12 %</option><option value="21">21 %</option></select></div>
+      <div class="field full"><label>Description</label><textarea id="menuNotes" rows="3"></textarea></div>
+    </div>
+    <div class="row between" style="margin-top:18px"><h3 style="margin:0">Recettes comprises</h3><button class="btn gold" id="addMenuRecipeBtn" type="button">+ Ajouter une recette</button></div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table class="table"><thead><tr><th>Recette</th><th>Quantité</th><th>Coût</th><th></th></tr></thead><tbody id="menuRecipesBody"></tbody></table>
+    </div>
+    <div class="recipe-cost-panel">
+      <div><span>Coût du menu</span><b id="menuCalcCost">0,00 €</b></div>
+      <div><span>Vente HTVA</span><b id="menuCalcSaleEx">0,00 €</b></div>
+      <div><span>Marge brute</span><b id="menuCalcMarginEuro">0,00 €</b></div>
+      <div><span>Marge sur vente</span><b id="menuCalcMarginPct">0,0 %</b></div>
+    </div>
+    <div class="actions">
+      <button class="btn danger hidden" id="deleteMenuBtn" type="button">Supprimer</button>
+      <button class="btn primary" type="submit">Enregistrer le menu</button>
     </div>
   </form>
 </div></div>

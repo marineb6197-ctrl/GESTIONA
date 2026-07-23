@@ -86,3 +86,17 @@
   .recipe-kpis,.recipe-cost-panel{grid-template-columns:1fr}
   .recipes-grid{grid-template-columns:1fr}
 }
+
+.pos-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(340px,.8fr);gap:15px}
+.pos-catalog{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:15px}
+.pos-item{border:1px solid var(--line);background:#fff;border-radius:14px;padding:16px 10px;min-height:120px;cursor:pointer;display:flex;flex-direction:column;gap:7px;align-items:center;justify-content:center;text-align:center;box-shadow:0 5px 14px rgba(62,35,37,.05)}
+.pos-item:hover{transform:translateY(-1px);border-color:var(--gold)}
+.pos-item>span{font-size:27px}.pos-item small{color:var(--wine);font-weight:900;font-size:14px}
+.pos-cart{display:grid;gap:9px;margin-top:15px;max-height:430px;overflow:auto}
+.pos-cart-line{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
+.pos-cart-line span{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.qty-control{display:flex;align-items:center;gap:7px}.qty-control button{width:27px;height:27px;border:0;border-radius:8px;background:#efe5dc;font-weight:900;cursor:pointer}
+.pos-total{display:flex;justify-content:space-between;align-items:center;padding:15px 0;margin-top:10px;border-top:2px solid var(--wine);font-size:18px}.pos-total b{font-size:25px;color:var(--wine)}
+.pos-checkout{width:100%;padding:14px;font-size:15px}
+@media(max-width:980px){.pos-layout{grid-template-columns:1fr}.pos-cart-card{order:-1}}
+@media(max-width:560px){.pos-catalog{grid-template-columns:1fr 1fr}.pos-cart-line{grid-template-columns:1fr auto}.pos-cart-line>b:last-child{grid-column:1/-1;text-align:right}}

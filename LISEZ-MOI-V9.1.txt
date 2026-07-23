@@ -1,0 +1,20 @@
+GESTIONA v9.1 — Menus & Caisse intelligente
+
+Fonctionnalités intégrées :
+- nouveau module Menus ;
+- création, modification et suppression d’un menu ;
+- composition d’un menu avec plusieurs recettes et quantités ;
+- calcul automatique du coût, de la vente HTVA et de la marge ;
+- nouveau module Caisse ;
+- vente en un clic de recettes ou de menus ;
+- ticket avec quantités, établissement, service, couverts et paiement ;
+- contrôle du stock avant validation ;
+- déstockage agrégé de tous les ingrédients lors de la vente ;
+- historique local des ventes ;
+- chiffre d’affaires du jour, tickets, ticket moyen et couverts ;
+- export CSV des ventes ;
+- journal d’audit pour menus et ventes.
+
+Stockage :
+- menus et ventes sont enregistrés localement dans le navigateur ;
+- les mouvements de stock restent enregistrés dans Supabase.

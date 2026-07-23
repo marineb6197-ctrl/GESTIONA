@@ -1,8 +1,10 @@
 const LS_URL='gestiona_supabase_url',LS_KEY='gestiona_supabase_key',LS_SCHEDULES='gestiona_order_schedules_v1',LS_NOTIF_STATE='gestiona_notification_state_v1';let sb=null,user=null,profile=null,orgId=null,venues=[],products=[],suppliers=[],orders=[],orderItems=[],activity=[],movements=[],priceHistoryRows=[],selectedVenue='all';let quickOrder={quantities:{},notes:{}};let orionOrderSuggestions=[];let recipes=[];let recipeIngredientDraft=[];const RECIPES_KEY='gestiona_recipes_v90';
+let menus=[],menuRecipeDraft=[],posCart=[],sales=[];
+const MENUS_KEY='gestiona_menus_v91',SALES_KEY='gestiona_sales_v91';
 const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('fr-BE',{style:'currency',currency:'EUR'}).format(Number(n||0));const num=n=>Number(n||0);const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function show(id){['setupScreen','authScreen','onboardingScreen','appScreen'].forEach(x=>$(x).classList.add('hidden'));$(id).classList.remove('hidden')}function msg(id,text,type='notice'){$(id).innerHTML=text?`<div class="notice ${type}">${esc(text)}</div>`:''}function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2400)}
 function initClient(){const url=localStorage.getItem(LS_URL),key=localStorage.getItem(LS_KEY);if(!url||!key)return false;try{sb=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});return true}catch(e){return false}}
-async function boot(){loadOrionImportHistory();loadSupplierDocuments();loadRecipes();if(!initClient()){show('setupScreen');return}const {data:{session}}=await sb.auth.getSession();if(!session){show('authScreen');return}user=session.user;await loadProfile()}
+async function boot(){loadOrionImportHistory();loadSupplierDocuments();loadRecipes();loadMenus();loadSales();if(!initClient()){show('setupScreen');return}const {data:{session}}=await sb.auth.getSession();if(!session){show('authScreen');return}user=session.user;await loadProfile()}
 async function loadProfile(){const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();if(error){msg('authMsg',error.message,'error');show('authScreen');return}profile=data;if(!profile?.organization_id){$('ownerName').value=profile?.full_name||user.user_metadata?.full_name||'';show('onboardingScreen');return}orgId=profile.organization_id;await loadApp()}
 async function loadApp(){show('appScreen');$('userLabel').textContent=profile?.full_name||user.email;$('hello').textContent=`Bonjour ${(profile?.full_name||'').split(' ')[0]||''} 👋`;$('projectInfo').textContent=localStorage.getItem(LS_URL)||'';await Promise.all([loadVenues(),loadSuppliers(),loadProducts(),loadMovements(),loadPriceHistoryRows(),loadOrders(),loadActivity()]);renderAll()}
 async function loadVenues(){const {data,error}=await sb.from('venues').select('*').order('name');if(error)throw error;venues=data||[];const opts=['<option value="all">Tous les établissements</option>',...venues.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`)];$('venueSelect').innerHTML=opts.join('');$('venueSelect').value=selectedVenue}
@@ -13,7 +15,7 @@ async function loadPriceHistoryRows(){const {data,error}=await sb.from('product_
 async function loadOrders(){const {data,error}=await sb.from('purchase_orders').select('*,suppliers(name),venues(name),purchase_order_items(*)').order('created_at',{ascending:false});if(error)throw error;orders=data||[]}
 async function loadActivity(){const {data}=await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(8);activity=data||[]}
 function visibleProducts(includeArchived=false){return products.filter(p=>(includeArchived||p.active!==false)&&(selectedVenue==='all'||!p.venue_id||p.venue_id===selectedVenue))}function unitCost(p){return num(p.package_price_excl_vat)/Math.max(num(p.units_per_package),1)}function saleEx(p){return num(p.sale_price_incl_vat)/(1+num(p.sale_vat)/100)}function marginPct(p){const c=unitCost(p),s=saleEx(p);return s>0?((s-c)/s)*100:0}function status(p){if(num(p.stock)<=0)return['Rupture','bad'];if(num(p.stock)<=num(p.minimum_stock))return['À commander','warn'];return['En stock','ok']}
-function renderAll(){renderDashboard();renderCopilot();renderSmartNotifications();renderCatalogFilters();renderProducts();renderRecipes();renderStockIntelligence();renderFinance();renderSupplierDocuments();renderSuppliers();renderOrders();renderSupplierOptions();renderOrderOptions();fillQuickOrderOptions();fillSupplierDocumentOptions()}
+function renderAll(){renderDashboard();renderCopilot();renderSmartNotifications();renderCatalogFilters();renderProducts();renderRecipes();renderMenus();renderPos();renderStockIntelligence();renderFinance();renderSupplierDocuments();renderSuppliers();renderOrders();renderSupplierOptions();renderOrderOptions();fillQuickOrderOptions();fillSupplierDocumentOptions()}
 function renderDashboard(){
  const list=visibleProducts(),low=list.filter(p=>num(p.stock)<=num(p.minimum_stock)),value=list.reduce((a,p)=>a+num(p.stock)*unitCost(p),0),margins=list.filter(p=>num(p.sale_price_incl_vat)>0).map(marginPct);
  const openOrders=orders.filter(o=>o.status&&!['received','cancelled'].includes(o.status)&&(selectedVenue==='all'||!o.venue_id||o.venue_id===selectedVenue));
@@ -426,6 +428,133 @@ function resetProduct(){ $('productForm').reset();$('productId').value='';$('pUn
 window.editProduct=async id=>{const p=products.find(x=>x.id===id);if(!p)return;resetProduct();$('productId').value=p.id;$('pName').value=p.name;$('pImage').value=p.image_url||'';$('pSku').value=p.sku||'';$('pBarcode').value=p.barcode||'';$('pCategory').value=p.category||'';$('pSubcategory').value=p.subcategory||'';$('pSupplier').value=p.supplier_id||'';$('pUnit').value=p.unit||'pièce';$('pStock').value=p.stock;$('pMin').value=p.minimum_stock;$('pPackage').value=p.package_price_excl_vat;$('pUnits').value=p.units_per_package;$('pPurchaseVat').value=p.purchase_vat;$('pSale').value=p.sale_price_incl_vat;$('pSaleVat').value=p.sale_vat;$('pTargetMargin').value=p.target_margin_percent??'';$('pLocation').value=p.location||'';$('pFavorite').value=String(!!p.favorite);$('pNotes').value=p.notes||'';$('deleteProductBtn').classList.remove('hidden');$('duplicateProductBtn').classList.remove('hidden');renderImagePreview();$('productModalTitle').textContent='Fiche produit';updateProductCalculations();await loadPriceHistory(id);openModal('productModal')}
 function resetSupplier(){ $('supplierForm').reset();$('supplierId').value='';$('deleteSupplierBtn').classList.add('hidden');$('supplierModalTitle').textContent='Ajouter un fournisseur'}window.editSupplier=id=>{const s=suppliers.find(x=>x.id===id);if(!s)return;resetSupplier();$('supplierId').value=s.id;$('sName').value=s.name;$('sContact').value=s.contact_name||'';$('sEmail').value=s.email||'';$('sPhone').value=s.phone||'';$('sDays').value=s.delivery_days||'';$('sTerms').value=s.payment_terms||'';$('sNotes').value=s.notes||'';$('deleteSupplierBtn').classList.remove('hidden');$('supplierModalTitle').textContent='Modifier le fournisseur';openModal('supplierModal')}
 
+
+function loadMenus(){try{menus=JSON.parse(localStorage.getItem(MENUS_KEY)||'[]');if(!Array.isArray(menus))menus=[]}catch(e){menus=[]}}
+function saveMenus(){localStorage.setItem(MENUS_KEY,JSON.stringify(menus));renderMenus();renderPos()}
+function loadSales(){try{sales=JSON.parse(localStorage.getItem(SALES_KEY)||'[]');if(!Array.isArray(sales))sales=[]}catch(e){sales=[]}}
+function saveSales(){localStorage.setItem(SALES_KEY,JSON.stringify(sales));renderSalesStats()}
+function menuVisible(m){return selectedVenue==='all'||!m.venue_id||m.venue_id===selectedVenue}
+function menuCost(m){return (m.items||[]).reduce((sum,x)=>{const r=recipes.find(y=>y.id===x.recipe_id);return sum+(r?recipePortionCost(r)*num(x.quantity):0)},0)}
+function menuSaleEx(m){return num(m.sale_price_incl_vat)/(1+num(m.sale_vat||12)/100)}
+function menuMarginPct(m){const sale=menuSaleEx(m);return sale>0?(sale-menuCost(m))/sale*100:0}
+function fillMenuVenueOptions(){
+  const opts='<option value="">Tous / menu commun</option>'+venues.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('');
+  if($('menuVenue'))$('menuVenue').innerHTML=opts;
+  if($('posVenue')){$('posVenue').innerHTML=venues.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('');if(selectedVenue!=='all')$('posVenue').value=selectedVenue}
+}
+function renderMenus(){
+  if(!$('menusGrid'))return;
+  const q=($('menuSearch')?.value||'').trim().toLowerCase();
+  const list=menus.filter(menuVisible).filter(m=>!q||`${m.name} ${m.notes||''}`.toLowerCase().includes(q));
+  const margins=list.filter(m=>num(m.sale_price_incl_vat)>0).map(menuMarginPct);
+  $('menuCount').textContent=list.length;
+  $('menuAvgCost').textContent=money(list.length?list.reduce((a,m)=>a+menuCost(m),0)/list.length:0);
+  $('menuAvgMargin').textContent=(margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0).toFixed(1)+' %';
+  $('menuLowMargin').textContent=list.filter(m=>num(m.sale_price_incl_vat)>0&&menuMarginPct(m)<65).length;
+  $('menusGrid').innerHTML=list.length?list.map(m=>`<article class="recipe-card"><div class="recipe-image"><div class="recipe-placeholder">📋</div></div><div class="recipe-card-body"><div class="row between"><span class="badge ok">Menu</span><span class="tiny">${esc(venues.find(v=>v.id===m.venue_id)?.name||'Commun')}</span></div><h3>${esc(m.name)}</h3><div class="recipe-metrics"><div><span>Coût</span><b>${money(menuCost(m))}</b></div><div><span>Vente TVAC</span><b>${money(m.sale_price_incl_vat)}</b></div><div><span>Marge</span><b class="${menuMarginPct(m)<65?'text-danger':''}">${menuMarginPct(m).toFixed(1)} %</b></div><div><span>Recettes</span><b>${(m.items||[]).length}</b></div></div><div class="actions"><button class="btn soft mini" onclick="editMenu('${m.id}')">Modifier</button><button class="btn primary mini" onclick="addPosItem('menu','${m.id}')">Ajouter à la caisse</button></div></div></article>`).join(''):'<div class="empty" style="grid-column:1/-1">Aucun menu enregistré.</div>';
+}
+function resetMenu(){
+  $('menuForm').reset();$('menuId').value='';$('menuModalTitle').textContent='Nouveau menu';$('menuSalePrice').value='0';$('menuVat').value='12';$('menuVenue').value=selectedVenue==='all'?'':selectedVenue;menuRecipeDraft=[];$('deleteMenuBtn').classList.add('hidden');renderMenuRecipes();
+}
+function menuRecipeOptions(selected=''){const venue=$('menuVenue')?.value||'';return recipes.filter(r=>!venue||!r.venue_id||r.venue_id===venue).sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(r=>`<option value="${r.id}" ${r.id===selected?'selected':''}>${esc(r.name)} · ${money(recipePortionCost(r))}</option>`).join('')}
+function addMenuRecipe(recipeId='',quantity=1){menuRecipeDraft.push({recipe_id:recipeId,quantity:num(quantity)||1});renderMenuRecipes()}
+function renderMenuRecipes(){
+  if(!$('menuRecipesBody'))return;
+  $('menuRecipesBody').innerHTML=menuRecipeDraft.length?menuRecipeDraft.map((x,i)=>{const r=recipes.find(y=>y.id===x.recipe_id);return `<tr><td><select onchange="setMenuRecipe(${i},this.value)"><option value="">Choisir une recette</option>${menuRecipeOptions(x.recipe_id)}</select></td><td><input type="number" min="0.001" step="0.001" value="${num(x.quantity)}" oninput="setMenuRecipeQty(${i},this.value)"></td><td class="money">${money(r?recipePortionCost(r)*num(x.quantity):0)}</td><td><button class="btn danger mini" type="button" onclick="removeMenuRecipe(${i})">✕</button></td></tr>`}).join(''):'<tr><td colspan="4" class="empty">Aucune recette ajoutée.</td></tr>';
+  updateMenuCalculations();
+}
+window.setMenuRecipe=(i,v)=>{if(menuRecipeDraft[i])menuRecipeDraft[i].recipe_id=v;renderMenuRecipes()}
+window.setMenuRecipeQty=(i,v)=>{if(menuRecipeDraft[i])menuRecipeDraft[i].quantity=Math.max(num(v),0);renderMenuRecipes()}
+window.removeMenuRecipe=i=>{menuRecipeDraft.splice(i,1);renderMenuRecipes()}
+function currentMenuDraft(){return {items:menuRecipeDraft,sale_price_incl_vat:num($('menuSalePrice')?.value),sale_vat:num($('menuVat')?.value||12)}}
+function updateMenuCalculations(){
+  if(!$('menuCalcCost'))return;const m=currentMenuDraft(),cost=menuCost(m),sale=menuSaleEx(m),margin=sale-cost,pct=sale>0?margin/sale*100:0;
+  $('menuCalcCost').textContent=money(cost);$('menuCalcSaleEx').textContent=money(sale);$('menuCalcMarginEuro').textContent=money(margin);$('menuCalcMarginPct').textContent=pct.toFixed(1)+' %';
+}
+window.editMenu=id=>{const m=menus.find(x=>x.id===id);if(!m)return;fillMenuVenueOptions();resetMenu();$('menuId').value=m.id;$('menuModalTitle').textContent='Modifier le menu';$('menuName').value=m.name||'';$('menuVenue').value=m.venue_id||'';$('menuSalePrice').value=num(m.sale_price_incl_vat);$('menuVat').value=String(num(m.sale_vat)||12);$('menuNotes').value=m.notes||'';menuRecipeDraft=(m.items||[]).map(x=>({...x}));$('deleteMenuBtn').classList.remove('hidden');renderMenuRecipes();openModal('menuModal')};
+
+function posItems(){
+  const venue=$('posVenue')?.value||selectedVenue;
+  const recipeRows=recipes.filter(r=>!venue||venue==='all'||!r.venue_id||r.venue_id===venue).map(r=>({type:'recipe',id:r.id,name:r.name,price:num(r.sale_price_incl_vat),cost:recipePortionCost(r),category:r.category||'Recette'}));
+  const menuRows=menus.filter(m=>!venue||venue==='all'||!m.venue_id||m.venue_id===venue).map(m=>({type:'menu',id:m.id,name:m.name,price:num(m.sale_price_incl_vat),cost:menuCost(m),category:'Menu'}));
+  return [...recipeRows,...menuRows];
+}
+function renderPos(){
+  if(!$('posCatalog'))return;fillMenuVenueOptions();
+  const q=($('posSearch')?.value||'').trim().toLowerCase(),type=$('posTypeFilter')?.value||'all';
+  const list=posItems().filter(x=>(type==='all'||x.type===type)&&(!q||`${x.name} ${x.category}`.toLowerCase().includes(q)));
+  $('posCatalog').innerHTML=list.length?list.map(x=>`<button class="pos-item" type="button" onclick="addPosItem('${x.type}','${x.id}')"><span>${x.type==='menu'?'📋':'🍽️'}</span><b>${esc(x.name)}</b><small>${money(x.price)}</small></button>`).join(''):'<div class="empty">Aucun article disponible.</div>';
+  renderPosCart();renderSalesStats();
+}
+window.addPosItem=(type,id)=>{const key=type+':'+id,found=posCart.find(x=>x.key===key);if(found)found.quantity+=1;else posCart.push({key,type,id,quantity:1});renderPosCart();toast('Ajouté au ticket')}
+function posLineObject(line){return line.type==='recipe'?recipes.find(x=>x.id===line.id):menus.find(x=>x.id===line.id)}
+function posLinePrice(line){const x=posLineObject(line);return num(x?.sale_price_incl_vat)}
+function renderPosCart(){
+  if(!$('posCart'))return;
+  $('posCart').innerHTML=posCart.length?posCart.map((line,i)=>{const x=posLineObject(line);return `<div class="pos-cart-line"><div><b>${esc(x?.name||'Article supprimé')}</b><span>${money(posLinePrice(line))} × ${line.quantity}</span></div><div class="qty-control"><button type="button" onclick="changePosQty(${i},-1)">−</button><b>${line.quantity}</b><button type="button" onclick="changePosQty(${i},1)">+</button></div><b>${money(posLinePrice(line)*line.quantity)}</b></div>`}).join(''):'<div class="empty">Le ticket est vide.</div>';
+  $('posTotal').textContent=money(posCart.reduce((a,x)=>a+posLinePrice(x)*x.quantity,0));
+}
+window.changePosQty=(i,d)=>{if(!posCart[i])return;posCart[i].quantity+=d;if(posCart[i].quantity<=0)posCart.splice(i,1);renderPosCart()}
+function expandSaleRecipes(){
+  const result=[];
+  posCart.forEach(line=>{
+    if(line.type==='recipe')result.push({recipe_id:line.id,quantity:line.quantity});
+    else{
+      const m=menus.find(x=>x.id===line.id);
+      (m?.items||[]).forEach(item=>result.push({recipe_id:item.recipe_id,quantity:num(item.quantity)*line.quantity}));
+    }
+  });
+  return result;
+}
+function aggregateSaleNeeds(){
+  const map=new Map();
+  expandSaleRecipes().forEach(entry=>{
+    const r=recipes.find(x=>x.id===entry.recipe_id);if(!r)return;
+    const multiplier=num(entry.quantity)/Math.max(num(r.portions),1);
+    (r.ingredients||[]).forEach(line=>{
+      const qty=num(line.quantity)*multiplier;
+      map.set(line.product_id,(map.get(line.product_id)||0)+qty);
+    });
+  });
+  return [...map.entries()].map(([product_id,quantity])=>({product_id,quantity,product:products.find(p=>p.id===product_id)}));
+}
+async function validatePosSale(){
+  if(!posCart.length){toast('Le ticket est vide');return}
+  const needs=aggregateSaleNeeds(),missing=needs.filter(x=>!x.product||num(x.product.stock)<x.quantity);
+  if(missing.length){alert('Vente impossible : stock insuffisant\n\n'+missing.map(x=>`• ${x.product?.name||'Produit absent'} : besoin ${x.quantity.toFixed(3)}, stock ${num(x.product?.stock)}`).join('\n'));return}
+  const total=posCart.reduce((a,x)=>a+posLinePrice(x)*x.quantity,0),covers=Math.max(0,Math.round(num($('posCovers').value)));
+  if(!confirm(`Valider cette vente de ${money(total)} ?\n\nLes ingrédients seront retirés du stock.`))return;
+  try{
+    const saleId='sale-'+Date.now();
+    for(const need of needs){
+      const {error}=await sb.rpc('record_stock_movement',{p_product_id:need.product_id,p_quantity:-need.quantity,p_movement_type:'sale',p_note:`Vente caisse ${saleId}`});
+      if(error)throw error;
+    }
+    const record={id:saleId,created_at:new Date().toISOString(),venue_id:$('posVenue').value||null,service:$('posService').value,payment:$('posPayment').value,covers,total,items:posCart.map(x=>({...x,name:posLineObject(x)?.name||'',unit_price:posLinePrice(x)}))};
+    sales.unshift(record);saveSales();
+    await audit('Vente caisse enregistrée','sale',saleId,{total,covers,service:record.service,payment:record.payment,items:record.items.length});
+    posCart=[];await refresh();renderPos();toast(`Vente enregistrée : ${money(total)}`);
+  }catch(e){toast('Vente impossible : '+(e.message||e))}
+}
+function todaySales(){
+  const today=new Date().toISOString().slice(0,10),venue=$('posVenue')?.value||selectedVenue;
+  return sales.filter(s=>String(s.created_at).slice(0,10)===today&&(!venue||venue==='all'||!s.venue_id||s.venue_id===venue));
+}
+function renderSalesStats(){
+  if(!$('salesHistory'))return;
+  const today=todaySales(),revenue=today.reduce((a,s)=>a+num(s.total),0),covers=today.reduce((a,s)=>a+num(s.covers),0);
+  $('salesTodayRevenue').textContent=money(revenue);$('salesTodayTickets').textContent=today.length;$('salesAverageTicket').textContent=money(today.length?revenue/today.length:0);$('salesTodayCovers').textContent=covers;
+  const venue=$('posVenue')?.value||selectedVenue;
+  const list=sales.filter(s=>!venue||venue==='all'||!s.venue_id||s.venue_id===venue).slice(0,30);
+  $('salesHistory').innerHTML=list.length?list.map(s=>`<div class="item"><div><b>${new Date(s.created_at).toLocaleString('fr-BE')} · ${money(s.total)}</b><span class="muted">${num(s.covers)} couvert(s) · ${esc(s.service||'')} · ${(s.items||[]).map(i=>`${i.quantity}× ${esc(i.name)}`).join(', ')}</span></div></div>`).join(''):'<div class="empty">Aucune vente enregistrée.</div>';
+}
+function exportSalesCsv(){
+  const rows=[['Date','Établissement','Service','Paiement','Couverts','Total TVAC','Articles']];
+  sales.forEach(s=>rows.push([new Date(s.created_at).toLocaleString('fr-BE'),venues.find(v=>v.id===s.venue_id)?.name||'',s.service,s.payment,s.covers,s.total,(s.items||[]).map(i=>`${i.quantity}x ${i.name}`).join(' | ')]));
+  const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='gestiona-ventes.csv';a.click();URL.revokeObjectURL(a.href);
+}
+
 function loadRecipes(){
   try{
     recipes=JSON.parse(localStorage.getItem(RECIPES_KEY)||'[]');
@@ -626,7 +755,25 @@ async function refresh(){await Promise.all([loadSuppliers(),loadProducts(),loadM
 $('saveConfig').onclick=()=>{const u=$('setupUrl').value.trim().replace(/\/$/,''),k=$('setupKey').value.trim();if(!u.includes('.supabase.co')||k.length<20){msg('setupMsg','Vérifiez l’URL et la clé publique.','error');return}localStorage.setItem(LS_URL,u);localStorage.setItem(LS_KEY,k);location.reload()};$('changeConfigBtn').onclick=()=>{localStorage.removeItem(LS_URL);localStorage.removeItem(LS_KEY);location.reload()};$('resetConfig').onclick=$('changeConfigBtn').onclick;
 $('loginBtn').onclick=async()=>{msg('authMsg','');const {error}=await sb.auth.signInWithPassword({email:$('authEmail').value.trim(),password:$('authPassword').value});if(error){msg('authMsg',error.message,'error');return}location.reload()};$('signupBtn').onclick=async()=>{msg('authMsg','');const email=$('authEmail').value.trim(),password=$('authPassword').value,name=$('authName').value.trim();const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});if(error){msg('authMsg',error.message,'error');return}if(!data.session){msg('authMsg','Compte créé. Confirmez votre adresse e-mail, puis connectez-vous.','success')}else location.reload()};$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};
 $('createOrgBtn').onclick=async()=>{msg('onboardMsg','');const {data,error}=await sb.rpc('bootstrap_organization',{organization_name:$('orgName').value.trim(),user_full_name:$('ownerName').value.trim()});if(error){msg('onboardMsg',error.message,'error');return}orgId=data;const names=[$('venueOne').value.trim(),$('venueTwo').value.trim()].filter(Boolean);if(names.length){const rows=names.map(name=>({organization_id:orgId,name}));const {error:e}=await sb.from('venues').insert(rows);if(e){msg('onboardMsg',e.message,'error');return}}location.reload()};
-$('venueSelect').onchange=()=>{selectedVenue=$('venueSelect').value;renderDashboard();renderProducts();renderStockIntelligence();renderRecipes()};$('addRecipeBtn').onclick=()=>{fillRecipeVenueOptions();resetRecipe();openModal('recipeModal')};
+$('venueSelect').onchange=()=>{selectedVenue=$('venueSelect').value;renderDashboard();renderProducts();renderStockIntelligence();renderRecipes();renderMenus();renderPos()};$('addMenuBtn').onclick=()=>{fillMenuVenueOptions();resetMenu();openModal('menuModal')};
+$('menuSearch').oninput=renderMenus;
+$('addMenuRecipeBtn').onclick=()=>addMenuRecipe();
+$('menuVenue').onchange=renderMenuRecipes;
+['menuSalePrice','menuVat'].forEach(id=>$(id).addEventListener('input',updateMenuCalculations));
+$('menuForm').onsubmit=async e=>{
+ e.preventDefault();const name=$('menuName').value.trim();
+ if(!name){toast('Indiquez le nom du menu');return}
+ if(!menuRecipeDraft.length||menuRecipeDraft.some(x=>!x.recipe_id||num(x.quantity)<=0)){toast('Ajoutez et complétez au moins une recette');return}
+ const id=$('menuId').value||'menu-'+Date.now();
+ const row={id,name,venue_id:$('menuVenue').value||null,sale_price_incl_vat:num($('menuSalePrice').value),sale_vat:num($('menuVat').value||12),notes:$('menuNotes').value.trim()||null,items:menuRecipeDraft.map(x=>({...x,quantity:num(x.quantity)})),updated_at:new Date().toISOString()};
+ const pos=menus.findIndex(x=>x.id===id);if(pos>=0)menus[pos]=row;else menus.push({...row,created_at:new Date().toISOString()});
+ saveMenus();await audit(pos>=0?'Menu modifié':'Menu créé','menu',id,{name,cost:menuCost(row),margin:menuMarginPct(row)});closeModal('menuModal');toast(pos>=0?'Menu mis à jour':'Menu créé');
+};
+$('deleteMenuBtn').onclick=async()=>{const id=$('menuId').value,m=menus.find(x=>x.id===id);if(!m)return;if(!confirm(`Supprimer le menu « ${m.name} » ?`))return;menus=menus.filter(x=>x.id!==id);saveMenus();await audit('Menu supprimé','menu',id,{name:m.name});closeModal('menuModal');toast('Menu supprimé')};
+$('posSearch').oninput=renderPos;$('posTypeFilter').onchange=renderPos;$('posVenue').onchange=renderPos;
+$('clearPosCartBtn').onclick=()=>{if(posCart.length&&!confirm('Vider le ticket en cours ?'))return;posCart=[];renderPosCart()};
+$('validateSaleBtn').onclick=validatePosSale;$('exportSalesBtn').onclick=exportSalesCsv;
+$('addRecipeBtn').onclick=()=>{fillRecipeVenueOptions();resetRecipe();openModal('recipeModal')};
 $('recipeSearch').oninput=renderRecipes;
 $('recipeCategoryFilter').onchange=renderRecipes;
 $('refreshRecipeAnalysisBtn').onclick=()=>{renderRecipes();toast('Analyse des recettes actualisée')};
@@ -652,7 +799,7 @@ $('deleteRecipeBtn').onclick=async()=>{
   recipes=recipes.filter(x=>x.id!==id);saveRecipes();await audit('Recette supprimée','recipe',id,{name:r.name});closeModal('recipeModal');toast('Recette supprimée');
 };
 $('prepareRecipeBtn').onclick=()=>prepareRecipe($('recipeId').value);
-$('openStockRemovalBtn').onclick=openStockRemovalPicker;$('stockRemovalProductSelect').onchange=updateStockRemovalPickerInfo;$('continueStockRemovalBtn').onclick=()=>{const id=$('stockRemovalProductSelect').value;if(!id){toast('Choisissez un produit');return}closeModal('stockRemovalPickerModal');quickMovement(id,'removal')};$('orionPrepareOrderBtn').onclick=()=>{document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-orders').classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view==='orders'));$('pageTitle').textContent='Commandes fournisseurs';if(selectedVenue!=='all')$('quickOrderVenue').value=selectedVenue;loadQuickOrderDraft();$('quickOrderFilter').value='low';renderQuickOrderCatalog();setTimeout(()=>$('quickOrderSearch').focus(),100)};$('quickOrderVenue').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSupplier').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSearch').oninput=renderQuickOrderCatalog;$('quickOrderFilter').onchange=renderQuickOrderCatalog;$('createQuickOrderBtn').onclick=createOrderFromQuickDraft;$('clearQuickOrderBtn').onclick=()=>{if(!confirm('Vider toutes les quantités de ce brouillon ?'))return;quickOrder={quantities:{},notes:{}};saveQuickOrderDraft();renderQuickOrderCatalog()};$('orionAnalyzeOrderBtn').onclick=analyzeOrionOrder;$('orionApplyOrderBtn').onclick=applyOrionOrderSuggestions;$('orionClearSuggestionBtn').onclick=clearOrionOrderSuggestions;$('stockIntelAnalyzeBtn').onclick=()=>{renderStockIntelligence();toast('Analyse ORION Stock actualisée')};$('productSearch').oninput=renderProducts;$('productFilter').onchange=renderProducts;$('productCategoryFilter').onchange=renderProducts;$('productSupplierFilter').onchange=renderProducts;$('productLocationFilter').onchange=renderProducts;$('exportCatalogBtn').onclick=exportCatalogCsv;$('supplierSearch').oninput=renderSuppliers;$('orderSearch').oninput=renderOrders;$('orderFilter').onchange=renderOrders;$('addOrderBtn').onclick=()=>{resetOrder();openModal('orderModal')};$('addOrderLineBtn').onclick=()=>addOrderLine();$('addProductBtn').onclick=()=>{resetProduct();openModal('productModal')};$('addSupplierBtn').onclick=()=>{resetSupplier();openModal('supplierModal')};['pPackage','pUnits','pSale','pSaleVat','pTargetMargin','pStock'].forEach(id=>$(id).addEventListener('input',updateProductCalculations));$('pImage').addEventListener('input',renderImagePreview);$('scanBarcodeBtn').onclick=startBarcodeScan;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-'+v).classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('pageTitle').textContent={dashboard:'ORION Copilote',products:'Produits & stocks',suppliers:'Fournisseurs',orders:'Commandes fournisseurs',recipes:'Recettes intelligentes',finance:'ORION Finance',orion:'ORION Import',settings:'Paramètres'}[v];if(v==='orion')renderOrionImportHistory();if(v==='recipes'){fillRecipeVenueOptions();renderRecipes()}});
+$('openStockRemovalBtn').onclick=openStockRemovalPicker;$('stockRemovalProductSelect').onchange=updateStockRemovalPickerInfo;$('continueStockRemovalBtn').onclick=()=>{const id=$('stockRemovalProductSelect').value;if(!id){toast('Choisissez un produit');return}closeModal('stockRemovalPickerModal');quickMovement(id,'removal')};$('orionPrepareOrderBtn').onclick=()=>{document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-orders').classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view==='orders'));$('pageTitle').textContent='Commandes fournisseurs';if(selectedVenue!=='all')$('quickOrderVenue').value=selectedVenue;loadQuickOrderDraft();$('quickOrderFilter').value='low';renderQuickOrderCatalog();setTimeout(()=>$('quickOrderSearch').focus(),100)};$('quickOrderVenue').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSupplier').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSearch').oninput=renderQuickOrderCatalog;$('quickOrderFilter').onchange=renderQuickOrderCatalog;$('createQuickOrderBtn').onclick=createOrderFromQuickDraft;$('clearQuickOrderBtn').onclick=()=>{if(!confirm('Vider toutes les quantités de ce brouillon ?'))return;quickOrder={quantities:{},notes:{}};saveQuickOrderDraft();renderQuickOrderCatalog()};$('orionAnalyzeOrderBtn').onclick=analyzeOrionOrder;$('orionApplyOrderBtn').onclick=applyOrionOrderSuggestions;$('orionClearSuggestionBtn').onclick=clearOrionOrderSuggestions;$('stockIntelAnalyzeBtn').onclick=()=>{renderStockIntelligence();toast('Analyse ORION Stock actualisée')};$('productSearch').oninput=renderProducts;$('productFilter').onchange=renderProducts;$('productCategoryFilter').onchange=renderProducts;$('productSupplierFilter').onchange=renderProducts;$('productLocationFilter').onchange=renderProducts;$('exportCatalogBtn').onclick=exportCatalogCsv;$('supplierSearch').oninput=renderSuppliers;$('orderSearch').oninput=renderOrders;$('orderFilter').onchange=renderOrders;$('addOrderBtn').onclick=()=>{resetOrder();openModal('orderModal')};$('addOrderLineBtn').onclick=()=>addOrderLine();$('addProductBtn').onclick=()=>{resetProduct();openModal('productModal')};$('addSupplierBtn').onclick=()=>{resetSupplier();openModal('supplierModal')};['pPackage','pUnits','pSale','pSaleVat','pTargetMargin','pStock'].forEach(id=>$(id).addEventListener('input',updateProductCalculations));$('pImage').addEventListener('input',renderImagePreview);$('scanBarcodeBtn').onclick=startBarcodeScan;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-'+v).classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('pageTitle').textContent={dashboard:'ORION Copilote',products:'Produits & stocks',suppliers:'Fournisseurs',orders:'Commandes fournisseurs',recipes:'Recettes intelligentes',menus:'Menus',pos:'Caisse intelligente',finance:'ORION Finance',orion:'ORION Import',settings:'Paramètres'}[v];if(v==='orion')renderOrionImportHistory();if(v==='recipes'){fillRecipeVenueOptions();renderRecipes()}if(v==='menus'){fillMenuVenueOptions();renderMenus()}if(v==='pos'){fillMenuVenueOptions();renderPos()}});
 $('movementForm').onsubmit=async e=>{
  e.preventDefault();
  const productId=$('mProductId').value,p=products.find(x=>x.id===productId);if(!p)return;
