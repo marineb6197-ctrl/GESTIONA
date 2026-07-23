@@ -909,3 +909,26 @@ body[data-venue-theme="all"] .mobile-nav button.active{color:#9a711f}
 .cockpit-day-grid{align-items:stretch}.v19-agenda{display:grid;gap:9px;margin-top:14px}.agenda-item{display:grid;grid-template-columns:58px 1fr auto;gap:12px;align-items:center;padding:11px;border-radius:13px;background:#faf8f3;border:1px solid #eee6d9}.agenda-time{font-weight:800;color:var(--gold)}.agenda-item b{display:block}.agenda-item small{display:block;color:#80786f;margin-top:2px}.agenda-state{font-size:11px;padding:5px 8px;border-radius:99px;background:#f2ead8;color:#765b21}.orion-command-center{background:linear-gradient(145deg,color-mix(in srgb,var(--wine) 92%,#222),color-mix(in srgb,var(--wine2) 85%,#111));color:#fff}.orion-command-center .tiny{color:rgba(255,255,255,.72)}.v19-orion-summary{display:grid;gap:9px;margin-top:14px}.orion-summary-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1)}.orion-summary-item span{font-size:18px}.orion-summary-item small{display:block;color:rgba(255,255,255,.7);margin-top:2px}
 @media(max-width:1100px){.premium-topbar{flex-wrap:wrap}.global-search-wrap{order:3;max-width:none;flex-basis:100%}.cockpit-executive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.topbar-title .tiny,.topbar-actions #roleBadge,.topbar-actions #userLabel{display:none}.premium-topbar{padding:12px}.topbar-actions{margin-left:auto}.cockpit-intro{align-items:flex-start;flex-direction:column}.cockpit-executive-grid{grid-template-columns:1fr}.agenda-item{grid-template-columns:48px 1fr}.agenda-state{display:none}}
+
+
+/* ===== GESTIONA v20.0 — Smart Stock ===== */
+.v20-stock-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:15px;padding:24px!important;overflow:hidden;position:relative}
+.v20-stock-hero:after{content:"";position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;background:color-mix(in srgb,var(--gold) 13%,transparent);pointer-events:none}
+.v20-stock-hero h2{margin:5px 0 6px;font-size:clamp(24px,3vw,34px)}
+.v20-stock-actions{display:flex;gap:9px;flex-wrap:wrap;position:relative;z-index:1}
+.v20-stock-overview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px;margin-bottom:15px}
+.v20-stock-kpi{padding:18px!important;min-height:118px;position:relative;overflow:hidden}
+.v20-stock-kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold)}
+.v20-stock-kpi span{display:block;font-size:12px;color:var(--muted)}
+.v20-stock-kpi strong{display:block;font-size:25px;margin:8px 0 5px}
+.v20-stock-kpi small{color:var(--muted)}
+.v20-stock-panels{margin-bottom:15px;align-items:stretch}
+.v20-priority-list,.v20-movement-list{display:grid;gap:9px;margin-top:13px}
+.v20-priority-item,.v20-movement-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 13px;border-radius:13px;background:color-mix(in srgb,var(--surface) 93%,var(--gold) 7%);border:1px solid color-mix(in srgb,var(--gold) 22%,var(--line))}
+.v20-priority-item b,.v20-movement-item b{display:block}
+.v20-priority-item small,.v20-movement-item small{display:block;color:var(--muted);margin-top:3px}
+.v20-movement-icon{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--gold) 16%,white);flex:0 0 auto}
+.v20-movement-main{display:flex;gap:10px;align-items:center;min-width:0}
+body[data-venue-theme="all"] .v20-stock-kpi:before{background:var(--all-gold)}
+@media(max-width:1200px){.v20-stock-overview{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.v20-stock-hero{align-items:flex-start;flex-direction:column}.v20-stock-actions{width:100%}.v20-stock-actions .btn{flex:1 1 45%}.v20-stock-overview{grid-template-columns:1fr 1fr}.v20-stock-overview .v20-stock-kpi:first-child{grid-column:1/-1}}

@@ -1,0 +1,11 @@
+GESTIONA v20.0 — SMART STOCK
+
+Nouveautés :
+- Nouveau centre de gestion des stocks en tête du module Produits & stocks.
+- Valorisation totale du stock HTVA.
+- Compteurs produits, ruptures, seuils minimum et commandes ouvertes.
+- Liste des priorités avec accès direct à la préparation de commande.
+- Journal des derniers mouvements et actions rapides.
+- Accès direct à l’inventaire, aux commandes automatiques et à la création de produit.
+
+Les fonctions existantes de GESTIONA restent disponibles.

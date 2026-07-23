@@ -1656,3 +1656,26 @@ async function createVenueFromWizard(e){e.preventDefault();const d=readVenueDraf
 window.openVenueInformation=id=>{const v=venues.find(x=>String(x.id)===String(id)),d=venueInfo(v);if(!v)return;alert(`${v.name}\n\nType : ${d.type||'Non renseigné'}\nAdresse : ${[d.address,d.zip,d.city,d.country].filter(Boolean).join(', ')||'Non renseignée'}\nTéléphone : ${d.phone||'Non renseigné'}\nE-mail : ${d.email||'Non renseigné'}\nTVA : ${d.vat||'Non renseignée'}\nIBAN : ${d.iban||'Non renseigné'}`)}
 $('newVenueBtn')?.addEventListener('click',openVenueWizard);$('venueWizardPrev')?.addEventListener('click',()=>{venueWizardStep=Math.max(1,venueWizardStep-1);showVenueWizardStep()});$('venueWizardNext')?.addEventListener('click',()=>{if(venueWizardStep===1&&!$('nvName').value.trim()){toast('Indiquez le nom de l’établissement');$('nvName').focus();return}venueWizardStep=Math.min(4,venueWizardStep+1);showVenueWizardStep()});$('venueWizardForm')?.addEventListener('submit',createVenueFromWizard);['nvName','nvPrimary','nvAccent'].forEach(id=>$(id)?.addEventListener('input',updateVenuePreview));$('nvLogo')?.addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{venueLogoData=r.result;updateVenuePreview()};r.readAsDataURL(f)});
 const _renderAllV182=renderAll;renderAll=function(){_renderAllV182();renderVenueDirectory()}
+
+
+/* ===== GESTIONA v20.0 — Smart Stock ===== */
+function v20ActiveProducts(){return products.filter(p=>p.active!==false)}
+function v20StockValue(){return v20ActiveProducts().reduce((sum,p)=>sum+Math.max(0,num(p.stock))*Math.max(0,unitCost(p)),0)}
+function v20OpenOrders(){return orders.filter(o=>!['received','cancelled'].includes(o.status))}
+function v20MovementIcon(row){const t=String(row?.details?.movement_type||row?.action||'').toLowerCase();if(t.includes('réception')||t.includes('purchase'))return '📥';if(t.includes('vente')||t.includes('sale'))return '🧾';if(t.includes('perte')||t.includes('waste'))return '⚠️';if(t.includes('inventaire'))return '📋';return '↔️'}
+function renderV20StockOverview(){
+ if(!$('v20StockValue'))return;
+ const active=v20ActiveProducts(),low=active.filter(p=>num(p.stock)<=num(p.minimum_stock)),out=active.filter(p=>num(p.stock)<=0),open=v20OpenOrders();
+ $('v20StockValue').textContent=money(v20StockValue());$('v20StockProducts').textContent=active.length;$('v20StockLow').textContent=low.length;$('v20StockOut').textContent=out.length;$('v20StockOrders').textContent=open.length;$('v20PriorityCount').textContent=low.length;
+ const urgent=[...low].sort((a,b)=>(num(a.stock)-num(a.minimum_stock))-(num(b.stock)-num(b.minimum_stock))).slice(0,6);
+ $('v20StockPriorities').innerHTML=urgent.length?urgent.map(p=>`<div class="v20-priority-item"><div><b>${esc(p.name)}</b><small>Stock ${formatQty(num(p.stock))} · minimum ${formatQty(num(p.minimum_stock))} ${esc(p.unit||'')}</small></div><div class="stock-actions"><span class="badge ${num(p.stock)<=0?'bad':'warn'}">${num(p.stock)<=0?'Rupture':'À commander'}</span><button class="btn mini primary" onclick="openStockOrder('${p.id}')">Commander</button></div></div>`).join(''):'<div class="empty">Aucune priorité de stock. Tous les niveaux sont suffisants.</div>';
+ const recent=(activity||[]).filter(r=>['product','sale','purchase_order'].includes(r.entity_type)).slice(0,7);
+ $('v20StockMovements').innerHTML=recent.length?recent.map(r=>`<div class="v20-movement-item"><div class="v20-movement-main"><span class="v20-movement-icon">${v20MovementIcon(r)}</span><div><b>${esc(r.action||'Mouvement de stock')}</b><small>${esc(activityDetails(r))}</small></div></div><small>${r.created_at?new Date(r.created_at).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'}):''}</small></div>`).join(''):'<div class="empty">Aucun mouvement récent enregistré.</div>';
+}
+$('v20InventoryBtn')?.addEventListener('click',()=>$('openQuickInventoryBtn')?.click());
+$('v20OrderBtn')?.addEventListener('click',()=>$('openAutoOrderBtn')?.click());
+$('v20NewProductBtn')?.addEventListener('click',()=>$('addProductBtn')?.click());
+$('v20MovementJournalBtn')?.addEventListener('click',()=>missionOpenView('activity'));
+$('v20RefreshStockBtn')?.addEventListener('click',async()=>{await refresh();renderV20StockOverview();toast('Stocks actualisés')});
+const _renderAllV200=renderAll;renderAll=function(){_renderAllV200();renderV20StockOverview()}
+document.querySelectorAll('[data-view="products"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderV20StockOverview,0)));

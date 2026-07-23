@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v19.0 — Cockpit Premium par établissement</title>
+<title>GESTIONA ERP v20.0 — Smart Stock par établissement</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -70,6 +70,36 @@
 <div class="grid two" style="margin-top:15px"><div class="card"><h3>Commandes en cours</h3><div id="dashboardOrders" class="list"></div></div><div class="card"><h3>Dernière activité</h3><div id="activityList" class="list"></div></div></div>
 </section>
 <section id="view-products" class="view">
+<div class="v20-stock-hero card">
+  <div>
+    <span class="eyebrow">GESTIONA SMART STOCK</span>
+    <h2>Centre de gestion des stocks</h2>
+    <p class="muted">Une vue unique pour surveiller, compter, commander et tracer chaque mouvement.</p>
+  </div>
+  <div class="v20-stock-actions">
+    <button class="btn soft" type="button" id="v20MovementJournalBtn">🧾 Journal</button>
+    <button class="btn gold" type="button" id="v20InventoryBtn">📋 Inventaire</button>
+    <button class="btn primary" type="button" id="v20OrderBtn">🛒 Commander</button>
+    <button class="btn gold" type="button" id="v20NewProductBtn">＋ Produit</button>
+  </div>
+</div>
+<div class="v20-stock-overview">
+  <article class="card v20-stock-kpi"><span>Valeur du stock HTVA</span><strong id="v20StockValue">0,00 €</strong><small>Valorisation actuelle</small></article>
+  <article class="card v20-stock-kpi"><span>Produits actifs</span><strong id="v20StockProducts">0</strong><small>Références suivies</small></article>
+  <article class="card v20-stock-kpi"><span>À commander</span><strong id="v20StockLow">0</strong><small>Sous le seuil minimum</small></article>
+  <article class="card v20-stock-kpi"><span>Ruptures</span><strong id="v20StockOut">0</strong><small>Stock nul ou négatif</small></article>
+  <article class="card v20-stock-kpi"><span>Commandes ouvertes</span><strong id="v20StockOrders">0</strong><small>En attente de réception</small></article>
+</div>
+<div class="grid two v20-stock-panels">
+  <div class="card">
+    <div class="row between"><div><h3>⚠️ Priorités immédiates</h3><p class="tiny">Les produits les plus urgents à traiter.</p></div><span class="badge warn" id="v20PriorityCount">0</span></div>
+    <div id="v20StockPriorities" class="v20-priority-list"></div>
+  </div>
+  <div class="card">
+    <div class="row between"><div><h3>🛡️ Derniers mouvements</h3><p class="tiny">Traçabilité des ajustements, ventes et réceptions.</p></div><button class="btn soft mini" type="button" id="v20RefreshStockBtn">Actualiser</button></div>
+    <div id="v20StockMovements" class="v20-movement-list"></div>
+  </div>
+</div>
 <div class="stock-category-layout">
 <aside class="card stock-category-sidebar">
   <div class="row between stock-category-head">
