@@ -100,3 +100,36 @@
 .pos-checkout{width:100%;padding:14px;font-size:15px}
 @media(max-width:980px){.pos-layout{grid-template-columns:1fr}.pos-cart-card{order:-1}}
 @media(max-width:560px){.pos-catalog{grid-template-columns:1fr 1fr}.pos-cart-line{grid-template-columns:1fr auto}.pos-cart-line>b:last-child{grid-column:1/-1;text-align:right}}
+
+.stock-category-layout{display:grid;grid-template-columns:245px minmax(0,1fr);gap:15px;align-items:start}
+.stock-category-sidebar{position:sticky;top:84px;padding:12px;max-height:calc(100vh - 105px);overflow:auto}
+.stock-category-head{padding:5px 5px 12px;border-bottom:1px solid var(--line)}
+.stock-category-tabs{display:grid;gap:4px;margin-top:10px}
+.stock-category-tab{display:grid;grid-template-columns:27px minmax(0,1fr) auto;gap:8px;align-items:center;width:100%;border:0;background:transparent;border-radius:10px;padding:9px 8px;text-align:left;cursor:pointer;color:var(--text)}
+.stock-category-tab:hover{background:#f7f0ea}
+.stock-category-tab.active{background:var(--wine);color:#fff;box-shadow:0 5px 13px rgba(100,20,42,.2)}
+.stock-category-tab b{min-width:25px;text-align:center;font-size:11px;border-radius:12px;padding:3px 6px;background:rgba(100,20,42,.09)}
+.stock-category-tab.active b{background:rgba(255,255,255,.18)}
+.stock-category-icon{font-size:17px;text-align:center}
+.stock-category-content{min-width:0}
+.stock-category-titlebar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:3px 0 13px}
+.stock-category-titlebar h2{margin:3px 0 0;color:var(--wine);font-size:22px}
+.input-action{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:center}
+.category-create-row{display:grid;grid-template-columns:minmax(0,1fr) 80px auto;gap:8px}
+.category-manager-list{display:grid;gap:8px;max-height:55vh;overflow:auto}
+.category-manager-row{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;align-items:center;gap:9px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.category-manager-row span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.category-manager-icon{font-size:22px!important;text-align:center;color:inherit!important;margin:0!important}
+.category-manager-row button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:1000px){
+ .stock-category-layout{grid-template-columns:1fr}
+ .stock-category-sidebar{position:static;max-height:none}
+ .stock-category-tabs{display:flex;overflow-x:auto;padding-bottom:4px}
+ .stock-category-tab{min-width:max-content;grid-template-columns:25px auto auto}
+}
+@media(max-width:620px){
+ .stock-category-titlebar{align-items:flex-start;flex-direction:column}
+ .category-create-row{grid-template-columns:1fr 75px}.category-create-row button{grid-column:1/-1}
+ .category-manager-row{grid-template-columns:35px minmax(0,1fr)}
+ .category-manager-row button{grid-row:2}.category-manager-row button:nth-of-type(1){grid-column:1/2}.category-manager-row button:nth-of-type(2){grid-column:2/3}
+}

@@ -1,0 +1,17 @@
+GESTIONA v9.2 — Stock par catégories
+
+Fonctionnalités intégrées :
+- navigation du stock par onglets/familles ;
+- onglets spéciaux : tous les produits, favoris, ruptures et stock faible ;
+- catégories alimentaires et boissons préconfigurées ;
+- compteur de références par catégorie ;
+- valeur du stock et alertes pour la catégorie affichée ;
+- création de catégories personnalisées ;
+- renommage d’une catégorie avec mise à jour des produits dans Supabase ;
+- suppression d’une catégorie vide ;
+- attribution d’une catégorie lors de la création ou modification d’un produit ;
+- regroupement des ingrédients par catégorie dans les sélecteurs de recettes ;
+- adaptation mobile avec barre de catégories horizontale.
+
+Les catégories personnalisées et leurs icônes sont mémorisées dans le navigateur.
+Les catégories affectées aux produits restent enregistrées dans Supabase.
