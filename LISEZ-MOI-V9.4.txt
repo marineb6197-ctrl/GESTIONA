@@ -1,0 +1,12 @@
+GESTIONA v9.4 — Sélection multiple du stock
+
+Nouveautés :
+- Case à cocher sur chaque produit.
+- Case générale pour sélectionner tous les produits actuellement affichés.
+- Barre d’actions avec compteur de sélection.
+- Suppression groupée sécurisée avec confirmation.
+- Bouton Supprimer directement sur chaque ligne.
+- Les produits supprimés sont archivés et restent restaurables via le filtre « Archivés ».
+- La sélection respecte les recherches et filtres actifs.
+
+Aucune migration Supabase n’est nécessaire.
