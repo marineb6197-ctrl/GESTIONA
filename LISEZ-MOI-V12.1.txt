@@ -1,0 +1,11 @@
+GESTIONA v12.1 — PILOTAGE MULTI-ÉTABLISSEMENTS
+
+Nouveautés :
+- Centre de pilotage comparatif Danish / L’Élysée
+- CA du jour, couverts et tickets par établissement
+- Valeur du stock et marge moyenne par établissement
+- Ruptures, produits à commander et commandes ouvertes
+- Anomalies de livraison et hausses de prix
+- Carte de priorité ORION et accès direct à chaque établissement
+
+Installation : remplacez les fichiers de la version précédente par ceux de cette archive. Aucune migration Supabase supplémentaire n’est nécessaire.

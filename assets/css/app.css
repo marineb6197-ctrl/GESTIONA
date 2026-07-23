@@ -179,3 +179,13 @@
 .daily-brief-card span{font-size:12px;font-weight:800;color:var(--wine)}.daily-brief-card b{font-size:21px}.daily-brief-card small{color:var(--muted);line-height:1.35}
 @media(max-width:1100px){.daily-brief-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.daily-brief-grid{grid-template-columns:1fr 1fr}.daily-brief-card:last-child{grid-column:1/-1}}
+
+/* GESTIONA v12.1 — Centre multi-établissements */
+.venue-control-center{border:1px solid rgba(100,20,42,.18);background:linear-gradient(145deg,#fff,#fffaf5)}
+.venue-control-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:13px}
+.venue-control-card{padding:14px;border:1px solid var(--line);border-radius:15px;background:#fff;box-shadow:0 8px 22px rgba(49,25,30,.05)}
+.venue-control-card h3{margin:3px 0 0}.venue-control-card.risk{border-left:5px solid #b8414c}.venue-control-card.watch{border-left:5px solid #d09a2e}.venue-control-card.ok{border-left:5px solid #4f8a65}
+.venue-health-dot{width:11px;height:11px;border-radius:50%;background:#4f8a65;box-shadow:0 0 0 5px rgba(79,138,101,.12)}.venue-control-card.watch .venue-health-dot{background:#d09a2e;box-shadow:0 0 0 5px rgba(208,154,46,.12)}.venue-control-card.risk .venue-health-dot{background:#b8414c;box-shadow:0 0 0 5px rgba(184,65,76,.12)}
+.venue-control-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}.venue-control-metrics div{padding:10px;border-radius:11px;background:#f8f2ed}.venue-control-metrics b,.venue-control-metrics small{display:block}.venue-control-metrics b{font-size:17px;color:var(--wine)}.venue-control-metrics small{margin-top:3px;color:var(--muted)}
+.venue-control-table-wrap{margin-top:14px}.venue-control-table td{vertical-align:middle}
+@media(max-width:800px){.venue-control-cards{grid-template-columns:1fr}.venue-control-table{min-width:980px}}

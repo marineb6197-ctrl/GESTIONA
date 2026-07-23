@@ -26,7 +26,7 @@ async function loadPriceHistoryRows(){const {data,error}=await sb.from('product_
 async function loadOrders(){const {data,error}=await sb.from('purchase_orders').select('*,suppliers(name),venues(name),purchase_order_items(*)').order('created_at',{ascending:false});if(error)throw error;orders=data||[]}
 async function loadActivity(){const {data}=await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(8);activity=data||[]}
 function visibleProducts(includeArchived=false){return products.filter(p=>(includeArchived||p.active!==false)&&(selectedVenue==='all'||!p.venue_id||p.venue_id===selectedVenue))}function unitCost(p){return num(p.package_price_excl_vat)/Math.max(num(p.units_per_package),1)}function saleEx(p){return num(p.sale_price_incl_vat)/(1+num(p.sale_vat)/100)}function marginPct(p){const c=unitCost(p),s=saleEx(p);return s>0?((s-c)/s)*100:0}function status(p){if(num(p.stock)<=0)return['Rupture','bad'];if(num(p.stock)<=num(p.minimum_stock))return['À commander','warn'];return['En stock','ok']}
-function renderAll(){renderDashboard();renderDailyBrief();renderCopilot();renderSmartNotifications();renderCatalogFilters();renderProducts();renderRecipes();renderMenus();renderPos();renderStockIntelligence();renderFinance();renderSupplierDocuments();renderSuppliers();renderOrders();renderSupplierOptions();renderOrderOptions();fillQuickOrderOptions();fillSupplierDocumentOptions();renderBackorders()}
+function renderAll(){renderDashboard();renderDailyBrief();renderCopilot();renderVenueControlCenter();renderSmartNotifications();renderCatalogFilters();renderProducts();renderRecipes();renderMenus();renderPos();renderStockIntelligence();renderFinance();renderSupplierDocuments();renderSuppliers();renderOrders();renderSupplierOptions();renderOrderOptions();fillQuickOrderOptions();fillSupplierDocumentOptions();renderBackorders()}
 function renderDashboard(){
  const list=visibleProducts(),low=list.filter(p=>num(p.stock)<=num(p.minimum_stock)),value=list.reduce((a,p)=>a+num(p.stock)*unitCost(p),0),margins=list.filter(p=>num(p.sale_price_incl_vat)>0).map(marginPct);
  const openOrders=orders.filter(o=>o.status&&!['received','cancelled'].includes(o.status)&&(selectedVenue==='all'||!o.venue_id||o.venue_id===selectedVenue));
@@ -317,6 +317,31 @@ function renderCopilot(){
  const venueRows=(selectedVenue==='all'?venues:venues.filter(v=>String(v.id)===String(selectedVenue))).map(v=>{const vp=products.filter(p=>String(p.venue_id||'')===String(v.id)),low=vp.filter(p=>num(p.minimum_stock)>num(p.stock)).length,open=orders.filter(o=>String(o.venue_id||'')===String(v.id)&&['draft','sent','confirmed'].includes(o.status)).length,margins=vp.filter(p=>saleEx(p)>0&&unitCost(p)>0).map(marginPct),avg=margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0;return {v,count:vp.length,low,open,avg}});
  $('copilotVenuePulse').innerHTML=venueRows.length?venueRows.map(x=>`<div class="venue-card"><div class="venue-card-head"><b>🏪 ${esc(x.v.name)}</b><span class="badge ${x.low?'warn':'ok'}">${x.low?x.low+' à commander':'Stock OK'}</span></div><div class="venue-stats"><div class="venue-stat"><b>${x.count}</b><small>produits</small></div><div class="venue-stat"><b>${x.open}</b><small>commandes ouvertes</small></div><div class="venue-stat"><b>${x.avg.toFixed(1)} %</b><small>marge moyenne</small></div></div></div>`).join(''):'<div class="empty">Aucun établissement disponible.</div>';
 }
+function venueBusinessMetrics(v){
+ const vid=String(v.id),vp=products.filter(p=>p.active!==false&&String(p.venue_id||'')===vid),todayKey=dateKeyOffset(0);
+ const vs=sales.filter(s=>String(s.venue_id||'')===vid&&String(s.created_at||'').slice(0,10)===todayKey);
+ const revenue=vs.reduce((a,x)=>a+num(x.total),0),covers=vs.reduce((a,x)=>a+num(x.covers),0),stockValue=vp.reduce((a,p)=>a+num(p.stock)*unitCost(p),0);
+ const ruptures=vp.filter(p=>num(p.stock)<=0).length,low=vp.filter(p=>num(p.minimum_stock)>num(p.stock)).length;
+ const open=orders.filter(o=>String(o.venue_id||'')===vid&&['draft','sent','confirmed','partial','partially_received'].includes(o.status)).length;
+ const issues=supplierDocuments.filter(d=>String(d.venueId||'')===vid&&d.kind==='delivery'&&(d.status==='issue'||(d.missingProducts||[]).length)).length;
+ const priceAlerts=supplierDocuments.filter(d=>String(d.venueId||'')===vid&&d.kind==='delivery').reduce((n,d)=>n+(d.priceAlerts||[]).filter(a=>num(a.percent)>0.5).length,0);
+ const margins=vp.filter(p=>saleEx(p)>0&&unitCost(p)>0).map(marginPct),avgMargin=margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0;
+ const risk=ruptures*5+low*2+issues*4+priceAlerts+open;
+ return {venue:v,products:vp.length,revenue,covers,tickets:vs.length,stockValue,ruptures,low,open,issues,priceAlerts,avgMargin,risk};
+}
+function renderVenueControlCenter(){
+ const body=$('venueControlBody'),cards=$('venueControlCards');if(!body||!cards)return;
+ const rows=venues.map(venueBusinessMetrics).sort((a,b)=>b.risk-a.risk||b.revenue-a.revenue);
+ cards.innerHTML=rows.length?rows.map(x=>`<article class="venue-control-card ${x.risk>=10?'risk':x.risk?'watch':'ok'}"><div class="row between"><div><span class="tiny">${x.risk>=10?'Priorité élevée':x.risk?'À surveiller':'Situation maîtrisée'}</span><h3>${esc(x.venue.name)}</h3></div><span class="venue-health-dot"></span></div><div class="venue-control-metrics"><div><b>${money(x.revenue)}</b><small>CA aujourd’hui</small></div><div><b>${money(x.stockValue)}</b><small>Valeur du stock</small></div><div><b>${x.low}</b><small>À commander</small></div><div><b>${x.issues}</b><small>Anomalies livraison</small></div></div><button class="btn soft mini block" type="button" onclick="focusVenue('${x.venue.id}')">Ouvrir cet établissement</button></article>`).join(''):'<div class="empty">Aucun établissement disponible.</div>';
+ body.innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.venue.name)}</b><div class="tiny">${x.products} produit(s) · marge ${x.avgMargin.toFixed(1)} %</div></td><td class="money"><b>${money(x.revenue)}</b><div class="tiny">${x.tickets} ticket(s)</div></td><td>${x.covers}</td><td class="money">${money(x.stockValue)}</td><td><span class="badge ${x.ruptures?'bad':'ok'}">${x.ruptures}</span></td><td><span class="badge ${x.low?'warn':'ok'}">${x.low}</span></td><td>${x.open}</td><td><span class="badge ${x.issues?'bad':'ok'}">${x.issues}</span>${x.priceAlerts?`<div class="tiny">${x.priceAlerts} hausse(s) prix</div>`:''}</td><td><button class="btn soft mini" type="button" onclick="focusVenue('${x.venue.id}')">Afficher</button></td></tr>`).join(''):'<tr><td colspan="9" class="empty">Aucune donnée d’établissement.</td></tr>';
+ const totalRevenue=rows.reduce((a,x)=>a+x.revenue,0),totalStock=rows.reduce((a,x)=>a+x.stockValue,0),priority=rows[0];
+ let insight=`CA cumulé aujourd’hui : ${money(totalRevenue)} · valeur totale du stock : ${money(totalStock)}.`;
+ if(priority&&priority.risk>0)insight+=` Priorité : ${priority.venue.name}, avec ${priority.ruptures} rupture(s), ${priority.low} produit(s) à commander et ${priority.issues} anomalie(s) de livraison.`;
+ else if(rows.length)insight+=' Aucun établissement ne présente d’alerte opérationnelle majeure.';
+ $('venueControlInsight').innerHTML=`<b>🤖 Analyse comparative ORION</b><div class="tiny" style="margin-top:6px">${esc(insight)}</div>`;
+}
+function focusVenue(id){selectedVenue=String(id);if($('venueSelect'))$('venueSelect').value=selectedVenue;renderAll();window.scrollTo({top:0,behavior:'smooth'});toast(`${venues.find(v=>String(v.id)===selectedVenue)?.name||'Établissement'} affiché`)}
+window.focusVenue=focusVenue;
 function selectedVenueSales(){return sales.filter(s=>selectedVenue==='all'||!s.venue_id||String(s.venue_id)===String(selectedVenue))}
 function salesForDateKey(key){return selectedVenueSales().filter(s=>String(s.created_at||'').slice(0,10)===key)}
 function dateKeyOffset(days){const d=new Date();d.setDate(d.getDate()+days);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
@@ -1410,7 +1435,7 @@ async function applyOrionImport(){
  }catch(e){toast('Import impossible : '+(e.message||e))}
  finally{$('orionApplyBtn').disabled=false;$('orionApplyBtn').textContent='Valider la mise à jour'}
 }
-$('copilotAskBtn')?.addEventListener('click',askCopilot);$('refreshDailyBriefBtn')?.addEventListener('click',()=>{renderDailyBrief();toast('Brief ORION actualisé')});$('copilotQuestion')?.addEventListener('keydown',e=>{if(e.key==='Enter')askCopilot()});
+$('copilotAskBtn')?.addEventListener('click',askCopilot);$('refreshDailyBriefBtn')?.addEventListener('click',()=>{renderDailyBrief();renderVenueControlCenter();toast('Brief ORION actualisé')});$('refreshVenueControlBtn')?.addEventListener('click',()=>{renderVenueControlCenter();toast('Comparaison des établissements actualisée')});$('copilotQuestion')?.addEventListener('keydown',e=>{if(e.key==='Enter')askCopilot()});
 $('financeRefreshBtn')?.addEventListener('click',async()=>{await Promise.all([loadProducts(),loadOrders(),loadPriceHistoryRows()]);renderFinance();toast('Analyse financière actualisée')});
 $('orionAnalyzeBtn').onclick=async()=>{const f=$('orionFile').files[0],venueId=orionSelectedVenue();if(!venueId){toast('Choisissez l’établissement');return}if(!f){toast('Choisissez un fichier Excel');return}try{$('orionMessage').innerHTML='<div class="notice">Analyse en cours…</div>';orionAnalysis=ORIONImport.analyzeWorkbook(await f.arrayBuffer(),f.name);orionComparison=orionCompare(orionAnalysis,venueId);$('orionMessage').innerHTML=`<div class="success notice">${esc(orionAnalysis.establishment)} détecté · ${orionAnalysis.stats.uniqueProducts} produits uniques · ${orionAnalysis.warnings.length} avertissement(s)</div>`;renderOrionComparison()}catch(e){$('orionMessage').innerHTML=`<div class="error notice">${esc(e.message||e)}</div>`}};
 $('orionApplyBtn').onclick=applyOrionImport;$('orionCancelBtn').onclick=()=>clearOrionLoadedFile(false);$('orionClearFileBtn').onclick=()=>{if(!$('orionFile').value&&!orionAnalysis){toast('Aucun fichier chargé');return}if(confirm('Retirer le fichier actuellement chargé ?'))clearOrionLoadedFile()};$('refreshOrionImportsBtn').onclick=renderOrionImportHistory;$('orionVenue').addEventListener('change',renderOrionImportHistory);
@@ -1487,4 +1512,4 @@ $('supplierCatalogSearch')?.addEventListener('input',renderSupplierCatalog);$('s
 document.querySelectorAll('[data-view="suppliers"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderSupplierCatalog,0)));
 document.querySelectorAll('[data-view="reception"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderReceptionPriceWatch,0)));
 
-/* ===== GESTIONA v12.0 — ORION Pilotage ===== */
+/* ===== GESTIONA v12.1 — Pilotage multi-établissements ===== */
