@@ -189,3 +189,6 @@
 .venue-control-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}.venue-control-metrics div{padding:10px;border-radius:11px;background:#f8f2ed}.venue-control-metrics b,.venue-control-metrics small{display:block}.venue-control-metrics b{font-size:17px;color:var(--wine)}.venue-control-metrics small{margin-top:3px;color:var(--muted)}
 .venue-control-table-wrap{margin-top:14px}.venue-control-table td{vertical-align:middle}
 @media(max-width:800px){.venue-control-cards{grid-template-columns:1fr}.venue-control-table{min-width:980px}}
+
+/* GESTIONA v12.2 */
+.security-capabilities{display:grid;gap:9px;margin-top:14px}.security-capability{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.55)}.security-capability>span{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#e8f6ec;color:#24733d;font-weight:800;flex:0 0 auto}.badge.soft{background:#f2edf0;color:#64142a}@media(max-width:800px){#view-activity .grid.four{grid-template-columns:repeat(2,minmax(0,1fr))}#view-activity .table{min-width:720px}}

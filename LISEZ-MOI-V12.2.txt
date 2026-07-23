@@ -1,0 +1,12 @@
+GESTIONA v12.2 — Socle professionnel
+
+Nouveautés :
+- écran Sécurité & activité ;
+- affichage du rôle utilisateur connecté ;
+- résumé clair des responsabilités selon le rôle Supabase ;
+- journal d’activité filtrable ;
+- export CSV du journal ;
+- jusqu’à 250 opérations récentes chargées ;
+- interface ordinateur et mobile.
+
+Aucune migration Supabase supplémentaire n’est nécessaire : la table profiles.role et audit_log existent déjà dans le schéma GESTIONA.
