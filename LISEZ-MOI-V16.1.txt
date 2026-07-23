@@ -1,0 +1,11 @@
+GESTIONA v16.1 — En-tête compact & cockpit lisible
+
+Modifications :
+- zone utilisateur de l'en-tête rendue plus compacte ;
+- bouton Déconnexion mieux proportionné ;
+- nom utilisateur tronqué proprement lorsqu'il est trop long ;
+- alignement des cartes du cockpit amélioré ;
+- actions rapides uniformisées ;
+- affichage mobile de l'en-tête simplifié.
+
+La logique métier, les données et Supabase ne sont pas modifiés.

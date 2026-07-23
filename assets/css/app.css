@@ -560,3 +560,100 @@ textarea{min-height:90px;resize:vertical}
   .orion-welcome{border-radius:18px;padding:20px 18px}
   .orion-live{align-self:flex-start}
 }
+
+/* =========================================================
+   GESTIONA v16.1 — EN-TÊTE COMPACT & COCKPIT LISIBLE
+   Ajustements d'ergonomie uniquement, sans changement métier.
+   ========================================================= */
+.top{
+  min-height:68px;
+  height:auto;
+  gap:18px;
+  flex-wrap:wrap;
+  padding-top:12px;
+  padding-bottom:12px;
+}
+.top>.row{
+  margin-left:auto;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.top #userLabel{
+  max-width:240px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--ink);
+  font-weight:600;
+}
+#logoutBtn{
+  min-height:36px;
+  padding:7px 13px;
+  white-space:nowrap;
+  background:#fff8fa;
+  border-color:#dfc5cd;
+}
+#logoutBtn:hover{
+  background:#f8e9ed;
+  border-color:#cda8b4;
+}
+.mission-summary{
+  align-items:stretch;
+}
+.mission-metric{
+  min-width:0;
+  height:100%;
+}
+.mission-metric strong{
+  overflow-wrap:anywhere;
+}
+.mission-actions{
+  align-items:stretch;
+}
+.mission-action{
+  min-height:112px;
+  height:100%;
+}
+.copilot-grid>.card,
+.mission-columns>.card{
+  min-width:0;
+}
+.orion-recommendation{
+  border-radius:12px;
+}
+@media(max-width:980px){
+  .top #userLabel{max-width:170px}
+}
+@media(max-width:720px){
+  .top{
+    min-height:62px;
+    flex-wrap:nowrap;
+    gap:8px;
+    padding-top:9px;
+    padding-bottom:9px;
+  }
+  .top h2{
+    min-width:0;
+    flex:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .top>.row{
+    flex-wrap:nowrap;
+    margin-left:0;
+  }
+  .top #roleBadge,
+  .top #userLabel{
+    display:none;
+  }
+  #logoutBtn{
+    min-height:36px;
+    padding:7px 10px;
+    font-size:12px;
+  }
+  .mission-action{
+    min-height:96px;
+  }
+}
