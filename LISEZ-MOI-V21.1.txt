@@ -1,0 +1,13 @@
+GESTIONA v21.1 — Réception ORION corrigée
+
+Cette version rend réellement utilisable le rapprochement commande / bon de livraison :
+- import d'une photo OU d'un PDF ;
+- OCR du document dans le navigateur ;
+- recherche automatique de la commande correspondante ;
+- comparaison ligne par ligne par nom/référence ;
+- alerte « article non livré » et « quantité incomplète » ;
+- alerte de différence de prix ;
+- mise à jour du stock uniquement après validation ;
+- maintien des reliquats sur une commande partiellement reçue.
+
+Important : la lecture OCR utilise Tesseract.js et PDF.js chargés depuis Internet. Une connexion est donc nécessaire lors de l'analyse du document.

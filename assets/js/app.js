@@ -280,24 +280,46 @@ function renderBackorders(){
 function openBackorderReceipt(orderId){resetSupplierDocumentForm('delivery');const o=orders.find(x=>x.id===orderId);if(!o)return;$('docSupplier').value=o.supplier_id||'';$('docVenue').value=o.venue_id||'';updateDocumentOrderOptions();$('docOrder').value=o.id;buildDeliveryReceiptLines(true);$('scanAnalysisStatus').className='notice warn';$('scanAnalysisStatus').innerHTML='<b>Livraison complémentaire attendue.</b><div class="tiny">Le scan sera comparé uniquement aux quantités encore manquantes.</div>'}
 window.openBackorderReceipt=openBackorderReceipt;
 
+async function extractDocumentText(file,status){
+ if(!window.Tesseract)throw new Error('Le moteur OCR ne s’est pas chargé. Vérifiez la connexion internet puis réessayez.');
+ const recognize=async(source,label)=>{const result=await Tesseract.recognize(source,'fra+eng',{logger:m=>{if(status&&m.progress)status.textContent=`${label} : ${Math.round(m.progress*100)} %`}});return result?.data?.text||''};
+ if(file.type.startsWith('image/'))return await recognize(file,'Lecture de la photo');
+ if(file.type==='application/pdf'||/\.pdf$/i.test(file.name||'')){
+  if(window.pdfjsReady)await window.pdfjsReady;
+  if(!window.pdfjsLib)throw new Error('Le lecteur PDF ne s’est pas chargé. Réessayez avec une photo du bon de livraison.');
+  const bytes=new Uint8Array(await file.arrayBuffer()),pdf=await window.pdfjsLib.getDocument({data:bytes}).promise;
+  const pageCount=Math.min(pdf.numPages,4);let full='';
+  for(let n=1;n<=pageCount;n++){
+   if(status)status.textContent=`Préparation de la page ${n}/${pageCount}…`;
+   const page=await pdf.getPage(n),viewport=page.getViewport({scale:2});
+   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+   await page.render({canvasContext:ctx,viewport}).promise;
+   full+='\n'+await recognize(canvas,`Lecture PDF page ${n}/${pageCount}`);
+  }
+  return full.trim();
+ }
+ throw new Error('Format non pris en charge. Utilisez une photo JPG/PNG ou un PDF.');
+}
 async function analyzeDeliveryScan(){
  const file=$('supplierDocumentFile')?.files?.[0],status=$('scanAnalysisStatus');
  if(!file){toast('Choisissez ou photographiez le bon de livraison');return}
  const btn=$('analyzeDeliveryScanBtn');btn.disabled=true;btn.textContent='Lecture en cours…';if(status){status.className='notice';status.textContent='ORION lit le document, recherche la commande et compare les produits…'}
  try{
-  let text='';if(file.type.startsWith('image/')){if(!window.Tesseract)throw new Error('Le moteur de lecture OCR n’est pas disponible');const result=await Tesseract.recognize(file,'fra+eng',{logger:m=>{if(status&&m.progress)status.textContent=`Lecture automatique : ${Math.round(m.progress*100)} %`}});text=result?.data?.text||''}else throw new Error('Utilisez une photo ou une image pour la comparaison automatique.');
+  const text=await extractDocumentText(file,status);
+  if(!text||text.replace(/\s/g,'').length<8)throw new Error('Le document est illisible. Reprenez la photo bien à plat, avec davantage de lumière.');
   let auto=null;if(!$('docOrder').value)auto=autoSelectDeliveryOrderFromText(text);
-  const order=selectedDeliveryOrder();if(!order)throw new Error('GESTIONA n’a pas identifié la commande avec assez de certitude. Sélectionnez-la manuellement puis relancez l’analyse.');
+  const order=selectedDeliveryOrder();if(!order)throw new Error('Aucune commande n’a été reconnue avec assez de certitude. Sélectionnez la commande correspondante puis relancez l’analyse.');
   buildDeliveryReceiptLines(true);
   const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);let matched=0;
-  deliveryReceiptLines.forEach(l=>{let best='',score=0;for(const line of lines){const sc=scanLineScore(l.description,line);if(sc>score){score=sc;best=line}}if(score>=0.34){const nums=parseNumbersFromScanLine(best);const remaining=Math.max(0,l.ordered-l.alreadyReceived);let qty=nums.find(n=>n>0&&n<=remaining*2);if(qty==null)qty=remaining;l.receivedNow=Math.min(remaining,qty);l.detectedQty=l.receivedNow;const plausible=nums.filter(n=>n>0.05&&n<5000&&Math.abs(n-qty)>0.0001);if(plausible.length)l.detectedUnitPrice=plausible[plausible.length-1];l.scanConfidence=Math.min(99,Math.round(score*100));matched++}else{l.receivedNow=0;l.detectedQty=0;l.scanConfidence=0}});
+  deliveryReceiptLines.forEach(l=>{let best='',score=0;for(const line of lines){const sc=scanLineScore(l.description,line);if(sc>score){score=sc;best=line}}const remaining=Math.max(0,l.ordered-l.alreadyReceived);if(score>=0.34){const nums=parseNumbersFromScanLine(best);let qty=nums.find(n=>n>0&&n<=Math.max(remaining*2,2));if(qty==null)qty=remaining;l.receivedNow=Math.min(remaining,qty);l.detectedQty=l.receivedNow;const plausible=nums.filter(n=>n>0.05&&n<5000&&Math.abs(n-qty)>0.0001);if(plausible.length)l.detectedUnitPrice=plausible[plausible.length-1];l.scanConfidence=Math.min(99,Math.round(score*100));l.scanSource=best;matched++}else{l.receivedNow=0;l.detectedQty=0;l.scanConfidence=0;l.scanSource=''}});
   renderDeliveryReceiptLines();compareSupplierDocument();
   const missing=deliveryMissingProducts(),ups=deliveryReceiptLines.filter(l=>receptionPriceAlert(l).pct>0.5),isBackorder=order.status==='partially_received'||deliveryReceiptLines.some(l=>num(l.alreadyReceived)>0);
-  if(status){status.className=`notice ${missing.length||ups.length?'warn':'success'}`;status.innerHTML=`<b>${auto?'Commande reconnue automatiquement':'Commande comparée'} : ${esc(order.order_number||'sans numéro')}</b><div class="tiny">${isBackorder?'Complément de livraison / reliquat · ':''}${matched}/${deliveryReceiptLines.length} ligne(s) reconnue(s) · ${missing.length} manquant(s) · ${ups.length} hausse(s) de prix. Vérifiez les alertes puis validez.</div>`}
+  if(status){status.className=`notice ${missing.length||ups.length?'warn':'success'}`;status.innerHTML=`<b>${auto?'Commande reconnue automatiquement':'Commande comparée'} : ${esc(order.order_number||'sans numéro')}</b><div class="tiny">${isBackorder?'Complément de livraison / reliquat · ':''}${matched}/${deliveryReceiptLines.length} ligne(s) reconnue(s) · ${missing.length} article(s) non livré(s) ou incomplet(s) · ${ups.length} hausse(s) de prix. Vérifiez les lignes signalées avant validation.</div>`}
   notifyMissingDelivery(missing,order);
   toast(missing.length||ups.length?'Comparaison terminée avec alertes':'Livraison conforme — prête à valider');
  }catch(e){if(status){status.className='notice warn';status.textContent=e.message||String(e)}toast(e.message||String(e))}finally{btn.disabled=false;btn.textContent='🤖 Analyser le scan'}
 }
+
 function renderDocumentComparison(){if(!$('docComparison'))return;compareSupplierDocument();buildDeliveryReceiptLines()}
 
 function exportSupplierDocuments(){const data=JSON.stringify(supplierDocuments.map(({preview,...d})=>d),null,2),blob=new Blob([data],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gestiona-documents-fournisseurs.json';a.click();URL.revokeObjectURL(a.href)}
