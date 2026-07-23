@@ -1,0 +1,13 @@
+GESTIONA v14.0 — Recettes & Production
+
+Nouveautés réellement ajoutées :
+- Plan de production multi-recettes.
+- Quantités de portions à préparer.
+- Consolidation automatique des besoins par ingrédient.
+- Détection des stocks insuffisants avant validation.
+- Estimation du coût total de production.
+- Retrait groupé des ingrédients du stock après confirmation.
+- Inscription de l’opération dans le journal d’activité.
+- Brouillon du plan conservé localement sur l’appareil.
+
+Aucune nouvelle migration Supabase n’est nécessaire. Le retrait du stock utilise la fonction record_stock_movement déjà installée.
