@@ -1,0 +1,10 @@
+GESTIONA v16.0 — Finitions ORION & cockpit
+
+Modifications réellement appliquées :
+- suppression du halo/cercle blanc dans le coin droit du bandeau ORION ACTIF ;
+- neutralisation des pseudo-éléments pouvant créer un artefact sur les onglets actifs ;
+- uniformisation des coins et états actifs du menu ;
+- amélioration légère du bandeau ORION, des cartes et des interactions ;
+- conservation du grenat dominant et du nom GESTIONA en doré.
+
+Aucune fonction métier ni base de données n’a été modifiée.

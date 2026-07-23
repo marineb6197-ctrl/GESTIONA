@@ -500,22 +500,63 @@ textarea{min-height:90px;resize:vertical}
   *,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
 
-/* v15.4 — correction visuelle du bandeau ORION
-   Supprime le grand cercle décoratif translucide dans le coin droit,
-   sans modifier les autres cartes ni les fonctionnalités. */
+/* =========================================================
+   GESTIONA v16.0 — FINITIONS ORION & COCKPIT
+   ========================================================= */
+/* Suppression du halo blanc dans le coin droit du bandeau ORION ACTIF. */
 .orion-welcome::before,
 .orion-welcome::after{
-  content:none !important;
-  display:none !important;
-  background:none !important;
-  border:0 !important;
-  box-shadow:none !important;
+  content:none!important;
+  display:none!important;
+  box-shadow:none!important;
+  background:none!important;
+  border:0!important;
 }
 .orion-welcome{
-  overflow:hidden;
   isolation:isolate;
+  overflow:hidden;
+  border-radius:22px;
+  background:linear-gradient(118deg,var(--wine2) 0%,var(--wine) 58%,#7d263f 100%);
+  box-shadow:0 16px 36px rgba(100,20,42,.20);
 }
-.orion-welcome > *{
+.orion-live{
   position:relative;
   z-index:1;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  background:rgba(200,162,77,.17);
+  border:1px solid rgba(232,207,139,.38);
+  color:#fff7dc;
+  box-shadow:none;
+}
+/* États actifs homogènes et sans artefact dans les angles. */
+.nav button,
+.nav button.active,
+.mobile-nav button,
+.mobile-nav button.active{
+  isolation:isolate;
+  overflow:hidden;
+}
+.nav button::before,.nav button::after,
+.nav button.active::before,.nav button.active::after,
+.mobile-nav button::before,.mobile-nav button::after,
+.mobile-nav button.active::before,.mobile-nav button.active::after{
+  content:none!important;
+  display:none!important;
+}
+.nav button.active{
+  border-radius:11px;
+  background:linear-gradient(90deg,rgba(200,162,77,.25),rgba(255,255,255,.08));
+  box-shadow:inset 3px 0 0 var(--gold);
+}
+/* Finitions du cockpit sans toucher à la logique métier. */
+.kpis .card,.orion-kpis .card{min-height:116px}
+.card h3{line-height:1.25}
+.mission-title{align-items:center}
+.notification-item,.mission-priority,.copilot-alert{transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.notification-item:hover,.mission-priority:hover,.copilot-alert:hover{transform:translateY(-1px);box-shadow:0 9px 24px rgba(72,27,41,.07)}
+@media(max-width:720px){
+  .orion-welcome{border-radius:18px;padding:20px 18px}
+  .orion-live{align-self:flex-start}
 }
