@@ -942,3 +942,15 @@ body[data-venue-theme="all"] .v20-stock-kpi:before{background:var(--all-gold)}
 
 /* GESTIONA v21.2 — Réclamations fournisseurs */
 .claim-grid{display:grid;gap:10px}.claim-card{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.72)}.claim-card .claim-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.claim-card h4{margin:0 0 4px}.claim-products{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.claim-product{font-size:12px;padding:6px 9px;border-radius:999px;background:#fff2ef;border:1px solid #efc1b8;color:#8c2d22}.claim-actions{display:flex;flex-wrap:wrap;gap:7px}.claim-status-draft{background:#fff7dd;color:#765800}.claim-status-sent{background:#e9f2ff;color:#24598d}.claim-status-resolved{background:#eaf7ef;color:#23633c}@media(max-width:700px){.claim-card .claim-head{display:block}.claim-card .claim-head .badge{margin-top:8px}.claim-actions .btn{flex:1}}
+
+/* V22 — Référentiel Produits 360° */
+.product-master-modal{max-width:1120px;max-height:94vh;overflow:auto}
+.product-form-sections{display:grid;gap:16px}
+.product-form-section{border:1px solid var(--line);border-radius:18px;padding:18px;background:rgba(255,255,255,.72)}
+.product-form-section .section-title{display:flex;gap:12px;align-items:center;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.product-form-section .section-title>span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#fff;font-weight:800;box-shadow:0 7px 18px rgba(197,154,67,.22)}
+.product-form-section h4{margin:0;font-size:1rem;color:var(--wine)}
+.product-form-section small{color:var(--muted)}
+.compact-table input,.compact-table select{min-width:130px;width:100%;padding:8px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.sticky-actions{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(255,255,255,.78),#fff 30%);padding-top:16px;z-index:4}
+@media(max-width:720px){.product-master-modal{max-height:96vh}.product-form-section{padding:13px}.compact-table{overflow:auto}.compact-table table{min-width:720px}}

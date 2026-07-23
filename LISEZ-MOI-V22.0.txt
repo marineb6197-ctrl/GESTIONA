@@ -1,0 +1,18 @@
+GESTIONA V22.0 — RÉFÉRENTIEL PRODUITS 360°
+
+Cette version transforme la fiche produit en référentiel central :
+- identité, marque, description et statut ;
+- fournisseur principal et références alternatives ;
+- conditionnement, prix et délai de livraison ;
+- stock minimum, idéal et maximum ;
+- unité de consommation, conversion et rendement ;
+- suivi des lots, DLC/DDM et durée de conservation ;
+- allergènes, notes et historique des prix.
+
+INSTALLATION
+1. Remplacez les fichiers de votre version précédente par ceux de ce dossier.
+2. Dans Supabase > SQL Editor, exécutez migration_v22_product_master.sql.
+3. Rechargez GESTIONA et ouvrez Produits & stocks > Ajouter un produit.
+
+IMPORTANT
+Sans la migration SQL, les nouveaux champs ne pourront pas être enregistrés.
