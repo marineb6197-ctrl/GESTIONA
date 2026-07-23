@@ -1731,3 +1731,39 @@ $('v20MovementJournalBtn')?.addEventListener('click',()=>missionOpenView('activi
 $('v20RefreshStockBtn')?.addEventListener('click',async()=>{await refresh();renderV20StockOverview();toast('Stocks actualisés')});
 const _renderAllV200=renderAll;renderAll=function(){_renderAllV200();renderV20StockOverview()}
 document.querySelectorAll('[data-view="products"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderV20StockOverview,0)));
+
+
+/* ===== GESTIONA v21.2 — Réclamations fournisseurs ===== */
+const SUPPLIER_CLAIMS_KEY='gestiona_supplier_claims_v21_2';
+let supplierClaims=[];
+function loadSupplierClaims(){try{supplierClaims=JSON.parse(localStorage.getItem(SUPPLIER_CLAIMS_KEY)||'[]');if(!Array.isArray(supplierClaims))supplierClaims=[]}catch{supplierClaims=[]}}
+function saveSupplierClaims(){localStorage.setItem(SUPPLIER_CLAIMS_KEY,JSON.stringify(supplierClaims));renderSupplierClaims()}
+function supplierClaimForDocument(documentId){return supplierClaims.find(c=>c.documentId===documentId)}
+function claimStatusLabel(status){return ({draft:'Brouillon',sent:'Envoyée',resolved:'Résolue'}[status]||'Brouillon')}
+function claimSupplier(document){return suppliers.find(s=>s.id===document.supplierId)||{name:document.supplierName||'Fournisseur',email:''}}
+function buildClaimMessage(document){
+ const supplier=claimSupplier(document),missing=(document.missingProducts||[]).filter(x=>num(x.missing)>0),venue=document.venueName||venues.find(v=>v.id===document.venueId)?.name||'notre établissement';
+ const detail=missing.map(x=>`- ${x.description||productNameById(x.productId)} : ${formatQty(x.missing)} non livré(e)(s)`).join('\n');
+ const ref=[document.orderNumber?`commande ${document.orderNumber}`:'',document.number?`bon de livraison ${document.number}`:''].filter(Boolean).join(' / ');
+ return {to:supplier.email||'',subject:`Réclamation livraison${document.number?' '+document.number:''} — ${venue}`,body:`Bonjour,\n\nÀ la réception de ${ref||'votre livraison'}, nous avons constaté les écarts suivants :\n\n${detail||'- Écart de livraison à vérifier'}\n\nMerci de nous confirmer si ces articles feront l’objet d’une livraison complémentaire ou d’une note de crédit.\n\nBien cordialement,\n${venue}`};
+}
+function ensureSupplierClaim(document){let claim=supplierClaimForDocument(document.id);if(!claim){const msg=buildClaimMessage(document);claim={id:'claim-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),documentId:document.id,status:'draft',to:msg.to,subject:msg.subject,body:msg.body,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};supplierClaims.push(claim);localStorage.setItem(SUPPLIER_CLAIMS_KEY,JSON.stringify(supplierClaims))}return claim}
+function claimDocuments(){return supplierDocuments.filter(d=>d.kind==='delivery'&&(d.missingProducts||[]).some(x=>num(x.missing)>0))}
+function renderSupplierClaims(){
+ const box=$('supplierClaimsList');if(!box)return;const filter=$('claimStatusFilter')?.value||'open';
+ const docs=claimDocuments().map(d=>({document:d,claim:supplierClaimForDocument(d.id)})).filter(x=>filter==='all'||(filter==='open'?!x.claim||x.claim.status!=='resolved':(x.claim?.status||'draft')===filter)).sort((a,b)=>new Date(b.document.updatedAt||b.document.createdAt)-new Date(a.document.updatedAt||a.document.createdAt));
+ box.innerHTML=docs.length?docs.map(({document:d,claim})=>{const status=claim?.status||'draft',missing=(d.missingProducts||[]).filter(x=>num(x.missing)>0);return `<div class="claim-card"><div class="claim-head"><div><h4>${esc(d.supplierName||'Fournisseur')} · ${esc(d.number||d.orderNumber||'Livraison')}</h4><div class="tiny">${esc(d.venueName||'Établissement')} · ${d.date?new Date(d.date).toLocaleDateString('fr-BE'):''} · ${missing.length} article(s) concerné(s)</div></div><span class="badge claim-status-${status}">${claimStatusLabel(status)}</span></div><div class="claim-products">${missing.slice(0,6).map(x=>`<span class="claim-product">${esc(x.description||productNameById(x.productId))} · manque ${formatQty(x.missing)}</span>`).join('')}${missing.length>6?`<span class="claim-product">+${missing.length-6}</span>`:''}</div><div class="claim-actions"><button class="btn mini primary" onclick="openSupplierClaim('${d.id}')">${claim?'Ouvrir':'Préparer la réclamation'}</button>${status==='sent'?`<button class="btn mini gold" onclick="resolveSupplierClaim('${d.id}')">Marquer résolue</button>`:''}${status==='resolved'?`<button class="btn mini soft" onclick="reopenSupplierClaim('${d.id}')">Rouvrir</button>`:''}</div></div>`}).join(''):'<div class="empty">Aucune réclamation dans ce filtre.</div>';
+}
+function openSupplierClaim(documentId){const d=supplierDocuments.find(x=>x.id===documentId);if(!d)return;const c=ensureSupplierClaim(d),missing=(d.missingProducts||[]).filter(x=>num(x.missing)>0);$('claimDocumentId').value=d.id;$('claimTo').value=c.to||'';$('claimSubject').value=c.subject||'';$('claimBody').value=c.body||'';$('claimModalSubtitle').textContent=`${d.supplierName||'Fournisseur'} · ${d.orderNumber||'commande sans numéro'} · ${d.number||'bon sans numéro'}`;$('claimMissingSummary').innerHTML=`<b>${missing.length} écart(s) à réclamer</b><div class="tiny">${missing.map(x=>`${esc(x.description||productNameById(x.productId))} : ${formatQty(x.missing)} manquant(s)`).join(' · ')}</div>`;openModal('supplierClaimModal')}
+function persistClaimEditor(status){const documentId=$('claimDocumentId').value,d=supplierDocuments.find(x=>x.id===documentId);if(!d)return null;let c=ensureSupplierClaim(d);c.to=$('claimTo').value.trim();c.subject=$('claimSubject').value.trim();c.body=$('claimBody').value;c.status=status||c.status;c.updatedAt=new Date().toISOString();if(status==='sent'&&!c.sentAt)c.sentAt=new Date().toISOString();saveSupplierClaims();return c}
+async function copySupplierClaim(){const c=persistClaimEditor();if(!c)return;try{await navigator.clipboard.writeText(`${c.subject}\n\n${c.body}`);toast('Réclamation copiée')}catch{toast('Copie impossible sur cet appareil')}}
+function openSupplierClaimEmail(){const c=persistClaimEditor('sent');if(!c)return;window.location.href=`mailto:${encodeURIComponent(c.to)}?subject=${encodeURIComponent(c.subject)}&body=${encodeURIComponent(c.body)}`;toast('Réclamation marquée comme envoyée')}
+function markSupplierClaimSent(){if(persistClaimEditor('sent')){closeModal('supplierClaimModal');toast('Réclamation marquée comme envoyée')}}
+function resolveSupplierClaim(documentId){const d=supplierDocuments.find(x=>x.id===documentId);if(!d)return;let c=ensureSupplierClaim(d);c.status='resolved';c.resolvedAt=new Date().toISOString();c.updatedAt=new Date().toISOString();saveSupplierClaims();toast('Réclamation résolue')}
+function reopenSupplierClaim(documentId){const d=supplierDocuments.find(x=>x.id===documentId);if(!d)return;let c=ensureSupplierClaim(d);c.status='draft';c.resolvedAt=null;c.updatedAt=new Date().toISOString();saveSupplierClaims();toast('Réclamation rouverte')}
+window.openSupplierClaim=openSupplierClaim;window.resolveSupplierClaim=resolveSupplierClaim;window.reopenSupplierClaim=reopenSupplierClaim;
+$('claimStatusFilter')?.addEventListener('change',renderSupplierClaims);$('copyClaimBtn')?.addEventListener('click',copySupplierClaim);$('openClaimEmailBtn')?.addEventListener('click',openSupplierClaimEmail);$('markClaimSentBtn')?.addEventListener('click',markSupplierClaimSent);
+loadSupplierClaims();
+const _saveSupplierDocumentsV212=saveSupplierDocuments;saveSupplierDocuments=function(){_saveSupplierDocumentsV212();renderSupplierClaims()};
+document.querySelectorAll('[data-view="reception"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderSupplierClaims,0)));
+setTimeout(renderSupplierClaims,0);

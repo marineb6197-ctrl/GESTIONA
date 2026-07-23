@@ -1,0 +1,10 @@
+GESTIONA v21.2 — Réclamations fournisseurs
+
+Nouveautés :
+- centre des réclamations créé automatiquement depuis les écarts de livraison ;
+- message prérempli avec les articles et quantités manquants ;
+- ouverture dans la messagerie du téléphone ou de l’ordinateur ;
+- suivi Brouillon / Envoyée / Résolue ;
+- possibilité de rouvrir une réclamation.
+
+La V21.2 conserve toutes les fonctions de la V21.1.
