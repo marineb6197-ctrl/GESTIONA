@@ -1,0 +1,18 @@
+GESTIONA v8.1 — Architecture stabilisée
+
+Cette mise à jour ne change pas les données Supabase.
+
+Améliorations :
+- séparation du HTML, du CSS et du JavaScript ;
+- dossier assets organisé ;
+- cache PWA actualisé ;
+- documentation de l’architecture ;
+- contrôles de syntaxe et de structure.
+
+Fonctionnalités conservées :
+- ORION Copilote ;
+- ORION Finance ;
+- Stock intelligent ;
+- Commandes intelligentes ;
+- Notifications ;
+- Import Excel ORION.
