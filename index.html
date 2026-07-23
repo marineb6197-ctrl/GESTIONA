@@ -20,7 +20,7 @@
 <div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div>
 <div class="theme-onboarding-row"><div class="field"><label>Couleur principale</label><input id="venueTwoColor" type="color" value="#173f2b"></div><div class="field"><label>Couleur d’accent</label><input id="venueTwoAccent" type="color" value="#c59a43"></div></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><div class="side-head"><h1>GESTIONA</h1><p class="version">ERP v23.0 — Moteur de stock professionnel</p><select id="venueSelect" class="venue-select"></select></div><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="venues">🏢 Établissements</button><button data-view="products">📦 Produits & stocks</button><button data-view="stock-engine">🔄 Mouvements & inventaires</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="actions">✅ Centre d’actions</button><button data-view="activity">🛡️ Sécurité & activité</button><button data-view="settings">⚙️ Paramètres</button></nav></aside>
+<div class="app"><aside class="side"><div class="side-head"><h1>GESTIONA</h1><p class="version">ERP v24.0 — Commandes fournisseurs professionnelles</p><select id="venueSelect" class="venue-select"></select></div><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="venues">🏢 Établissements</button><button data-view="products">📦 Produits & stocks</button><button data-view="stock-engine">🔄 Mouvements & inventaires</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="actions">✅ Centre d’actions</button><button data-view="activity">🛡️ Sécurité & activité</button><button data-view="settings">⚙️ Paramètres</button></nav></aside>
 <main class="main"><header class="top premium-topbar"><div class="topbar-title"><h2 id="pageTitle">Cockpit de pilotage</h2><span id="topbarDate" class="tiny"></span></div><div class="global-search-wrap"><span class="global-search-icon">⌕</span><input id="globalSearch" class="global-search" placeholder="Rechercher un produit, fournisseur, commande ou établissement…" autocomplete="off"><div id="globalSearchResults" class="global-search-results hidden"></div></div><div class="topbar-actions"><button class="top-icon-btn" id="topNotificationsBtn" type="button" title="Notifications">🔔<span id="topNotificationCount" class="top-count">0</span></button><button class="top-icon-btn" id="topOrionBtn" type="button" title="ORION">🤖</button><span id="roleBadge" class="badge ok">Utilisateur</span><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div id="topNotificationPanel" class="top-notification-panel hidden"><div class="row between"><h3>Notifications</h3><button class="btn soft mini" id="closeTopNotifications">Fermer</button></div><div id="topNotificationList" class="notification-list"></div></div><div class="content">
 <section id="view-dashboard" class="view active cockpit-v19">
 <div class="cockpit-intro"><div><span class="eyebrow">CENTRE DE PILOTAGE</span><h1 id="cockpitGreeting">Bonjour 👋</h1><p id="cockpitDateLine">Voici les priorités de votre journée.</p></div><div class="cockpit-status"><span class="status-dot"></span> Données actualisées</div></div>
@@ -234,6 +234,18 @@
 <div class="card"><div class="toolbar"><input id="supplierSearch" class="grow" placeholder="Rechercher un fournisseur"><button class="btn primary" id="addSupplierBtn">+ Ajouter</button></div><div class="table-wrap"><table class="table"><thead><tr><th>Nom</th><th>Contact</th><th>Email</th><th>Téléphone</th><th>Livraison</th><th>Fiabilité</th><th></th></tr></thead><tbody id="suppliersBody"></tbody></table></div></div>
 </section>
 <section id="view-orders" class="view">
+<div class="welcome"><h2>🛒 Commandes fournisseurs</h2><p>Préparez, envoyez et suivez les commandes jusqu’à leur réception complète.</p></div>
+<div class="grid four v24-order-kpis" style="margin-bottom:15px">
+  <div class="card metric"><span>Brouillons</span><strong id="v24DraftOrders">0</strong><small>à vérifier avant envoi</small></div>
+  <div class="card metric"><span>En attente</span><strong id="v24OpenOrders">0</strong><small>envoyées ou confirmées</small></div>
+  <div class="card metric"><span>À recevoir</span><strong id="v24DueOrders">0</strong><small>livraison aujourd’hui ou dépassée</small></div>
+  <div class="card metric"><span>Valeur ouverte</span><strong id="v24OpenValue">0,00 €</strong><small>total HTVA engagé</small></div>
+</div>
+<div class="card v24-purchase-control" style="margin-bottom:16px">
+  <div class="row between"><div><h3 style="margin-bottom:4px">📍 Suivi des commandes</h3><div class="tiny">Avancez chaque commande dans son cycle : brouillon, envoyée, confirmée, partiellement reçue, reçue.</div></div><div class="stock-actions"><button class="btn soft" id="v24ExportOrdersBtn" type="button">Exporter CSV</button><button class="btn gold" id="v24RefreshOrdersBtn" type="button">Actualiser</button></div></div>
+  <div id="v24OrderAlerts" class="v24-order-alerts"></div>
+  <div id="v24OrderBoard" class="v24-order-board"></div>
+</div>
 <div class="card order-builder-card">
   <div class="row between"><div><h3 style="margin-bottom:4px">Préparer une commande</h3><div class="tiny">Choisissez un établissement et un fournisseur, puis indiquez les quantités. Le brouillon est sauvegardé automatiquement sur cet appareil.</div></div><span class="badge ok" id="quickSaveState">Brouillon prêt</span></div>
   <div class="toolbar" style="margin-top:14px">
@@ -675,4 +687,6 @@
 <script src="assets/js/app.js?v=23.0-stock-engine"></script>
 <link rel="stylesheet" href="assets/css/v23-stock-engine.css">
 <script src="assets/js/v23-stock-engine.js?v=23.0"></script>
+<link rel="stylesheet" href="assets/css/v24-purchase-orders.css">
+<script src="assets/js/v24-purchase-orders.js?v=24.0"></script>
 </body></html>

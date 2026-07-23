@@ -1,0 +1,16 @@
+GESTIONA V24.0 — COMMANDES FOURNISSEURS PROFESSIONNELLES
+
+Ajouts réels :
+- indicateurs de commandes ;
+- tableau de suivi par statut ;
+- alertes de livraison attendue ou en retard ;
+- changement rapide de statut ;
+- duplication d'une commande ;
+- accès direct à la réception ;
+- export CSV ;
+- valeur totale des commandes ouvertes.
+
+Installation :
+1. Remplacer l'ancienne version par ce dossier.
+2. Exécuter migration_v24_purchase_orders.sql dans Supabase SQL Editor.
+3. Ouvrir index.html ou redéployer sur Netlify.
