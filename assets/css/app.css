@@ -133,3 +133,22 @@
  .category-manager-row{grid-template-columns:35px minmax(0,1fr)}
  .category-manager-row button{grid-row:2}.category-manager-row button:nth-of-type(1){grid-column:1/2}.category-manager-row button:nth-of-type(2){grid-column:2/3}
 }
+
+
+/* GESTIONA v9.3 — Stock hiérarchique */
+.stock-tree-special{display:grid;gap:4px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.stock-tree-label{padding:12px 8px 5px;text-transform:uppercase;letter-spacing:.08em;font-size:10px;font-weight:900;color:var(--muted)}
+.stock-tree-group{border-radius:12px;margin:2px 0}
+.stock-tree-group.current{background:#fbf7f2}
+.stock-tree-family{display:grid;grid-template-columns:25px minmax(0,1fr);align-items:center}
+.stock-tree-family .stock-category-tab{grid-template-columns:27px minmax(0,1fr) auto;padding-left:3px}
+.stock-tree-toggle{border:0;background:transparent;color:var(--wine);font-weight:900;font-size:15px;cursor:pointer;padding:8px 2px}
+.stock-tree-children{display:grid;gap:2px;padding:0 5px 6px 30px}
+.stock-subcategory-tab{display:grid;grid-template-columns:16px minmax(0,1fr) auto auto;gap:6px;align-items:center;border:0;background:transparent;border-radius:9px;padding:7px 7px;text-align:left;cursor:pointer;color:var(--muted);font-size:12px}
+.stock-subcategory-tab:hover{background:#f3e9e1;color:var(--wine)}
+.stock-subcategory-tab.active{background:var(--gold);color:#3d2415;font-weight:900}
+.stock-subcategory-tab b{font-size:10px;background:rgba(100,20,42,.08);padding:2px 6px;border-radius:10px}
+.stock-subcategory-tab i{font-style:normal;font-size:9px;background:#fff0d4;color:#8b4f00;padding:2px 5px;border-radius:10px}
+.stock-tree-empty{padding:6px 8px;font-size:11px;color:var(--muted);font-style:italic}
+.stock-path{display:inline-block;margin-top:3px;padding:2px 7px;border-radius:9px;background:#f5eee8;color:var(--wine)}
+@media(max-width:850px){.stock-tree-label{display:none}.stock-tree-group{min-width:205px;border:1px solid var(--line);background:#fff}.stock-tree-special{display:flex;border:0;padding:0}.stock-tree-family{grid-template-columns:22px minmax(0,1fr)}.stock-tree-children{padding-left:23px;max-height:190px;overflow:auto}.stock-category-tabs{align-items:flex-start}.stock-tree-special .stock-category-tab{min-width:max-content}}

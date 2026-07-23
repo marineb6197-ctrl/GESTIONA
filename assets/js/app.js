@@ -2,7 +2,7 @@ const LS_URL='gestiona_supabase_url',LS_KEY='gestiona_supabase_key',LS_SCHEDULES
 let menus=[],menuRecipeDraft=[],posCart=[],sales=[];
 const MENUS_KEY='gestiona_menus_v91',SALES_KEY='gestiona_sales_v91';
 let selectedStockCategory='all',stockCategories=[];
-const STOCK_CATEGORIES_KEY='gestiona_stock_categories_v92';
+const STOCK_CATEGORIES_KEY='gestiona_stock_categories_v92',STOCK_TREE_STATE_KEY='gestiona_stock_tree_state_v93';
 const DEFAULT_STOCK_CATEGORIES=[
  {name:'Viandes',icon:'🥩'},{name:'Poissons',icon:'🐟'},{name:'Légumes',icon:'🥬'},
  {name:'Produits laitiers',icon:'🧀'},{name:'Boulangerie',icon:'🍞'},{name:'Épicerie',icon:'🧂'},
@@ -346,8 +346,9 @@ function catalogFilteredProducts(){const term=$('productSearch').value.toLowerCa
 if(selectedStockCategory==='favorite')list=list.filter(p=>p.favorite);
 else if(selectedStockCategory==='out')list=list.filter(p=>num(p.stock)<=0);
 else if(selectedStockCategory==='low')list=list.filter(p=>num(p.stock)<=num(p.minimum_stock));
+else if(selectedStockCategory.startsWith('subcategory:')){const [,category='',subcategory='']=selectedStockCategory.split(':');list=list.filter(p=>categoryKey(p.category)===categoryKey(decodeURIComponent(category))&&categoryKey(p.subcategory||'Sans sous-catégorie')===categoryKey(decodeURIComponent(subcategory)))}
 else if(selectedStockCategory.startsWith('category:')){const selectedName=selectedStockCategory.slice(9);list=list.filter(p=>categoryKey(p.category)===categoryKey(selectedName))}
-return list.sort((a,b)=>(a.category||'').localeCompare(b.category||'','fr')||a.name.localeCompare(b.name,'fr'))}
+return list.sort((a,b)=>(a.category||'').localeCompare(b.category||'','fr')||(a.subcategory||'').localeCompare(b.subcategory||'','fr')||a.name.localeCompare(b.name,'fr'))}
 function stockConsumption30(productId){const since=Date.now()-30*86400000;return movements.filter(m=>m.product_id===productId&&new Date(m.created_at).getTime()>=since&&['sale','waste'].includes(m.movement_type)).reduce((a,m)=>a+Math.abs(num(m.quantity)),0)}
 function stockMovementCount30(productId){const since=Date.now()-30*86400000;return movements.filter(m=>m.product_id===productId&&new Date(m.created_at).getTime()>=since).length}
 function stockSuggestedMinimum(p){const used=stockConsumption30(p.id);if(used<=0)return Math.max(num(p.minimum_stock),0);const weekly=used/30*7;return Math.max(1,Math.ceil(weekly*1.5))}
@@ -361,7 +362,7 @@ optimize.slice(0,5).forEach(x=>rows.push({icon:'🎯',title:x.p.name,detail:`Min
 $('stockIntelList').innerHTML=rows.length?rows.map(r=>`<div class="stock-intel-item"><span class="ico">${r.icon}</span><div><b>${esc(r.title)}</b><small>${esc(r.detail)}</small></div><div class="stock-intel-actions"><span class="badge ${r.cls}">${r.badge}</span>${r.actions}</div></div>`).join(''):'<div class="empty">ORION ne détecte aucune action prioritaire avec les données actuelles.</div>'}
 window.applySuggestedMinimum=async(id,value)=>{const p=products.find(x=>x.id===id);if(!p||!confirm(`Définir le stock minimum de « ${p.name} » à ${value} ?`))return;const {error}=await sb.from('products').update({minimum_stock:value}).eq('id',id);if(error){toast(error.message);return}p.minimum_stock=value;await audit('Minimum de stock optimisé par ORION','product',id,{name:p.name,minimum_stock:value});renderProducts();renderStockIntelligence();renderDashboard();toast('Stock minimum mis à jour')};
 window.openStockOrder=id=>{const p=products.find(x=>x.id===id);document.querySelector('[data-view="orders"]')?.click();if(p?.venue_id)$('quickOrderVenue').value=p.venue_id;if(p?.supplier_id)$('quickOrderSupplier').value=p.supplier_id;loadQuickOrderDraft();const qty=Math.max(stockSuggestedMinimum(p)-num(p.stock),1);quickOrder.quantities[p.id]=Math.max(num(quickOrder.quantities[p.id]),qty);saveQuickOrderDraft();$('quickOrderFilter').value='ordered';renderQuickOrderCatalog();toast(`${p.name} ajouté au brouillon : ${qty}`)};
-function renderProducts(){renderStockCategoryTabs();const list=catalogFilteredProducts();renderSelectedCategoryHeader(list);const complete=list.length?Math.round(list.filter(p=>productCompleteness(p)===100).length/list.length*100):0;$('catalogCount').textContent=list.length;$('catalogComplete').textContent=complete+' %';$('catalogNoCost').textContent=list.filter(p=>num(p.package_price_excl_vat)<=0).length;$('catalogNoMin').textContent=list.filter(p=>num(p.minimum_stock)<=0).length;$('productsBody').innerHTML=list.length?list.map(p=>{const st=p.active===false?['Archivé','bad']:status(p),img=p.image_url?`<img class="product-thumb" src="${esc(p.image_url)}" alt="" onerror="this.style.display='none'">`:'';const actions=p.active===false?`<button class="btn mini gold" onclick="restoreProduct('${p.id}')">Restaurer</button>`:`<button class="btn mini gold" onclick="quickMovement('${p.id}','purchase')">+ Stock</button><button class="btn mini danger" onclick="quickMovement('${p.id}','removal')">🗑 Retirer du stock</button><button class="btn mini soft" onclick="editProduct('${p.id}')">Fiche</button>`;const completion=productCompleteness(p);return`<tr><td>${img}<button class="star-btn" title="Ajouter ou retirer des favoris" onclick="toggleCatalogFavorite('${p.id}')">${p.favorite?'⭐':'☆'}</button><b>${esc(p.name)}</b><br><span class="tiny">${esc(p.unit)}${p.subcategory?' · '+esc(p.subcategory):''} · ${esc(supplierName(p.supplier_id))}</span></td><td>${esc(p.sku||p.barcode||'—')}</td><td>${esc(p.category||'—')}</td><td>${num(p.stock)} / ${num(p.minimum_stock)}</td><td class="money">${money(unitCost(p))}</td><td class="money">${money(p.sale_price_incl_vat)}</td><td>${marginPct(p).toFixed(1)} %</td><td><span class="completion"><span class="completion-bar"><i style="width:${completion}%"></i></span><b>${completion}%</b></span></td><td><span class="badge ${st[1]}">${st[0]}</span></td><td><div class="stock-actions">${actions}</div></td></tr>`}).join(''):'<tr><td colspan="10" class="empty">Aucun produit.</td></tr>'}
+function renderProducts(){renderStockCategoryTabs();const list=catalogFilteredProducts();renderSelectedCategoryHeader(list);const complete=list.length?Math.round(list.filter(p=>productCompleteness(p)===100).length/list.length*100):0;$('catalogCount').textContent=list.length;$('catalogComplete').textContent=complete+' %';$('catalogNoCost').textContent=list.filter(p=>num(p.package_price_excl_vat)<=0).length;$('catalogNoMin').textContent=list.filter(p=>num(p.minimum_stock)<=0).length;$('productsBody').innerHTML=list.length?list.map(p=>{const st=p.active===false?['Archivé','bad']:status(p),img=p.image_url?`<img class="product-thumb" src="${esc(p.image_url)}" alt="" onerror="this.style.display='none'">`:'';const actions=p.active===false?`<button class="btn mini gold" onclick="restoreProduct('${p.id}')">Restaurer</button>`:`<button class="btn mini gold" onclick="quickMovement('${p.id}','purchase')">+ Stock</button><button class="btn mini danger" onclick="quickMovement('${p.id}','removal')">🗑 Retirer du stock</button><button class="btn mini soft" onclick="editProduct('${p.id}')">Fiche</button>`;const completion=productCompleteness(p);return`<tr><td>${img}<button class="star-btn" title="Ajouter ou retirer des favoris" onclick="toggleCatalogFavorite('${p.id}')">${p.favorite?'⭐':'☆'}</button><b>${esc(p.name)}</b><br><span class="tiny">${esc(p.unit)}${p.subcategory?' · '+esc(p.subcategory):''} · ${esc(supplierName(p.supplier_id))}</span></td><td>${esc(p.sku||p.barcode||'—')}</td><td><b>${esc(p.category||'Sans catégorie')}</b><br><span class="tiny stock-path">${esc(p.subcategory||'Sans sous-catégorie')}</span></td><td>${num(p.stock)} / ${num(p.minimum_stock)}</td><td class="money">${money(unitCost(p))}</td><td class="money">${money(p.sale_price_incl_vat)}</td><td>${marginPct(p).toFixed(1)} %</td><td><span class="completion"><span class="completion-bar"><i style="width:${completion}%"></i></span><b>${completion}%</b></span></td><td><span class="badge ${st[1]}">${st[0]}</span></td><td><div class="stock-actions">${actions}</div></td></tr>`}).join(''):'<tr><td colspan="10" class="empty">Aucun produit.</td></tr>'}
 function renderSuppliers(){const term=$('supplierSearch').value.toLowerCase(),list=suppliers.filter(s=>(s.name+' '+(s.contact_name||'')).toLowerCase().includes(term));$('suppliersBody').innerHTML=list.length?list.map(s=>`<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.contact_name||'—')}</td><td>${esc(s.email||'—')}</td><td>${esc(s.phone||'—')}</td><td>${esc(s.delivery_days||'—')}</td><td><button class="btn soft" onclick="editSupplier('${s.id}')">Ouvrir</button></td></tr>`).join(''):'<tr><td colspan="6" class="empty">Aucun fournisseur.</td></tr>'}
 
 function orderStatusLabel(s){return {draft:['Brouillon','warn'],sent:['Envoyée','ok'],confirmed:['Confirmée','ok'],partially_received:['Partiellement reçue','warn'],received:['Reçue','ok'],cancelled:['Annulée','bad']}[s]||[s,'warn']}
@@ -499,23 +500,29 @@ function stockCategoryCount(name){
 function categoryStockValue(name){
   return visibleProducts(true).filter(p=>categoryKey(p.category)===categoryKey(name)).reduce((sum,p)=>sum+num(p.stock)*unitCost(p),0);
 }
+function stockTreeState(){try{return JSON.parse(localStorage.getItem(STOCK_TREE_STATE_KEY)||'{}')}catch(e){return {}}}
+function saveStockTreeState(state){localStorage.setItem(STOCK_TREE_STATE_KEY,JSON.stringify(state))}
+function categorySubgroups(name){
+  const rows=visibleProducts(false).filter(p=>categoryKey(p.category)===categoryKey(name)),groups=new Map();
+  rows.forEach(p=>{const label=normalizeCategoryName(p.subcategory)||'Sans sous-catégorie',key=categoryKey(label);if(!groups.has(key))groups.set(key,{name:label,count:0,low:0,value:0});const g=groups.get(key);g.count++;g.low+=num(p.stock)<=num(p.minimum_stock)?1:0;g.value+=num(p.stock)*unitCost(p)});
+  return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'fr'))
+}
 function renderStockCategoryTabs(){
   if(!$('stockCategoryTabs'))return;
   syncCategoriesFromProducts();
-  const visible=visibleProducts(false);
-  const low=visible.filter(p=>num(p.stock)<=num(p.minimum_stock)).length;
-  const out=visible.filter(p=>num(p.stock)<=0).length;
-  const fav=visible.filter(p=>p.favorite).length;
-  const special=[
-    {id:'all',icon:'🏠',label:'Tous les produits',count:visible.length},
-    {id:'favorite',icon:'⭐',label:'Favoris',count:fav},
-    {id:'out',icon:'⚠️',label:'Ruptures',count:out},
-    {id:'low',icon:'🟠',label:'Stock faible',count:low}
-  ];
-  const categoryButtons=stockCategories.map(c=>({id:'category:'+c.name,icon:c.icon||inferCategoryIcon(c.name),label:c.name,count:stockCategoryCount(c.name)}));
-  $('stockCategoryTabs').innerHTML=[...special,...categoryButtons].map(x=>`<button type="button" class="stock-category-tab ${selectedStockCategory===x.id?'active':''}" onclick="selectStockCategory('${esc(String(x.id)).replace(/'/g,"\\'")}')"><span class="stock-category-icon">${x.icon}</span><span>${esc(x.label)}</span><b>${x.count}</b></button>`).join('');
-  renderStockCategoryDatalist();
+  const visible=visibleProducts(false),low=visible.filter(p=>num(p.stock)<=num(p.minimum_stock)).length,out=visible.filter(p=>num(p.stock)<=0).length,fav=visible.filter(p=>p.favorite).length;
+  const special=[{id:'all',icon:'🏠',label:'Tous les produits',count:visible.length},{id:'favorite',icon:'⭐',label:'Favoris',count:fav},{id:'out',icon:'⚠️',label:'Ruptures',count:out},{id:'low',icon:'🟠',label:'Stock faible',count:low}];
+  const state=stockTreeState();
+  const specialHtml=special.map(x=>`<button type="button" class="stock-category-tab ${selectedStockCategory===x.id?'active':''}" onclick="selectStockCategory('${x.id}')"><span class="stock-category-icon">${x.icon}</span><span>${esc(x.label)}</span><b>${x.count}</b></button>`).join('');
+  const treeHtml=stockCategories.map(c=>{
+    const key=categoryKey(c.name),subs=categorySubgroups(c.name),expanded=state[key]!==false,active=selectedStockCategory===`category:${c.name}`||selectedStockCategory.startsWith('subcategory:'+encodeURIComponent(c.name)+':');
+    const subHtml=subs.map(g=>{const id=`subcategory:${encodeURIComponent(c.name)}:${encodeURIComponent(g.name)}`;return `<button type="button" class="stock-subcategory-tab ${selectedStockCategory===id?'active':''}" onclick="selectStockCategory('${id}')"><span>↳</span><span>${esc(g.name)}</span><b>${g.count}</b>${g.low?`<i title="${g.low} produit(s) à surveiller">${g.low}</i>`:''}</button>`}).join('');
+    return `<section class="stock-tree-group ${active?'current':''}"><div class="stock-tree-family"><button type="button" class="stock-tree-toggle" onclick="toggleStockTree('${esc(key).replace(/'/g,"\\'")}')" aria-label="Déplier ou replier">${expanded?'▾':'▸'}</button><button type="button" class="stock-category-tab ${selectedStockCategory===`category:${c.name}`?'active':''}" onclick="selectStockCategory('category:${esc(c.name).replace(/'/g,"\\'")}')"><span class="stock-category-icon">${c.icon||inferCategoryIcon(c.name)}</span><span>${esc(c.name)}</span><b>${stockCategoryCount(c.name)}</b></button></div><div class="stock-tree-children ${expanded?'':'hidden'}">${subHtml||'<div class="stock-tree-empty">Aucune sous-catégorie</div>'}</div></section>`;
+  }).join('');
+  $('stockCategoryTabs').innerHTML=`<div class="stock-tree-special">${specialHtml}</div><div class="stock-tree-label">Familles de stock</div>${treeHtml}`;
+  renderStockCategoryDatalist();renderStockSubcategoryDatalist();
 }
+window.toggleStockTree=key=>{const state=stockTreeState();state[key]=state[key]===false;saveStockTreeState(state);renderStockCategoryTabs()};
 window.selectStockCategory=id=>{
   selectedStockCategory=id;
   if(id==='favorite')$('productFilter').value='favorite';
@@ -524,14 +531,15 @@ window.selectStockCategory=id=>{
   $('productCategoryFilter').value=id.startsWith('category:')?id.slice(9):'all';
   renderStockCategoryTabs();renderProducts();
 };
-function renderStockCategoryDatalist(){
-  if($('stockCategoryDatalist'))$('stockCategoryDatalist').innerHTML=stockCategories.map(c=>`<option value="${esc(c.name)}">${c.icon||''}</option>`).join('');
-}
+function renderStockCategoryDatalist(){if($('stockCategoryDatalist'))$('stockCategoryDatalist').innerHTML=stockCategories.map(c=>`<option value="${esc(c.name)}">${c.icon||''}</option>`).join('')}
+function renderStockSubcategoryDatalist(){if(!$('stockSubcategoryDatalist'))return;const category=normalizeCategoryName($('pCategory')?.value),values=[...new Set(products.filter(p=>!category||categoryKey(p.category)===categoryKey(category)).map(p=>normalizeCategoryName(p.subcategory)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));$('stockSubcategoryDatalist').innerHTML=values.map(v=>`<option value="${esc(v)}"></option>`).join('')}
+
 function activeStockCategoryLabel(){
   if(selectedStockCategory==='all')return 'Tous les produits';
   if(selectedStockCategory==='favorite')return 'Favoris';
   if(selectedStockCategory==='out')return 'Ruptures de stock';
   if(selectedStockCategory==='low')return 'Stock faible';
+  if(selectedStockCategory.startsWith('subcategory:')){const [,cat='',sub='']=selectedStockCategory.split(':');return `${decodeURIComponent(cat)} › ${decodeURIComponent(sub)}`}
   return selectedStockCategory.startsWith('category:')?selectedStockCategory.slice(9):'Tous les produits';
 }
 function renderSelectedCategoryHeader(list){
@@ -927,7 +935,7 @@ $('createOrgBtn').onclick=async()=>{msg('onboardMsg','');const {data,error}=awai
 $('venueSelect').onchange=()=>{selectedVenue=$('venueSelect').value;renderDashboard();renderProducts();renderStockIntelligence();renderRecipes();renderMenus();renderPos()};$('manageStockCategoriesBtn').onclick=()=>{renderStockCategoryManager();openModal('stockCategoriesModal')};
 $('createStockCategoryBtn').onclick=()=>{if(createStockCategory($('newStockCategoryName').value,$('newStockCategoryIcon').value))$('newStockCategoryName').value=''};
 $('newStockCategoryName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('createStockCategoryBtn').click()}});
-$('quickAddCategoryBtn').onclick=()=>{const name=normalizeCategoryName(prompt('Nom de la nouvelle catégorie :',''));if(name&&createStockCategory(name,inferCategoryIcon(name)))$('pCategory').value=name};
+$('quickAddCategoryBtn').onclick=()=>{const name=normalizeCategoryName(prompt('Nom de la nouvelle catégorie :',''));if(name&&createStockCategory(name,inferCategoryIcon(name)))$('pCategory').value=name};$('pCategory').addEventListener('input',renderStockSubcategoryDatalist);
 $('addMenuBtn').onclick=()=>{fillMenuVenueOptions();resetMenu();openModal('menuModal')};
 $('menuSearch').oninput=renderMenus;
 $('addMenuRecipeBtn').onclick=()=>addMenuRecipe();

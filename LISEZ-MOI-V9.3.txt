@@ -1,0 +1,14 @@
+GESTIONA ERP v9.3 — STOCK HIÉRARCHIQUE
+
+Nouveautés
+- Navigation du stock en arborescence : Famille > Sous-famille > Produits.
+- Familles dépliables et repliables, état mémorisé sur l’appareil.
+- Compteurs par famille et sous-famille.
+- Indicateur d’alerte par sous-famille.
+- Filtrage direct en cliquant sur une sous-famille.
+- Chemin hiérarchique visible dans le tableau des produits.
+- Suggestions de sous-catégories existantes dans la fiche produit.
+- Compatible avec les données v9.2 : aucune migration Supabase nécessaire.
+
+Installation
+Remplacez les anciens fichiers par ceux de cette archive puis republiez le dossier complet. Le nouveau cache v9.3 force la mise à jour de l’application installée.
