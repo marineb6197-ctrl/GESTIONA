@@ -1,0 +1,10 @@
+GESTIONA v14.0.1 — Correctif d’affichage
+
+Correction apportée :
+- La signature ne recouvre plus les boutons « Sécurité & activité » et « Paramètres ».
+- La liste du menu de gauche peut défiler lorsque l’écran est moins haut.
+- La signature reste dans un pied de menu séparé.
+- L’affichage est resserré automatiquement sur les petits écrans d’ordinateur.
+
+Installation : remplacez votre dossier précédent par le contenu de cette archive.
+Aucune migration Supabase n’est nécessaire.
