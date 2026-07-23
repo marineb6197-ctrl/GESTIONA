@@ -1,0 +1,16 @@
+GESTIONA v8.5 — Retrait manuel du stock
+
+Nouveautés :
+- bouton clair « Retirer » dans la liste des produits ;
+- écran dédié pour retirer une quantité du stock ;
+- choix obligatoire d'une raison pour un retrait manuel ;
+- raisons proposées : erreur, péremption, casse, consommation interne, produit offert, transfert ou autre ;
+- affichage du stock actuel et du nouveau stock avant confirmation ;
+- impossibilité de retirer plus que le stock disponible ;
+- historique du mouvement et journal d'audit conservés ;
+- aucune fiche produit n'est supprimée : seule la quantité en stock diminue.
+
+Exemple :
+Stock Coca = 12
+Retrait = 3
+Nouveau stock = 9
