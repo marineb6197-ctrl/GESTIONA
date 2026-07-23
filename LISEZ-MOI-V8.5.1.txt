@@ -1,0 +1,8 @@
+GESTIONA v8.5.1 — Retrait stock visible
+
+Correction :
+- grand bouton rouge « Retirer un produit du stock » en haut de la page Produits & stocks ;
+- sélection du produit dans une liste ;
+- affichage du stock disponible avant de continuer ;
+- bouton « Retirer du stock » également conservé sur chaque ligne du tableau ;
+- cache de l'application renouvelé pour rendre la correction visible après installation.

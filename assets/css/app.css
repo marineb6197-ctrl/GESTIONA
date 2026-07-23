@@ -54,3 +54,6 @@
 
 #movementWarning b{color:var(--wine)}
 #mRemovalReasonField select{width:100%}
+
+#openStockRemovalBtn{font-weight:900}
+#stockRemovalProductSelect{width:100%;padding:11px}
