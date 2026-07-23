@@ -1,0 +1,14 @@
+GESTIONA v8.0 — ORION Copilote
+
+Nouveautés :
+- ORION Copilote devient le centre de pilotage de l’accueil ;
+- centre d’alertes unifié : commandes, stocks, hausses de prix et marges ;
+- estimation des économies potentielles liées au surstock et aux marges faibles ;
+- vue globale par établissement ;
+- zone « Demander à ORION » pour interroger localement les données chargées ;
+- priorités et recommandations recalculées à chaque actualisation.
+
+Important :
+- Les estimations dépendent de la qualité des prix, stocks et objectifs enregistrés.
+- ORION n’envoie aucune commande et ne modifie aucune donnée sans validation.
+- Aucune nouvelle migration Supabase n’est nécessaire.
