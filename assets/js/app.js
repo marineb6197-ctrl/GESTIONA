@@ -173,7 +173,36 @@ function renderDeliveryReceiptLines(){
    return `<tr class="${miss>0?'delivery-missing':'delivery-complete'}"><td><b>${esc(l.description)}</b><div class="tiny">${esc(l.unit||'unité')}${l.scanConfidence?` · scan ${Math.round(l.scanConfidence)} %`:''}</div></td><td>${l.ordered}</td><td><input type="number" min="0" max="${remaining}" step="0.001" value="${l.receivedNow}" onchange="setDeliveryReceived(${i},this.value)"></td><td>${money(l.orderedUnitPrice)}</td><td><input type="number" min="0" step="0.0001" value="${num(l.detectedUnitPrice)}" onchange="setDeliveryPrice(${i},this.value)" style="width:105px"></td><td><span class="badge ${pa.level}">${esc(pa.text)}</span>${miss?`<div class="tiny">Manque ${miss}</div>`:''}</td><td>${status}</td></tr>`;
  }).join('');
  summary.innerHTML=`<div class="delivery-summary-grid"><div><span>Attendu</span><b>${expected}</b></div><div><span>Reçu</span><b>${received}</b></div><div><span>Manquant</span><b>${missing}</b></div></div><div class="notice ${priceUps?'warn':'success'}" style="margin-top:9px"><b>${priceUps?priceUps+' augmentation(s) de prix détectée(s)':'Aucune hausse de prix détectée'}</b><div class="tiny">Valeur au prix commandé ${money(totalOld)} · valeur détectée ${money(totalNew)} · écart ${money(totalNew-totalOld)}</div></div>`;
+ renderDeliveryMissingAlerts();
  if($('docStatus'))$('docStatus').value=missing>0||priceUps>0?'issue':'matched';
+}
+function deliveryAlertMessage(l){
+ const remaining=Math.max(0,num(l.ordered)-num(l.alreadyReceived)),received=num(l.receivedNow),missing=Math.max(0,remaining-received);
+ if(missing<=0)return '';
+ if(received<=0)return `${l.description} non livré`;
+ return `${l.description} livré partiellement — manque ${formatQty(missing)} ${l.unit||'unité(s)'}`;
+}
+function renderDeliveryMissingAlerts(){
+ const box=$('deliveryMissingAlerts');if(!box)return;
+ const alerts=deliveryReceiptLines.map(l=>({line:l,message:deliveryAlertMessage(l)})).filter(x=>x.message);
+ if(!alerts.length){box.classList.add('hidden');box.innerHTML='';return}
+ box.classList.remove('hidden');
+ box.innerHTML=`<div class="delivery-alert-head"><div><span class="delivery-alert-icon">🚨</span><div><b>${alerts.length} anomalie${alerts.length>1?'s':''} de livraison</b><small>ORION a comparé le bon à la commande liée.</small></div></div><button type="button" class="btn soft mini" onclick="copyDeliveryClaim()">Copier la réclamation</button></div><div class="delivery-alert-list">${alerts.map(a=>`<div class="delivery-alert-item"><span>❌</span><div><b>${esc(a.message)}</b><small>Commandé : ${formatQty(Math.max(0,num(a.line.ordered)-num(a.line.alreadyReceived)))} · Reçu : ${formatQty(num(a.line.receivedNow))}</small></div></div>`).join('')}</div>`;
+}
+function deliveryClaimText(){
+ const order=selectedDeliveryOrder(),supplier=suppliers.find(s=>s.id===$('docSupplier')?.value),missing=deliveryReceiptLines.map(l=>({line:l,message:deliveryAlertMessage(l)})).filter(x=>x.message);
+ if(!missing.length)return '';
+ return `Bonjour,\n\nConcernant la livraison ${$('docNumber')?.value||''}${order?.order_number?` liée à la commande ${order.order_number}`:''}, nous constatons les anomalies suivantes :\n\n${missing.map(x=>`- ${x.message} (commandé : ${formatQty(Math.max(0,num(x.line.ordered)-num(x.line.alreadyReceived)))}, reçu : ${formatQty(num(x.line.receivedNow))})`).join('\n')}\n\nMerci de nous confirmer la livraison du reliquat ou l'émission d'une note de crédit.\n\nCordialement`;
+}
+async function copyDeliveryClaim(){
+ const text=deliveryClaimText();if(!text){toast('Aucune anomalie à réclamer');return}
+ try{await navigator.clipboard.writeText(text);toast('Réclamation copiée')}catch{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('Réclamation copiée')}
+}
+window.copyDeliveryClaim=copyDeliveryClaim;
+function notifyMissingDelivery(lines,order){
+ if(!('Notification' in window)||Notification.permission!=='granted'||!lines.length)return;
+ const first=deliveryAlertMessage(lines[0]);const extra=lines.length>1?` et ${lines.length-1} autre(s) anomalie(s)`:'';
+ try{new Notification('GESTIONA — Livraison incomplète',{body:`${first}${extra}${order?.order_number?` · Commande ${order.order_number}`:''}`,icon:'icons/icon-192.png'})}catch{}
 }
 
 function deliveryMissingProducts(){
@@ -265,6 +294,7 @@ async function analyzeDeliveryScan(){
   renderDeliveryReceiptLines();compareSupplierDocument();
   const missing=deliveryMissingProducts(),ups=deliveryReceiptLines.filter(l=>receptionPriceAlert(l).pct>0.5),isBackorder=order.status==='partially_received'||deliveryReceiptLines.some(l=>num(l.alreadyReceived)>0);
   if(status){status.className=`notice ${missing.length||ups.length?'warn':'success'}`;status.innerHTML=`<b>${auto?'Commande reconnue automatiquement':'Commande comparée'} : ${esc(order.order_number||'sans numéro')}</b><div class="tiny">${isBackorder?'Complément de livraison / reliquat · ':''}${matched}/${deliveryReceiptLines.length} ligne(s) reconnue(s) · ${missing.length} manquant(s) · ${ups.length} hausse(s) de prix. Vérifiez les alertes puis validez.</div>`}
+  notifyMissingDelivery(missing,order);
   toast(missing.length||ups.length?'Comparaison terminée avec alertes':'Livraison conforme — prête à valider');
  }catch(e){if(status){status.className='notice warn';status.textContent=e.message||String(e)}toast(e.message||String(e))}finally{btn.disabled=false;btn.textContent='🤖 Analyser le scan'}
 }

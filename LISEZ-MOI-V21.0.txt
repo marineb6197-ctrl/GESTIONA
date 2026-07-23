@@ -1,0 +1,14 @@
+GESTIONA V21.0 — RAPPROCHEMENT ORION
+
+Cette version renforce la réception automatique des marchandises :
+- scan unique du bon de livraison ou de la facture ;
+- comparaison avec la commande liée ;
+- alerte explicite « Produit non livré » ;
+- détection des livraisons partielles et quantités manquantes ;
+- panneau rouge des anomalies avant validation ;
+- notification navigateur lorsque les autorisations sont actives ;
+- réclamation fournisseur générée et copiable en un clic ;
+- stock mis à jour uniquement pour les quantités réellement reçues ;
+- commande conservée en statut « Partiellement reçue » tant qu'un reliquat existe.
+
+Important : la lecture automatique repose sur l'OCR du navigateur. Toute ligne signalée doit être vérifiée avant validation.
