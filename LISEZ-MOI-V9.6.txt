@@ -1,0 +1,13 @@
+GESTIONA v9.6 — Liste de commande automatique
+
+Nouveautés :
+- Nouveau bouton « Liste automatique » dans Produits & stocks.
+- Détection automatique des produits sous leur stock minimum.
+- Filtrage par établissement, fournisseur et recherche.
+- Sélection individuelle ou sélection de tous les produits.
+- Quantités conseillées modifiables avant validation.
+- Total HTVA estimé en temps réel.
+- Ajout direct au brouillon de commande fournisseur existant.
+- Aucune migration Supabase nécessaire.
+
+Installation : remplacez les fichiers de la version précédente par ceux de cette archive puis rechargez l’application.
