@@ -1,0 +1,13 @@
+GESTIONA v15.0 — ÉDITION PREMIUM DORÉE
+
+Cette version applique une refonte visuelle réelle à l'application existante :
+- doré champagne comme couleur principale ;
+- menu latéral anthracite avec icônes et sélection dorées ;
+- cartes, tableaux et formulaires harmonisés ;
+- boutons principaux en dégradé doré ;
+- tableau de bord ORION modernisé ;
+- navigation mobile dorée ;
+- signature retirée du menu afin d'éviter tout chevauchement ;
+- version CSS renouvelée pour limiter les problèmes de cache Safari.
+
+Les fonctions métier existantes restent inchangées.

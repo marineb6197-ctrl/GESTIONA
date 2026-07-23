@@ -299,3 +299,71 @@
 }
 .side>.signature{display:none !important;}
 .side>.nav{padding-bottom:14px !important;}
+
+/* =========================================================
+   GESTIONA v15.0 — THÈME PREMIUM DORÉ
+   ========================================================= */
+:root{
+  --wine:#6f2138;
+  --wine2:#38121f;
+  --gold:#c8a24d;
+  --gold-deep:#a77d25;
+  --gold-light:#f3e4b5;
+  --gold-pale:#fbf5df;
+  --cream:#f5f2eb;
+  --paper:#fffefb;
+  --ink:#27231d;
+  --muted:#766f63;
+  --line:#e7dcc2;
+  --shadow:0 14px 40px rgba(67,48,15,.09);
+}
+html,body{background:radial-gradient(circle at 85% 0,#fff9e9 0,transparent 28%),var(--cream)}
+.logo{color:var(--gold-deep);text-shadow:0 1px 0 #fff}
+.panel{border-color:rgba(200,162,77,.45);box-shadow:0 20px 60px rgba(83,58,10,.14)}
+.btn{transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;border:1px solid transparent}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary,.btn.gold{background:linear-gradient(135deg,#dfc16f 0%,#c69a38 48%,#a9791d 100%);color:#211a0c;border-color:#b88c2d;box-shadow:0 7px 18px rgba(171,126,31,.24)}
+.btn.primary:hover,.btn.gold:hover{filter:brightness(1.04);box-shadow:0 9px 22px rgba(171,126,31,.32)}
+.btn.soft{background:#fbf4df;color:#70511c;border-color:#ead9ad}
+.btn.danger{border-color:#f1c7c9}
+.app{grid-template-columns:268px 1fr}
+.side{display:flex;flex-direction:column;padding:22px 15px 18px;background:linear-gradient(180deg,#28231b 0%,#191611 100%);border-right:1px solid rgba(222,190,111,.34);box-shadow:8px 0 32px rgba(39,31,16,.12);overflow:hidden}
+.side-head{flex:0 0 auto;padding:0 5px 6px}
+.side h1{color:#e3c577;font-size:27px;text-shadow:0 0 22px rgba(218,183,93,.18)}
+.side .version{color:#a99b7a;margin-bottom:17px}
+.venue-select{background:#302a20;border-color:#6c5a31;color:#f2dfaa;box-shadow:inset 0 0 0 1px rgba(255,255,255,.025)}
+.nav{display:flex;flex-direction:column;gap:4px;overflow-y:auto;min-height:0;padding:4px 4px 18px;scrollbar-width:thin;scrollbar-color:#755f2e transparent}
+.nav::-webkit-scrollbar{width:6px}.nav::-webkit-scrollbar-thumb{background:#755f2e;border-radius:20px}
+.nav button{position:relative;color:#d8d0c2;padding:11px 12px;border:1px solid transparent;transition:.16s ease}
+.nav button:hover{background:rgba(210,174,83,.10);color:#f4df9d;border-color:rgba(210,174,83,.13)}
+.nav button.active{background:linear-gradient(90deg,rgba(214,178,85,.22),rgba(214,178,85,.07));color:#f7df98;border-color:rgba(218,180,83,.24);box-shadow:inset 3px 0 0 #d2aa4c}
+.signature{display:none!important;position:static!important}
+.top{height:72px;background:rgba(255,254,250,.92);backdrop-filter:blur(14px);border-bottom-color:#eadfca;box-shadow:0 4px 20px rgba(64,45,10,.04)}
+.top h2{font-family:Georgia,serif;color:#4a391c;letter-spacing:.01em}
+.content{padding-top:25px}
+.card{border-color:rgba(202,169,92,.32);box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.card:hover{border-color:rgba(190,145,42,.48);box-shadow:0 18px 48px rgba(67,48,15,.12)}
+.card h3{color:#43351c}
+.welcome{position:relative;overflow:hidden;background:linear-gradient(120deg,#b58a2e 0%,#d2b45f 46%,#8f671e 100%);color:#21190c;border:1px solid #b4872e;box-shadow:0 18px 40px rgba(149,108,27,.22)}
+.welcome:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-90px;top:-150px;background:rgba(255,255,255,.16)}
+.welcome h2,.welcome p{color:#21190c}.welcome h2{font-size:27px}.welcome p{opacity:.82}
+.orion-live{background:rgba(38,28,9,.16);color:#2d210b;border:1px solid rgba(52,38,8,.12)}
+.kpi{position:relative;overflow:hidden}.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(#ddc16f,#a87820)}
+.kpi strong,.mini-kpi b,.money{color:#9a701e}
+.orion-card{border-color:#d6b661;background:linear-gradient(145deg,#fffefa,#fbf3db)}
+.product-kpi,.stock-intel-kpi{background:linear-gradient(145deg,#fffefa,#fbf4df)!important;border-color:#e1c983!important}
+.table-wrap{border-color:#e4d4ad;background:#fff}.table th{background:#f7f0df;color:#6e5b32}.table tbody tr:hover{background:#fffaf0}
+.badge.ok{background:#e6f3e9}.badge.warn{background:#fff0c8;color:#885c0e}.badge.bad{background:#fbe5e6}
+.item,.notification-item,.quick-category{border-color:#e9ddc1}
+.calc-box{background:#fbf5e5}
+.modal{border-top:4px solid var(--gold);box-shadow:0 -15px 55px rgba(40,28,8,.17)}
+.mobile-nav{background:rgba(255,254,250,.97);border-top-color:#dfc98d;box-shadow:0 -7px 25px rgba(67,48,15,.10);backdrop-filter:blur(12px)}
+.mobile-nav button.active{color:#a87820}
+input:focus,select:focus,textarea:focus{outline:0;border-color:#c39a3b!important;box-shadow:0 0 0 3px rgba(195,154,59,.14)}
+@media(max-width:980px){.app{grid-template-columns:220px 1fr}}
+@media(max-width:720px){
+  .welcome h2{font-size:23px}
+  .card:hover{transform:none}
+  .top{height:62px}
+  .content{background:linear-gradient(180deg,#f8f5ed,#f3efe6)}
+}
