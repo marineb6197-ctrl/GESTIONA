@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v8.1 — Architecture stabilisée</title>
+<title>GESTIONA ERP v8.2 — Documents fournisseurs</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -17,7 +17,7 @@
 <section id="authScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">ERP cloud — Créé par Marine Bruynbroeck</p><div id="authMsg"></div><div class="field"><label>Nom complet</label><input id="authName" placeholder="Marine Bruynbroeck"></div><div class="field"><label>Email</label><input id="authEmail" type="email"></div><div class="field"><label>Mot de passe</label><input id="authPassword" type="password" minlength="6"></div><div class="row"><button class="btn primary" id="loginBtn">Se connecter</button><button class="btn gold" id="signupBtn">Créer mon compte</button><button class="btn soft" id="changeConfigBtn">Modifier Supabase</button></div></div></section>
 <section id="onboardingScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">Création de votre espace professionnel</p><div id="onboardMsg"></div><div class="field"><label>Nom de l'organisation</label><input id="orgName" value="GESTIONA"></div><div class="field"><label>Votre nom complet</label><input id="ownerName" value="Marine Bruynbroeck"></div><div class="field"><label>Premier établissement</label><input id="venueOne" placeholder="Nom de l'établissement"></div><div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v8.1 — Architecture stabilisée</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
+<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v8.2 — Documents fournisseurs</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
 <main class="main"><header class="top"><h2 id="pageTitle">ORION Copilote</h2><div class="row"><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
 <section id="view-dashboard" class="view active">
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">Votre journée est analysée : priorités, risques et économies sont regroupés ici.</p></div><span class="orion-live">● ORION ACTIF</span></div>
@@ -86,6 +86,19 @@
     </div>
     <div class="card"><h3>Dépenses par fournisseur — 30 jours</h3><div id="financeSupplierSpend"></div></div>
   </div>
+
+  <div class="card supplier-doc-card" style="margin-top:15px">
+    <div class="row between doc-head">
+      <div><h3>📷 Factures & bons de livraison</h3><p class="tiny">Photographiez un document ou importez un PDF. ORION prépare le contrôle avant toute validation.</p></div>
+      <div class="row doc-actions"><button class="btn primary" id="scanInvoiceBtn">📄 Scanner une facture</button><button class="btn gold" id="scanDeliveryBtn">🚚 Scanner un bon</button></div>
+    </div>
+    <div class="doc-kpis">
+      <div><span>Documents enregistrés</span><b id="docTotalCount">0</b></div><div><span>À contrôler</span><b id="docPendingCount">0</b></div><div><span>Écarts détectés</span><b id="docIssueCount">0</b></div>
+    </div>
+    <div class="toolbar" style="margin-top:13px"><select id="docTypeFilter"><option value="all">Tous les documents</option><option value="invoice">Factures</option><option value="delivery">Bons de livraison</option></select><input id="docSearch" class="grow" placeholder="Rechercher fournisseur, numéro ou fichier"><button class="btn soft" id="exportDocsBtn">Exporter l’historique</button></div>
+    <div class="table-wrap"><table class="table"><thead><tr><th>Document</th><th>Fournisseur</th><th>Date</th><th>Commande liée</th><th>Total HTVA</th><th>Contrôle</th><th></th></tr></thead><tbody id="supplierDocsBody"></tbody></table></div>
+  </div>
+
   <div class="grid two" style="margin-top:15px">
     <div class="card"><h3>Marges par catégorie</h3><div id="financeCategoryMargins"></div></div>
     <div class="card"><h3>Produits à contrôler</h3><div class="table-wrap"><table class="table"><thead><tr><th>Produit</th><th>Coût unitaire</th><th>Prix vente HTVA</th><th>Marge</th><th>Objectif</th><th>Écart</th></tr></thead><tbody id="financeProductsBody"></tbody></table></div></div>
@@ -123,6 +136,29 @@
 <section id="view-settings" class="view"><div class="grid two"><div class="card"><h3>Cloud Supabase</h3><p class="muted">Connexion active. Les données enregistrées dans cette version sont partagées entre vos appareils connectés au même compte.</p><p class="tiny" id="projectInfo"></p><button class="btn soft" id="resetConfig">Modifier la connexion Supabase</button></div><div class="card"><h3>Envoi des commandes</h3><p class="muted">GESTIONA prépare le message et l’ouvre dans la messagerie de l’utilisateur. Aucun compte Resend, domaine vérifié ou clé API n’est nécessaire.</p><div id="emailConfigStatus" class="notice success">Prêt : envoi depuis votre propre boîte mail.</div><button class="btn primary" id="openEmailConfigBtn" style="margin-top:12px">Voir le fonctionnement</button></div><div class="card"><h3>Propriété</h3><p><b>GESTIONA ERP</b><br>Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés.</p></div></div></section>
 </div></main></div>
 <nav class="mobile-nav"><button data-view="dashboard" class="active">🧠<br>Copilote</button><button data-view="products">📦<br>Produits</button><button data-view="suppliers">🚚<br>Fournisseurs</button><button data-view="orders">🛒<br>Commandes</button><button data-view="finance">💶<br>Finance</button><button data-view="orion">🤖<br>ORION</button><button data-view="settings">⚙️<br>Réglages</button></nav></section>
+
+<div id="supplierDocumentModal" class="modal-bg"><div class="modal doc-modal"><div class="modal-head"><h3 id="supplierDocumentTitle">Nouveau document fournisseur</h3><button class="btn soft" data-close="supplierDocumentModal">✕</button></div>
+<form id="supplierDocumentForm"><input type="hidden" id="docEditId"><input type="hidden" id="docKind" value="invoice">
+<div class="doc-upload-zone" id="docDropZone"><div class="doc-upload-icon">📷</div><b id="docUploadLabel">Prendre une photo ou choisir un fichier</b><span>PDF, JPG, PNG ou HEIC — caméra disponible sur téléphone</span><input id="supplierDocumentFile" type="file" accept="image/*,.pdf,application/pdf" capture="environment"><button type="button" class="btn primary" id="chooseDocumentBtn">Choisir / photographier</button></div>
+<div id="docFilePreview" class="doc-file-preview hidden"></div>
+<div class="form-grid" style="margin-top:14px">
+<div class="field"><label>Type</label><select id="docKindSelect"><option value="invoice">Facture</option><option value="delivery">Bon de livraison</option></select></div>
+<div class="field"><label>Établissement</label><select id="docVenue"></select></div>
+<div class="field"><label>Fournisseur</label><select id="docSupplier"><option value="">À identifier</option></select></div>
+<div class="field"><label>Commande liée</label><select id="docOrder"><option value="">Aucune</option></select></div>
+<div class="field"><label>N° du document</label><input id="docNumber" placeholder="Ex. FAC-2026-001"></div>
+<div class="field"><label>Date du document</label><input id="docDate" type="date"></div>
+<div class="field"><label>Total HTVA</label><input id="docSubtotal" type="number" min="0" step="0.01" value="0"></div>
+<div class="field"><label>TVA</label><input id="docVat" type="number" min="0" step="0.01" value="0"></div>
+<div class="field"><label>Total TVAC</label><input id="docTotal" type="number" min="0" step="0.01" value="0"></div>
+<div class="field"><label>Statut du contrôle</label><select id="docStatus"><option value="pending">À contrôler</option><option value="matched">Conforme</option><option value="issue">Écart détecté</option></select></div>
+<div class="field full"><label>Résultat du contrôle ORION</label><div id="docComparison" class="doc-comparison"><div class="empty">Sélectionnez une commande et complétez le montant pour lancer la comparaison.</div></div></div>
+<div class="field full"><label>Notes / anomalies constatées</label><textarea id="docNotes" rows="3" placeholder="Produit manquant, quantité différente, marchandise refusée…"></textarea></div>
+</div>
+<div class="notice doc-honesty">ORION conserve ici le document et prépare le rapprochement. La lecture automatique détaillée des lignes nécessitera ensuite la connexion d’un service OCR. Aucun stock ni prix n’est modifié sans validation.</div>
+<div class="actions"><button type="button" class="btn danger hidden" id="deleteSupplierDocumentBtn">Supprimer</button><button type="button" class="btn gold" id="compareSupplierDocumentBtn">Comparer avec la commande</button><button class="btn primary" type="submit">Enregistrer le document</button></div>
+</form></div></div>
+
 <div id="productModal" class="modal-bg"><div class="modal"><div class="modal-head"><h3 id="productModalTitle">Ajouter un produit</h3><button class="btn soft" data-close="productModal">✕</button></div><form id="productForm"><input type="hidden" id="productId"><div class="form-grid">
 <div class="field"><label>Nom du produit</label><input id="pName" required></div><div class="field"><label>Photo (URL facultative)</label><input id="pImage" type="url" placeholder="https://..."><div id="imagePreview" class="tiny" style="margin-top:7px">Aucun aperçu</div></div>
 <div class="field"><label>Référence interne</label><input id="pSku" placeholder="Ex. BOIS-COCA-20"></div><div class="field"><label>Code-barres</label><div class="row"><input id="pBarcode" inputmode="numeric" style="flex:1"><button type="button" class="btn soft" id="scanBarcodeBtn">Scanner</button></div></div>

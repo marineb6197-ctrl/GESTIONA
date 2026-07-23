@@ -1,0 +1,15 @@
+GESTIONA v8.2 — Factures & bons de livraison
+
+Ajouts dans ORION Finance :
+- prise de photo depuis un téléphone ou import PDF/image ;
+- fiches Facture et Bon de livraison ;
+- liaison à un fournisseur, un établissement et une commande ;
+- comparaison du total HTVA avec la commande ;
+- contrôle de cohérence HTVA/TVA/TVAC ;
+- statuts À contrôler, Conforme et Écart détecté ;
+- historique, recherche, filtre et export JSON ;
+- conservation locale des métadonnées et d’un aperçu pour les petites images.
+
+Important :
+Cette version met en place le flux de scan et de rapprochement. La lecture OCR automatique de chaque ligne de facture nécessite une connexion future à un service OCR sécurisé. Aucun stock ni prix n’est modifié automatiquement.
+Aucune migration Supabase n’est nécessaire.
