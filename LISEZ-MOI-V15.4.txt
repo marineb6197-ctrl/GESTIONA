@@ -1,0 +1,8 @@
+GESTIONA v15.4 — CORRECTION DU BANDEAU ORION
+
+Correction effectuée :
+- suppression du grand cercle/bulle translucide dans le coin droit du bandeau « ORION ACTIF » ;
+- conservation du fond grenat, du badge ORION ACTIF et de toutes les fonctionnalités ;
+- ajout d'un nouveau numéro de cache CSS pour que le navigateur charge immédiatement la correction.
+
+Aucune migration Supabase n'est nécessaire.

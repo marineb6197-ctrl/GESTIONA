@@ -499,3 +499,23 @@ textarea{min-height:90px;resize:vertical}
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+/* v15.4 — correction visuelle du bandeau ORION
+   Supprime le grand cercle décoratif translucide dans le coin droit,
+   sans modifier les autres cartes ni les fonctionnalités. */
+.orion-welcome::before,
+.orion-welcome::after{
+  content:none !important;
+  display:none !important;
+  background:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+.orion-welcome{
+  overflow:hidden;
+  isolation:isolate;
+}
+.orion-welcome > *{
+  position:relative;
+  z-index:1;
+}
