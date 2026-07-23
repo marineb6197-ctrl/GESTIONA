@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v17.0 — Thèmes dynamiques par établissement</title>
+<title>GESTIONA ERP v19.0 — Cockpit Premium par établissement</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -20,9 +20,10 @@
 <div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div>
 <div class="theme-onboarding-row"><div class="field"><label>Couleur principale</label><input id="venueTwoColor" type="color" value="#173f2b"></div><div class="field"><label>Couleur d’accent</label><input id="venueTwoAccent" type="color" value="#c59a43"></div></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><div class="side-head"><h1>GESTIONA</h1><p class="version">ERP v17.0 — Thèmes dynamiques</p><select id="venueSelect" class="venue-select"></select></div><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="venues">🏢 Établissements</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="actions">✅ Centre d’actions</button><button data-view="activity">🛡️ Sécurité & activité</button><button data-view="settings">⚙️ Paramètres</button></nav></aside>
-<main class="main"><header class="top"><h2 id="pageTitle">ORION Copilote</h2><div class="row"><span id="roleBadge" class="badge ok">Utilisateur</span><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
-<section id="view-dashboard" class="view active">
+<div class="app"><aside class="side"><div class="side-head"><h1>GESTIONA</h1><p class="version">ERP v19.0 — Cockpit Premium</p><select id="venueSelect" class="venue-select"></select></div><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="venues">🏢 Établissements</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="actions">✅ Centre d’actions</button><button data-view="activity">🛡️ Sécurité & activité</button><button data-view="settings">⚙️ Paramètres</button></nav></aside>
+<main class="main"><header class="top premium-topbar"><div class="topbar-title"><h2 id="pageTitle">Cockpit de pilotage</h2><span id="topbarDate" class="tiny"></span></div><div class="global-search-wrap"><span class="global-search-icon">⌕</span><input id="globalSearch" class="global-search" placeholder="Rechercher un produit, fournisseur, commande ou établissement…" autocomplete="off"><div id="globalSearchResults" class="global-search-results hidden"></div></div><div class="topbar-actions"><button class="top-icon-btn" id="topNotificationsBtn" type="button" title="Notifications">🔔<span id="topNotificationCount" class="top-count">0</span></button><button class="top-icon-btn" id="topOrionBtn" type="button" title="ORION">🤖</button><span id="roleBadge" class="badge ok">Utilisateur</span><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div id="topNotificationPanel" class="top-notification-panel hidden"><div class="row between"><h3>Notifications</h3><button class="btn soft mini" id="closeTopNotifications">Fermer</button></div><div id="topNotificationList" class="notification-list"></div></div><div class="content">
+<section id="view-dashboard" class="view active cockpit-v19">
+<div class="cockpit-intro"><div><span class="eyebrow">CENTRE DE PILOTAGE</span><h1 id="cockpitGreeting">Bonjour 👋</h1><p id="cockpitDateLine">Voici les priorités de votre journée.</p></div><div class="cockpit-status"><span class="status-dot"></span> Données actualisées</div></div>
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">Votre journée est analysée : priorités, risques et économies sont regroupés ici.</p></div><span class="orion-live">● ORION ACTIF</span></div>
 <div class="mission-center">
 <div class="mission-summary">
@@ -49,6 +50,13 @@
 <div id="orionDailyBrief" class="daily-brief-grid"></div>
 <div id="orionDailyNarrative" class="orion-recommendation" style="margin-top:12px"></div>
 </div>
+<div class="grid cockpit-executive-grid" style="margin-top:15px">
+<div class="card executive-card"><div class="executive-icon">💶</div><div><span>Chiffre d’affaires du jour</span><strong id="v19Revenue">0,00 €</strong><small id="v19RevenueTrend">Données caisse du jour</small></div></div>
+<div class="card executive-card"><div class="executive-icon">📦</div><div><span>Stocks à surveiller</span><strong id="v19StockAlerts">0</strong><small>Produits sous le minimum</small></div></div>
+<div class="card executive-card"><div class="executive-icon">🚚</div><div><span>Commandes ouvertes</span><strong id="v19OpenOrders">0</strong><small>À suivre ou réceptionner</small></div></div>
+<div class="card executive-card"><div class="executive-icon">🧾</div><div><span>Actions prioritaires</span><strong id="v19PriorityCount">0</strong><small>Signalées par ORION</small></div></div>
+</div>
+<div class="grid two cockpit-day-grid" style="margin-top:15px"><div class="card"><div class="row between"><div><h3>📅 Agenda de la journée</h3><p class="tiny">Commandes, livraisons et contrôles à traiter.</p></div><span class="badge ok">Aujourd’hui</span></div><div id="v19Agenda" class="v19-agenda"></div></div><div class="card orion-command-center"><div class="row between"><div><h3>🤖 ORION — Synthèse exécutive</h3><p class="tiny">Les points qui demandent votre attention.</p></div><button class="btn gold mini" type="button" onclick="document.querySelector('[data-view=actions]')?.click()">Voir les actions</button></div><div id="v19OrionSummary" class="v19-orion-summary"></div></div></div>
 <div class="card venue-control-center" style="margin-top:15px">
 <div class="mission-title"><div><h3>🏪 Centre de pilotage multi-établissements</h3><p class="tiny">Compare le chiffre d’affaires, la valeur du stock, les ruptures, les commandes et les anomalies de réception.</p></div><button class="btn soft mini" id="refreshVenueControlBtn" type="button">Actualiser</button></div>
 <div id="venueControlCards" class="venue-control-cards"></div>
@@ -569,5 +577,5 @@
 </div></div>
 <div id="toast" class="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="assets/js/app.js?v=18.2-new-venue"></script>
+<script src="assets/js/app.js?v=19.0-cockpit-premium"></script>
 </body></html>

@@ -1,0 +1,11 @@
+GESTIONA v19.0 — Cockpit Premium
+
+Nouveautés réellement intégrées :
+- nouvelle barre supérieure avec recherche universelle ;
+- recherche dans les établissements, produits, fournisseurs et commandes ;
+- centre de notifications rapide ;
+- nouveau cockpit avec chiffre d’affaires du jour, stocks, commandes et priorités ;
+- agenda automatique à partir des commandes ouvertes et stocks faibles ;
+- synthèse ORION orientée actions ;
+- amélioration responsive pour ordinateur et téléphone ;
+- conservation des thèmes : Tous = ivoire/doré, L’Élysée = grenat/doré, Danish = vert/doré.
