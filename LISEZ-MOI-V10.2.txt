@@ -1,0 +1,12 @@
+GESTIONA ERP v10.2 — Réception intelligente ORION
+
+Nouveautés :
+- recherche automatique de la commande depuis le scan ;
+- comparaison des quantités reçues avec la commande ;
+- détection des manquants et des hausses de prix ;
+- suivi des reliquats et livraisons complémentaires ;
+- seules les quantités encore attendues sont proposées ;
+- mise à jour du stock après validation unique.
+
+Conseil : photographiez le bon bien à plat, avec une bonne lumière.
+Aucune migration Supabase supplémentaire n'est nécessaire.

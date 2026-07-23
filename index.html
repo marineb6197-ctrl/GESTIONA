@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v10.1 — Réception automatique</title>
+<title>GESTIONA ERP v10.2 — Réception intelligente ORION</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -17,7 +17,7 @@
 <section id="authScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">ERP cloud — Créé par Marine Bruynbroeck</p><div id="authMsg"></div><div class="field"><label>Nom complet</label><input id="authName" placeholder="Marine Bruynbroeck"></div><div class="field"><label>Email</label><input id="authEmail" type="email"></div><div class="field"><label>Mot de passe</label><input id="authPassword" type="password" minlength="6"></div><div class="row"><button class="btn primary" id="loginBtn">Se connecter</button><button class="btn gold" id="signupBtn">Créer mon compte</button><button class="btn soft" id="changeConfigBtn">Modifier Supabase</button></div></div></section>
 <section id="onboardingScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">Création de votre espace professionnel</p><div id="onboardMsg"></div><div class="field"><label>Nom de l'organisation</label><input id="orgName" value="GESTIONA"></div><div class="field"><label>Votre nom complet</label><input id="ownerName" value="Marine Bruynbroeck"></div><div class="field"><label>Premier établissement</label><input id="venueOne" placeholder="Nom de l'établissement"></div><div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v10.1 — Réception automatique</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
+<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v10.2 — Réception intelligente ORION</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="menus">📋 Menus</button><button data-view="pos">🧾 Caisse</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="reception">📷 Réception</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
 <main class="main"><header class="top"><h2 id="pageTitle">ORION Copilote</h2><div class="row"><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
 <section id="view-dashboard" class="view active">
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">Votre journée est analysée : priorités, risques et économies sont regroupés ici.</p></div><span class="orion-live">● ORION ACTIF</span></div>
@@ -190,8 +190,9 @@
     <div class="toolbar" style="margin-top:13px"><select id="docTypeFilter"><option value="all">Tous les documents</option><option value="invoice">Factures</option><option value="delivery">Bons de livraison</option></select><input id="docSearch" class="grow" placeholder="Rechercher fournisseur, numéro ou fichier"><button class="btn soft" id="exportDocsBtn">Exporter l’historique</button></div>
     <div class="table-wrap"><table class="table"><thead><tr><th>Document</th><th>Fournisseur</th><th>Date</th><th>Commande liée</th><th>Total HTVA</th><th>Contrôle</th><th></th></tr></thead><tbody id="supplierDocsBody"></tbody></table></div>
   </div>
-  <div class="grid two" style="margin-top:15px">
+  <div class="grid three" style="margin-top:15px">
     <div class="card"><h3>🚨 Écarts de livraison</h3><div id="receptionIssuesSummary" class="list"><div class="empty">Les produits manquants apparaîtront ici après comparaison.</div></div></div>
+    <div class="card"><h3>🔁 Reliquats à recevoir</h3><div id="receptionBackorders" class="list"><div class="empty">Aucun reliquat fournisseur en attente.</div></div></div>
     <div class="card"><h3>📦 Fonctionnement</h3><div class="list"><div class="item"><div><b>Quantité conforme</b><small>Ajoutée au stock après validation.</small></div><span class="badge ok">Conforme</span></div><div class="item"><div><b>Produit manquant</b><small>Signalé sans être ajouté au stock.</small></div><span class="badge low">Alerte</span></div><div class="item"><div><b>Produit livré en plus</b><small>Visible avant toute confirmation.</small></div><span class="badge warn">À vérifier</span></div></div></div>
   </div>
 </section>
@@ -298,7 +299,7 @@
 </div>
 <div class="field full"><label>Notes / anomalies constatées</label><textarea id="docNotes" rows="3" placeholder="Produit manquant, quantité différente, marchandise refusée…"></textarea></div>
 </div>
-<div id="scanAnalysisStatus" class="notice doc-honesty">Après le choix du fichier et de la commande, GESTIONA lance la lecture automatique. Vérifiez uniquement les lignes signalées, puis validez. Le stock ne change jamais avant confirmation.</div>
+<div id="scanAnalysisStatus" class="notice doc-honesty">Après le choix du fichier, GESTIONA recherche automatiquement la commande puis lance la lecture. Vérifiez uniquement les lignes signalées, puis validez. Le stock ne change jamais avant confirmation.</div>
 <div class="actions"><button type="button" class="btn danger hidden" id="deleteSupplierDocumentBtn">Supprimer</button><button type="button" class="btn gold" id="analyzeDeliveryScanBtn">🤖 Analyser le scan</button><button type="button" class="btn soft" id="compareSupplierDocumentBtn">Actualiser la comparaison</button><button type="button" class="btn primary hidden" id="applyDeliveryReceiptBtn">✅ Valider la réception et mettre le stock à jour</button><button class="btn primary" type="submit">Enregistrer le document</button></div>
 </form></div></div>
 
