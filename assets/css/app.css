@@ -171,3 +171,11 @@
 .price-up{color:#b42318;font-weight:800}.price-down{color:#067647;font-weight:800}.price-flat{color:#667085;font-weight:700}
 .supplier-option{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.supplier-option .badge{white-space:nowrap}
 .catalog-product small{display:block;margin-top:3px}.reliability-score{font-weight:800}.reliability-score.bad{color:#b42318}.reliability-score.warn{color:#b54708}.reliability-score.ok{color:#067647}
+
+/* GESTIONA v12.0 — ORION Pilotage */
+.orion-daily-brief{border:1px solid rgba(197,161,90,.45);background:linear-gradient(135deg,#fff 0%,#fffaf1 100%)}
+.daily-brief-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:13px}
+.daily-brief-card{display:grid;gap:5px;padding:12px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.daily-brief-card span{font-size:12px;font-weight:800;color:var(--wine)}.daily-brief-card b{font-size:21px}.daily-brief-card small{color:var(--muted);line-height:1.35}
+@media(max-width:1100px){.daily-brief-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.daily-brief-grid{grid-template-columns:1fr 1fr}.daily-brief-card:last-child{grid-column:1/-1}}

@@ -1,0 +1,10 @@
+GESTIONA v12.0 — ORION Pilotage
+
+Nouveautés :
+- Brief quotidien chiffré sur le tableau de bord
+- CA du jour, couverts, ticket moyen, ruptures, commandes et anomalies de réception
+- Assistant ORION local enrichi : recherche d’un produit précis, stock, prix fournisseur, ventes et hausses
+- Comparaison avec la veille lorsque des ventes sont enregistrées
+- Compatible avec la base Supabase existante : aucune migration nécessaire
+
+Important : l’assistant inclus analyse les données chargées dans GESTIONA. Il ne dépend pas encore d’un service d’IA externe.
