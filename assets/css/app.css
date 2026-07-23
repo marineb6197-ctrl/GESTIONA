@@ -706,3 +706,187 @@ body[data-venue-theme="all"] table{
  border:1px solid #d9c6a3;
  box-shadow:0 10px 28px rgba(0,0,0,.06);
 }
+
+/* =========================================================
+   GESTIONA v18.1 — VUE GLOBALE PREMIUM IVOIRE & OR
+   Ces règles s'appliquent uniquement à « Tous les établissements ».
+   Les thèmes individuels Danish et L'Élysée restent inchangés.
+   ========================================================= */
+body[data-venue-theme="all"]{
+  --all-ivory:#f7f2e8;
+  --all-paper:#fffdf8;
+  --all-gold:#b68a32;
+  --all-gold-soft:#eadbb8;
+  --all-ink:#312d29;
+  --all-muted:#756d63;
+  --all-line:rgba(182,138,50,.28);
+  background:
+    radial-gradient(circle at 85% 6%,rgba(218,190,125,.15),transparent 24rem),
+    linear-gradient(180deg,#fbf8f1 0%,#f5efe4 100%);
+  color:var(--all-ink);
+}
+body[data-venue-theme="all"] .content{background:transparent}
+body[data-venue-theme="all"] .top{
+  background:rgba(255,253,248,.88);
+  border-bottom:1px solid var(--all-line);
+  box-shadow:0 8px 24px rgba(73,56,29,.045);
+  backdrop-filter:blur(13px);
+}
+body[data-venue-theme="all"] .top h2,
+body[data-venue-theme="all"] .top #userLabel{color:var(--all-ink)}
+body[data-venue-theme="all"] .side{
+  background:linear-gradient(180deg,#fffdf8 0%,#f4ecdd 100%)!important;
+  color:var(--all-ink);
+  border-right:1px solid var(--all-line);
+  box-shadow:12px 0 38px rgba(77,58,25,.055);
+}
+body[data-venue-theme="all"] .logo,
+body[data-venue-theme="all"] .side h1{color:var(--all-gold)!important}
+body[data-venue-theme="all"] .nav button{
+  color:#625a51;
+  border:1px solid transparent;
+  transition:background .18s ease,color .18s ease,transform .18s ease,border-color .18s ease;
+}
+body[data-venue-theme="all"] .nav button:hover{
+  color:var(--all-ink);
+  background:rgba(182,138,50,.09);
+  border-color:rgba(182,138,50,.16);
+  transform:translateX(2px);
+}
+body[data-venue-theme="all"] .nav button.active{
+  color:var(--all-ink);
+  background:linear-gradient(90deg,rgba(182,138,50,.18),rgba(255,255,255,.52));
+  border-color:rgba(182,138,50,.22);
+  box-shadow:inset 3px 0 0 var(--all-gold),0 6px 18px rgba(100,74,25,.06);
+}
+body[data-venue-theme="all"] .welcome,
+body[data-venue-theme="all"] .orion-welcome{
+  color:var(--all-ink)!important;
+  background:
+    linear-gradient(110deg,rgba(255,253,248,.98),rgba(246,236,214,.95))!important;
+  border:1px solid rgba(182,138,50,.36);
+  box-shadow:0 16px 42px rgba(91,68,27,.09);
+}
+body[data-venue-theme="all"] .welcome h2,
+body[data-venue-theme="all"] .orion-welcome h2{color:var(--all-ink)}
+body[data-venue-theme="all"] .welcome p,
+body[data-venue-theme="all"] .orion-welcome p{color:var(--all-muted)}
+body[data-venue-theme="all"] .orion-live{
+  color:#72571e;
+  background:rgba(255,255,255,.68);
+  border:1px solid rgba(182,138,50,.36);
+  box-shadow:0 6px 20px rgba(93,67,18,.07);
+}
+body[data-venue-theme="all"] .card,
+body[data-venue-theme="all"] .panel{
+  background:rgba(255,253,248,.96);
+  border:1px solid var(--all-line);
+  box-shadow:0 10px 30px rgba(74,57,27,.055);
+}
+body[data-venue-theme="all"] .card:hover{
+  border-color:rgba(182,138,50,.42);
+}
+body[data-venue-theme="all"] .kpi{
+  min-height:122px;
+  border-radius:18px;
+  background:linear-gradient(145deg,#fffefb,#fbf5e8)!important;
+}
+body[data-venue-theme="all"] .kpi:before{
+  left:16px;top:15px;bottom:auto;width:42px;height:3px;border-radius:999px;
+  background:linear-gradient(90deg,#d8ba72,var(--all-gold));
+}
+body[data-venue-theme="all"] .kpi span,
+body[data-venue-theme="all"] .mini-kpi span,
+body[data-venue-theme="all"] .product-kpi span,
+body[data-venue-theme="all"] .stock-intel-kpi span{color:var(--all-muted)}
+body[data-venue-theme="all"] .kpi strong,
+body[data-venue-theme="all"] .mini-kpi b,
+body[data-venue-theme="all"] .product-kpi b,
+body[data-venue-theme="all"] .stock-intel-kpi b,
+body[data-venue-theme="all"] .money{color:#8b671d}
+body[data-venue-theme="all"] .mini-kpi,
+body[data-venue-theme="all"] .product-kpi,
+body[data-venue-theme="all"] .stock-intel-kpi,
+body[data-venue-theme="all"] .metric{
+  background:linear-gradient(145deg,#fffefb,#faf3e3)!important;
+  border:1px solid rgba(182,138,50,.24)!important;
+  border-radius:15px;
+  box-shadow:0 7px 20px rgba(81,60,21,.04);
+}
+body[data-venue-theme="all"] table{
+  background:var(--all-paper);
+  border:1px solid var(--all-line);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 10px 28px rgba(72,54,24,.045);
+}
+body[data-venue-theme="all"] thead,
+body[data-venue-theme="all"] thead tr{
+  background:linear-gradient(180deg,#f3e8cf,#ede0c2)!important;
+}
+body[data-venue-theme="all"] th{
+  color:#5f481c;
+  border-bottom:1px solid rgba(182,138,50,.32)!important;
+  font-size:11px;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+body[data-venue-theme="all"] td{border-bottom-color:rgba(182,138,50,.14)!important}
+body[data-venue-theme="all"] tbody tr:nth-child(even){background:rgba(249,244,233,.7)}
+body[data-venue-theme="all"] tbody tr:hover{background:#f8eed7}
+body[data-venue-theme="all"] .btn{
+  border-radius:11px;
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+}
+body[data-venue-theme="all"] .btn:hover{transform:translateY(-1px)}
+body[data-venue-theme="all"] .btn.primary,
+body[data-venue-theme="all"] .btn.gold{
+  color:#fffaf0!important;
+  background:linear-gradient(135deg,#c39a43,#9f7420)!important;
+  border-color:#9f7420!important;
+  box-shadow:0 8px 20px rgba(153,109,29,.18);
+}
+body[data-venue-theme="all"] .btn:not(.primary):not(.gold){
+  color:#5f4d29;
+  background:#fffdf8;
+  border-color:rgba(182,138,50,.3);
+}
+body[data-venue-theme="all"] input,
+body[data-venue-theme="all"] select,
+body[data-venue-theme="all"] textarea{
+  background:#fffefb;
+  border-color:rgba(182,138,50,.3);
+  color:var(--all-ink);
+}
+body[data-venue-theme="all"] input:focus,
+body[data-venue-theme="all"] select:focus,
+body[data-venue-theme="all"] textarea:focus{
+  outline:none;
+  border-color:var(--all-gold);
+  box-shadow:0 0 0 3px rgba(182,138,50,.12);
+}
+body[data-venue-theme="all"] .badge{
+  border-color:rgba(182,138,50,.28);
+  box-shadow:none;
+}
+body[data-venue-theme="all"] .notification-item,
+body[data-venue-theme="all"] .mission-priority,
+body[data-venue-theme="all"] .copilot-alert,
+body[data-venue-theme="all"] .action-card{
+  background:#fffefb;
+  border-color:rgba(182,138,50,.22);
+}
+body[data-venue-theme="all"] .notification-icon,
+body[data-venue-theme="all"] .stock-intel-item .ico{
+  background:#f2e6ca;
+}
+body[data-venue-theme="all"] .mobile-nav{
+  background:rgba(255,253,248,.96);
+  border-top-color:var(--all-line);
+  box-shadow:0 -8px 26px rgba(70,52,22,.07);
+}
+body[data-venue-theme="all"] .mobile-nav button.active{color:#9a711f}
+@media(max-width:720px){
+  body[data-venue-theme="all"] .kpi{min-height:101px}
+  body[data-venue-theme="all"] .top{backdrop-filter:blur(9px)}
+}

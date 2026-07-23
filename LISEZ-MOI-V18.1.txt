@@ -1,0 +1,16 @@
+GESTIONA v18.1 — Vue globale Premium ivoire et or
+
+Cette version modernise uniquement la vue « Tous les établissements » :
+- fond ivoire lumineux ;
+- navigation blanche et dorée ;
+- cartes KPI premium ;
+- tableaux plus aérés avec en-têtes dorés ;
+- boutons, champs et états actifs harmonisés ;
+- ORION intégré dans un panneau ivoire et or ;
+- finitions adaptées à l'ordinateur et au téléphone.
+
+Les thèmes individuels restent inchangés :
+- L'Élysée : grenat et doré ;
+- Danish : vert et doré.
+
+Aucune logique métier n'a été modifiée.
