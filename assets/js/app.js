@@ -2,7 +2,7 @@ const LS_URL='gestiona_supabase_url',LS_KEY='gestiona_supabase_key',LS_SCHEDULES
 const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('fr-BE',{style:'currency',currency:'EUR'}).format(Number(n||0));const num=n=>Number(n||0);const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function show(id){['setupScreen','authScreen','onboardingScreen','appScreen'].forEach(x=>$(x).classList.add('hidden'));$(id).classList.remove('hidden')}function msg(id,text,type='notice'){$(id).innerHTML=text?`<div class="notice ${type}">${esc(text)}</div>`:''}function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2400)}
 function initClient(){const url=localStorage.getItem(LS_URL),key=localStorage.getItem(LS_KEY);if(!url||!key)return false;try{sb=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});return true}catch(e){return false}}
-async function boot(){loadSupplierDocuments();if(!initClient()){show('setupScreen');return}const {data:{session}}=await sb.auth.getSession();if(!session){show('authScreen');return}user=session.user;await loadProfile()}
+async function boot(){loadOrionImportHistory();loadSupplierDocuments();if(!initClient()){show('setupScreen');return}const {data:{session}}=await sb.auth.getSession();if(!session){show('authScreen');return}user=session.user;await loadProfile()}
 async function loadProfile(){const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();if(error){msg('authMsg',error.message,'error');show('authScreen');return}profile=data;if(!profile?.organization_id){$('ownerName').value=profile?.full_name||user.user_metadata?.full_name||'';show('onboardingScreen');return}orgId=profile.organization_id;await loadApp()}
 async function loadApp(){show('appScreen');$('userLabel').textContent=profile?.full_name||user.email;$('hello').textContent=`Bonjour ${(profile?.full_name||'').split(' ')[0]||''} 👋`;$('projectInfo').textContent=localStorage.getItem(LS_URL)||'';await Promise.all([loadVenues(),loadSuppliers(),loadProducts(),loadMovements(),loadPriceHistoryRows(),loadOrders(),loadActivity()]);renderAll()}
 async function loadVenues(){const {data,error}=await sb.from('venues').select('*').order('name');if(error)throw error;venues=data||[];const opts=['<option value="all">Tous les établissements</option>',...venues.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`)];$('venueSelect').innerHTML=opts.join('');$('venueSelect').value=selectedVenue}
@@ -42,7 +42,7 @@ function renderDashboard(){
 
 
 
-const SUPPLIER_DOC_KEY='gestiona_supplier_documents_v83';
+const SUPPLIER_DOC_KEY='gestiona_supplier_documents_v84';
 let supplierDocuments=[];let supplierDocumentFileMeta=null;let deliveryReceiptLines=[];
 function loadSupplierDocuments(){try{supplierDocuments=JSON.parse(localStorage.getItem(SUPPLIER_DOC_KEY)||'[]');if(!Array.isArray(supplierDocuments))supplierDocuments=[]}catch{supplierDocuments=[]}}
 function saveSupplierDocuments(){localStorage.setItem(SUPPLIER_DOC_KEY,JSON.stringify(supplierDocuments));renderSupplierDocuments()}
@@ -396,7 +396,7 @@ async function refresh(){await Promise.all([loadSuppliers(),loadProducts(),loadM
 $('saveConfig').onclick=()=>{const u=$('setupUrl').value.trim().replace(/\/$/,''),k=$('setupKey').value.trim();if(!u.includes('.supabase.co')||k.length<20){msg('setupMsg','Vérifiez l’URL et la clé publique.','error');return}localStorage.setItem(LS_URL,u);localStorage.setItem(LS_KEY,k);location.reload()};$('changeConfigBtn').onclick=()=>{localStorage.removeItem(LS_URL);localStorage.removeItem(LS_KEY);location.reload()};$('resetConfig').onclick=$('changeConfigBtn').onclick;
 $('loginBtn').onclick=async()=>{msg('authMsg','');const {error}=await sb.auth.signInWithPassword({email:$('authEmail').value.trim(),password:$('authPassword').value});if(error){msg('authMsg',error.message,'error');return}location.reload()};$('signupBtn').onclick=async()=>{msg('authMsg','');const email=$('authEmail').value.trim(),password=$('authPassword').value,name=$('authName').value.trim();const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});if(error){msg('authMsg',error.message,'error');return}if(!data.session){msg('authMsg','Compte créé. Confirmez votre adresse e-mail, puis connectez-vous.','success')}else location.reload()};$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};
 $('createOrgBtn').onclick=async()=>{msg('onboardMsg','');const {data,error}=await sb.rpc('bootstrap_organization',{organization_name:$('orgName').value.trim(),user_full_name:$('ownerName').value.trim()});if(error){msg('onboardMsg',error.message,'error');return}orgId=data;const names=[$('venueOne').value.trim(),$('venueTwo').value.trim()].filter(Boolean);if(names.length){const rows=names.map(name=>({organization_id:orgId,name}));const {error:e}=await sb.from('venues').insert(rows);if(e){msg('onboardMsg',e.message,'error');return}}location.reload()};
-$('venueSelect').onchange=()=>{selectedVenue=$('venueSelect').value;renderDashboard();renderProducts();renderStockIntelligence()};$('orionPrepareOrderBtn').onclick=()=>{document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-orders').classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view==='orders'));$('pageTitle').textContent='Commandes fournisseurs';if(selectedVenue!=='all')$('quickOrderVenue').value=selectedVenue;loadQuickOrderDraft();$('quickOrderFilter').value='low';renderQuickOrderCatalog();setTimeout(()=>$('quickOrderSearch').focus(),100)};$('quickOrderVenue').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSupplier').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSearch').oninput=renderQuickOrderCatalog;$('quickOrderFilter').onchange=renderQuickOrderCatalog;$('createQuickOrderBtn').onclick=createOrderFromQuickDraft;$('clearQuickOrderBtn').onclick=()=>{if(!confirm('Vider toutes les quantités de ce brouillon ?'))return;quickOrder={quantities:{},notes:{}};saveQuickOrderDraft();renderQuickOrderCatalog()};$('orionAnalyzeOrderBtn').onclick=analyzeOrionOrder;$('orionApplyOrderBtn').onclick=applyOrionOrderSuggestions;$('orionClearSuggestionBtn').onclick=clearOrionOrderSuggestions;$('stockIntelAnalyzeBtn').onclick=()=>{renderStockIntelligence();toast('Analyse ORION Stock actualisée')};$('productSearch').oninput=renderProducts;$('productFilter').onchange=renderProducts;$('productCategoryFilter').onchange=renderProducts;$('productSupplierFilter').onchange=renderProducts;$('productLocationFilter').onchange=renderProducts;$('exportCatalogBtn').onclick=exportCatalogCsv;$('supplierSearch').oninput=renderSuppliers;$('orderSearch').oninput=renderOrders;$('orderFilter').onchange=renderOrders;$('addOrderBtn').onclick=()=>{resetOrder();openModal('orderModal')};$('addOrderLineBtn').onclick=()=>addOrderLine();$('addProductBtn').onclick=()=>{resetProduct();openModal('productModal')};$('addSupplierBtn').onclick=()=>{resetSupplier();openModal('supplierModal')};['pPackage','pUnits','pSale','pSaleVat','pTargetMargin','pStock'].forEach(id=>$(id).addEventListener('input',updateProductCalculations));$('pImage').addEventListener('input',renderImagePreview);$('scanBarcodeBtn').onclick=startBarcodeScan;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-'+v).classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('pageTitle').textContent={dashboard:'ORION Copilote',products:'Produits & stocks',suppliers:'Fournisseurs',orders:'Commandes fournisseurs',orion:'ORION Import',settings:'Paramètres'}[v]});
+$('venueSelect').onchange=()=>{selectedVenue=$('venueSelect').value;renderDashboard();renderProducts();renderStockIntelligence()};$('orionPrepareOrderBtn').onclick=()=>{document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-orders').classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view==='orders'));$('pageTitle').textContent='Commandes fournisseurs';if(selectedVenue!=='all')$('quickOrderVenue').value=selectedVenue;loadQuickOrderDraft();$('quickOrderFilter').value='low';renderQuickOrderCatalog();setTimeout(()=>$('quickOrderSearch').focus(),100)};$('quickOrderVenue').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSupplier').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSearch').oninput=renderQuickOrderCatalog;$('quickOrderFilter').onchange=renderQuickOrderCatalog;$('createQuickOrderBtn').onclick=createOrderFromQuickDraft;$('clearQuickOrderBtn').onclick=()=>{if(!confirm('Vider toutes les quantités de ce brouillon ?'))return;quickOrder={quantities:{},notes:{}};saveQuickOrderDraft();renderQuickOrderCatalog()};$('orionAnalyzeOrderBtn').onclick=analyzeOrionOrder;$('orionApplyOrderBtn').onclick=applyOrionOrderSuggestions;$('orionClearSuggestionBtn').onclick=clearOrionOrderSuggestions;$('stockIntelAnalyzeBtn').onclick=()=>{renderStockIntelligence();toast('Analyse ORION Stock actualisée')};$('productSearch').oninput=renderProducts;$('productFilter').onchange=renderProducts;$('productCategoryFilter').onchange=renderProducts;$('productSupplierFilter').onchange=renderProducts;$('productLocationFilter').onchange=renderProducts;$('exportCatalogBtn').onclick=exportCatalogCsv;$('supplierSearch').oninput=renderSuppliers;$('orderSearch').oninput=renderOrders;$('orderFilter').onchange=renderOrders;$('addOrderBtn').onclick=()=>{resetOrder();openModal('orderModal')};$('addOrderLineBtn').onclick=()=>addOrderLine();$('addProductBtn').onclick=()=>{resetProduct();openModal('productModal')};$('addSupplierBtn').onclick=()=>{resetSupplier();openModal('supplierModal')};['pPackage','pUnits','pSale','pSaleVat','pTargetMargin','pStock'].forEach(id=>$(id).addEventListener('input',updateProductCalculations));$('pImage').addEventListener('input',renderImagePreview);$('scanBarcodeBtn').onclick=startBarcodeScan;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-'+v).classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('pageTitle').textContent={dashboard:'ORION Copilote',products:'Produits & stocks',suppliers:'Fournisseurs',orders:'Commandes fournisseurs',orion:'ORION Import',settings:'Paramètres'}[v];if(v==='orion')renderOrionImportHistory()});
 $('movementForm').onsubmit=async e=>{e.preventDefault();const productId=$('mProductId').value,p=products.find(x=>x.id===productId);if(!p)return;const type=$('mType').value,entered=Math.abs(num($('mQuantity').value));if(!(entered>0)){toast('Indiquez une quantité supérieure à zéro');return}let quantity=entered;if(type==='waste'||type==='sale')quantity=-entered;if(type==='inventory')quantity=entered-num(p.stock);const {data,error}=await sb.rpc('record_stock_movement',{p_product_id:productId,p_quantity:quantity,p_movement_type:type,p_note:$('mNote').value.trim()||null});if(error){toast(error.message);return}await audit('Mouvement de stock','product',productId,{name:p.name,type,quantity,new_stock:data});closeModal('movementModal');await refresh();toast(`Stock mis à jour : ${data}`)};
 $('productForm').onsubmit=async e=>{e.preventDefault();const id=$('productId').value,old=id?products.find(x=>x.id===id):null,payload={organization_id:orgId,venue_id:selectedVenue==='all'?null:selectedVenue,supplier_id:$('pSupplier').value||null,name:$('pName').value.trim(),image_url:$('pImage').value.trim()||null,sku:$('pSku').value.trim()||null,barcode:$('pBarcode').value.trim()||null,category:$('pCategory').value.trim()||null,subcategory:$('pSubcategory').value.trim()||null,unit:$('pUnit').value.trim()||'pièce',stock:num($('pStock').value),minimum_stock:num($('pMin').value),package_price_excl_vat:num($('pPackage').value),units_per_package:Math.max(num($('pUnits').value),1),purchase_vat:num($('pPurchaseVat').value),sale_price_incl_vat:num($('pSale').value),sale_vat:num($('pSaleVat').value),target_margin_percent:$('pTargetMargin').value===''?null:num($('pTargetMargin').value),location:$('pLocation').value.trim()||null,favorite:$('pFavorite').value==='true',notes:$('pNotes').value.trim()||null};let res;if(id)res=await sb.from('products').update(payload).eq('id',id).select().single();else res=await sb.from('products').insert(payload).select().single();if(res.error){toast(res.error.message);return}const priceChanged=!old||num(old.package_price_excl_vat)!==payload.package_price_excl_vat||num(old.units_per_package)!==payload.units_per_package;if(priceChanged&&payload.package_price_excl_vat>0){await sb.from('product_prices').insert({organization_id:orgId,product_id:res.data.id,supplier_id:payload.supplier_id,package_price_excl_vat:payload.package_price_excl_vat,units_per_package:payload.units_per_package,purchase_vat:payload.purchase_vat,source:'manual',created_by:user.id})}await audit(id?'Produit modifié':'Produit créé','product',res.data.id,{name:res.data.name,price_changed:priceChanged});closeModal('productModal');await refresh();toast('Produit enregistré')};
 $('deleteProductBtn').onclick=async()=>{const id=$('productId').value;if(!id||!confirm('Archiver ce produit ? Il restera disponible dans le filtre Archivés.'))return;const p=products.find(x=>x.id===id);const {error}=await sb.from('products').update({active:false}).eq('id',id);if(error){toast(error.message);return}await audit('Produit archivé','product',id,{name:p?.name});closeModal('productModal');await refresh();toast('Produit archivé')};
@@ -432,6 +432,88 @@ $('supplierForm').onsubmit=async e=>{e.preventDefault();const id=$('supplierId')
 $('deleteSupplierBtn').onclick=async()=>{const id=$('supplierId').value;if(!id||!confirm('Supprimer ce fournisseur ?'))return;const s=suppliers.find(x=>x.id===id);const {error}=await sb.from('suppliers').delete().eq('id',id);if(error){toast(error.message);return}await audit('Fournisseur supprimé','supplier',id,{name:s?.name});closeModal('supplierModal');await refresh();toast('Fournisseur supprimé')};
 
 let orionAnalysis=null,orionComparison=null;
+let orionAppliedImports=[];
+const ORION_IMPORT_HISTORY_KEY='gestiona_orion_stock_imports_v84';
+function loadOrionImportHistory(){
+ try{orionAppliedImports=JSON.parse(localStorage.getItem(ORION_IMPORT_HISTORY_KEY)||'[]');if(!Array.isArray(orionAppliedImports))orionAppliedImports=[]}
+ catch(e){orionAppliedImports=[]}
+}
+function saveOrionImportHistory(){localStorage.setItem(ORION_IMPORT_HISTORY_KEY,JSON.stringify(orionAppliedImports))}
+function clearOrionLoadedFile(showToast=true){
+ if($('orionFile'))$('orionFile').value='';
+ if($('orionResults'))$('orionResults').classList.add('hidden');
+ if($('orionMessage'))$('orionMessage').innerHTML='';
+ if($('orionArchiveMissing'))$('orionArchiveMissing').checked=false;
+ orionAnalysis=null;orionComparison=null;
+ if(showToast)toast('Fichier importé retiré de l’écran');
+}
+function legacyOrionImportGroups(){
+ const groups=new Map();
+ products.filter(p=>/^(Créé|Actualisé) par ORION Import — /i.test(p.notes||'')).forEach(p=>{
+   const filename=String(p.notes||'').replace(/^(Créé|Actualisé) par ORION Import — /i,'').trim()||'Import ancien';
+   const key=`legacy:${p.venue_id||''}:${filename}`;
+   if(!groups.has(key))groups.set(key,{id:key,filename,venueId:p.venue_id||null,venueName:venues.find(v=>v.id===p.venue_id)?.name||'—',createdAt:null,createdIds:[],modifiedSnapshots:[],archivedIds:[],legacy:true});
+   if(/^Créé par ORION Import/i.test(p.notes||''))groups.get(key).createdIds.push(p.id);
+ })
+ return [...groups.values()];
+}
+function allOrionImports(){
+ const known=new Set(orionAppliedImports.map(i=>`${i.venueId||''}:${i.filename}`));
+ return [...orionAppliedImports,...legacyOrionImportGroups().filter(i=>!known.has(`${i.venueId||''}:${i.filename}`))].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+}
+function renderOrionImportHistory(){
+ const box=$('orionImportHistory');if(!box)return;
+ const venueId=orionSelectedVenue();
+ const list=allOrionImports().filter(i=>!venueId||String(i.venueId)===String(venueId));
+ if(!list.length){box.innerHTML='<div class="empty">Aucun import ORION détecté pour cet établissement.</div>';return}
+ box.innerHTML=`<div class="orion-import-list">${list.map(i=>{
+   const venue=i.venueName||venues.find(v=>v.id===i.venueId)?.name||'—';
+   const date=i.createdAt?new Date(i.createdAt).toLocaleString('fr-BE'):'Import antérieur';
+   const created=(i.createdIds||[]).length,modified=(i.modifiedSnapshots||[]).length,archived=(i.archivedIds||[]).length;
+   return `<div class="orion-import-item"><div><h4>${esc(i.filename)}</h4><div class="orion-import-meta"><span>${esc(venue)}</span><span>${esc(date)}</span><span>${created} créé(s)</span><span>${modified} modifié(s)</span>${archived?`<span>${archived} archivé(s)</span>`:''}${i.legacy?'<span>Import ancien</span>':''}</div>${i.legacy?'<div class="tiny" style="margin-top:7px">Pour cet ancien import, seuls les produits créés par le fichier peuvent être supprimés.</div>':''}</div><div class="actions"><button class="btn danger mini" type="button" onclick="removeOrionStockImport('${esc(i.id)}')">🗑 Supprimer du stock</button></div></div>`;
+ }).join('')}</div>`;
+}
+async function importHasProtectedLinks(importEntry){
+ const ids=(importEntry.createdIds||[]).filter(Boolean);
+ if(!ids.length)return false;
+ const {data:orderLinks,error}=await sb.from('purchase_order_items').select('id').in('product_id',ids).limit(1);
+ if(error)throw error;
+ return !!orderLinks?.length;
+}
+async function removeOrionStockImport(importId){
+ const entry=allOrionImports().find(i=>i.id===importId);
+ if(!entry){toast('Import introuvable');return}
+ const summary=`${entry.filename}\n${entry.venueName||venues.find(v=>v.id===entry.venueId)?.name||''}\n\n${(entry.createdIds||[]).length} produit(s) créé(s) seront supprimés.${entry.legacy?'\nLes anciennes modifications ne peuvent pas être restaurées automatiquement.':`\n${(entry.modifiedSnapshots||[]).length} produit(s) modifié(s) seront restaurés.`}`;
+ if(!confirm(`Supprimer cet import du stock ?\n\n${summary}\n\nCette action est définitive.`))return;
+ try{
+   if(await importHasProtectedLinks(entry)){
+     toast('Suppression bloquée : certains produits sont déjà liés à une commande');
+     return;
+   }
+   const createdIds=(entry.createdIds||[]).filter(Boolean);
+   if(createdIds.length){
+     const {error}=await sb.from('products').delete().in('id',createdIds);
+     if(error)throw error;
+   }
+   if(!entry.legacy){
+     for(const snap of (entry.modifiedSnapshots||[])){
+       const {id,...payload}=snap;
+       const {error}=await sb.from('products').update(payload).eq('id',id);
+       if(error)throw error;
+     }
+     if((entry.archivedIds||[]).length){
+       const {error}=await sb.from('products').update({active:true}).in('id',entry.archivedIds);
+       if(error)throw error;
+     }
+   }
+   orionAppliedImports=orionAppliedImports.filter(i=>i.id!==entry.id);
+   saveOrionImportHistory();
+   await audit('Import stock ORION supprimé','catalog_import',null,{filename:entry.filename,venue_id:entry.venueId,created_deleted:createdIds.length,modified_restored:entry.legacy?0:(entry.modifiedSnapshots||[]).length,legacy:!!entry.legacy});
+   await refresh();fillOrionVenues();renderOrionImportHistory();
+   toast('Import supprimé du stock');
+ }catch(e){toast('Suppression impossible : '+(e.message||e))}
+}
+window.removeOrionStockImport=removeOrionStockImport;
 function orionNorm(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
 function orionSelectedVenue(){return $('orionVenue').value||null}
 function fillOrionVenues(){if(!$('orionVenue'))return;$('orionVenue').innerHTML='<option value="">Choisir l’établissement</option>'+venues.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('');if(selectedVenue!=='all')$('orionVenue').value=selectedVenue}
@@ -449,14 +531,45 @@ function renderOrionComparison(){const c=orionComparison;if(!c)return;$('orionAd
  const all=[...c.rows,...c.missing];$('orionChangesBody').innerHTML=all.slice(0,500).map(x=>{const p=x.incoming||x.existing,l=labels[x.action];return `<tr><td><span class="badge ${l[1]}">${l[0]}</span></td><td>${esc(p.reference||p.sku||'—')}</td><td>${esc(p.name)}</td><td>${esc(p.category||'—')}</td><td>${esc((p.areas||[]).join(', ')||p.location||'—')}</td></tr>`}).join('')||'<tr><td colspan="5" class="empty">Aucun changement</td></tr>';
  $('orionResults').classList.remove('hidden')}
 async function ensureSligroSupplier(){let s=suppliers.find(x=>orionNorm(x.name)==='SLIGRO');if(s)return s;const {data,error}=await sb.from('suppliers').insert({organization_id:orgId,name:'Sligro'}).select().single();if(error)throw error;suppliers.push(data);return data}
-async function applyOrionImport(){if(!orionComparison||!orionAnalysis)return;const venueId=orionSelectedVenue();if(!venueId){toast('Choisissez un établissement');return}if(!confirm(`Appliquer ${orionComparison.summary.added} création(s) et ${orionComparison.summary.modified} modification(s) ?`))return;$('orionApplyBtn').disabled=true;$('orionApplyBtn').textContent='Synchronisation…';try{const supplier=await ensureSligroSupplier();const adds=orionComparison.rows.filter(x=>x.action==='add').map(x=>({organization_id:orgId,venue_id:venueId,supplier_id:supplier.id,name:x.incoming.name,category:x.incoming.category||null,sku:x.incoming.reference,location:(x.incoming.areas||[]).join(', ')||null,unit:'pièce',active:true,notes:'Créé par ORION Import — '+orionAnalysis.filename}));if(adds.length){const {error}=await sb.from('products').insert(adds);if(error)throw error}
- for(const x of orionComparison.rows.filter(x=>x.action==='modify')){const {error}=await sb.from('products').update({supplier_id:supplier.id,name:x.incoming.name,category:x.incoming.category||null,location:(x.incoming.areas||[]).join(', ')||null,active:true,notes:'Actualisé par ORION Import — '+orionAnalysis.filename}).eq('id',x.existing.id);if(error)throw error}
- if($('orionArchiveMissing').checked&&orionComparison.missing.length){const ids=orionComparison.missing.map(x=>x.existing.id);const {error}=await sb.from('products').update({active:false}).in('id',ids);if(error)throw error}
- await audit('Catalogue actualisé par ORION Import','catalog_import',null,{filename:orionAnalysis.filename,venue_id:venueId,summary:orionComparison.summary,archive_missing:$('orionArchiveMissing').checked});await refresh();fillOrionVenues();$('orionResults').classList.add('hidden');$('orionFile').value='';orionAnalysis=null;orionComparison=null;toast('Catalogue Sligro actualisé avec succès')}catch(e){toast('Import impossible : '+(e.message||e))}finally{$('orionApplyBtn').disabled=false;$('orionApplyBtn').textContent='Valider la mise à jour'}}
+async function applyOrionImport(){
+ if(!orionComparison||!orionAnalysis)return;
+ const venueId=orionSelectedVenue();if(!venueId){toast('Choisissez un établissement');return}
+ if(!confirm(`Appliquer ${orionComparison.summary.added} création(s) et ${orionComparison.summary.modified} modification(s) ?`))return;
+ $('orionApplyBtn').disabled=true;$('orionApplyBtn').textContent='Synchronisation…';
+ try{
+   const supplier=await ensureSligroSupplier();
+   const addRows=orionComparison.rows.filter(x=>x.action==='add').map(x=>({organization_id:orgId,venue_id:venueId,supplier_id:supplier.id,name:x.incoming.name,category:x.incoming.category||null,sku:x.incoming.reference,location:(x.incoming.areas||[]).join(', ')||null,unit:'pièce',active:true,notes:'Créé par ORION Import — '+orionAnalysis.filename}));
+   let createdIds=[];
+   if(addRows.length){
+     const {data,error}=await sb.from('products').insert(addRows).select('id');
+     if(error)throw error;createdIds=(data||[]).map(x=>x.id);
+   }
+   const modifiedSnapshots=orionComparison.rows.filter(x=>x.action==='modify').map(x=>({
+     id:x.existing.id,supplier_id:x.existing.supplier_id||null,name:x.existing.name,category:x.existing.category||null,location:x.existing.location||null,active:x.existing.active!==false,notes:x.existing.notes||null
+   }));
+   for(const x of orionComparison.rows.filter(x=>x.action==='modify')){
+     const {error}=await sb.from('products').update({supplier_id:supplier.id,name:x.incoming.name,category:x.incoming.category||null,location:(x.incoming.areas||[]).join(', ')||null,active:true,notes:'Actualisé par ORION Import — '+orionAnalysis.filename}).eq('id',x.existing.id);
+     if(error)throw error;
+   }
+   let archivedIds=[];
+   if($('orionArchiveMissing').checked&&orionComparison.missing.length){
+     archivedIds=orionComparison.missing.map(x=>x.existing.id);
+     const {error}=await sb.from('products').update({active:false}).in('id',archivedIds);
+     if(error)throw error;
+   }
+   const venue=venues.find(v=>v.id===venueId);
+   const importEntry={id:'import-'+Date.now(),filename:orionAnalysis.filename,venueId,venueName:venue?.name||'',createdAt:new Date().toISOString(),createdIds,modifiedSnapshots,archivedIds,summary:{...orionComparison.summary},legacy:false};
+   orionAppliedImports.push(importEntry);saveOrionImportHistory();
+   await audit('Catalogue actualisé par ORION Import','catalog_import',null,{import_id:importEntry.id,filename:orionAnalysis.filename,venue_id:venueId,summary:orionComparison.summary,created_ids:createdIds,modified_ids:modifiedSnapshots.map(x=>x.id),archived_ids:archivedIds});
+   await refresh();fillOrionVenues();clearOrionLoadedFile(false);renderOrionImportHistory();
+   toast('Catalogue Sligro actualisé avec succès');
+ }catch(e){toast('Import impossible : '+(e.message||e))}
+ finally{$('orionApplyBtn').disabled=false;$('orionApplyBtn').textContent='Valider la mise à jour'}
+}
 $('copilotAskBtn')?.addEventListener('click',askCopilot);$('copilotQuestion')?.addEventListener('keydown',e=>{if(e.key==='Enter')askCopilot()});
 $('financeRefreshBtn')?.addEventListener('click',async()=>{await Promise.all([loadProducts(),loadOrders(),loadPriceHistoryRows()]);renderFinance();toast('Analyse financière actualisée')});
 $('orionAnalyzeBtn').onclick=async()=>{const f=$('orionFile').files[0],venueId=orionSelectedVenue();if(!venueId){toast('Choisissez l’établissement');return}if(!f){toast('Choisissez un fichier Excel');return}try{$('orionMessage').innerHTML='<div class="notice">Analyse en cours…</div>';orionAnalysis=ORIONImport.analyzeWorkbook(await f.arrayBuffer(),f.name);orionComparison=orionCompare(orionAnalysis,venueId);$('orionMessage').innerHTML=`<div class="success notice">${esc(orionAnalysis.establishment)} détecté · ${orionAnalysis.stats.uniqueProducts} produits uniques · ${orionAnalysis.warnings.length} avertissement(s)</div>`;renderOrionComparison()}catch(e){$('orionMessage').innerHTML=`<div class="error notice">${esc(e.message||e)}</div>`}};
-$('orionApplyBtn').onclick=applyOrionImport;$('orionCancelBtn').onclick=()=>{$('orionResults').classList.add('hidden');orionAnalysis=null;orionComparison=null};
+$('orionApplyBtn').onclick=applyOrionImport;$('orionCancelBtn').onclick=()=>clearOrionLoadedFile(false);$('orionClearFileBtn').onclick=()=>{if(!$('orionFile').value&&!orionAnalysis){toast('Aucun fichier chargé');return}if(confirm('Retirer le fichier actuellement chargé ?'))clearOrionLoadedFile()};$('refreshOrionImportsBtn').onclick=renderOrionImportHistory;$('orionVenue').addEventListener('change',renderOrionImportHistory);
 
 
 $('scanInvoiceBtn')?.addEventListener('click',()=>resetSupplierDocumentForm('invoice'));

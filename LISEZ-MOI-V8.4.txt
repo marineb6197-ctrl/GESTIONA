@@ -1,0 +1,17 @@
+GESTIONA v8.4 — Gestion des imports stock
+
+Nouveautés :
+- bouton « Vider le fichier chargé » avant ou après l’analyse ;
+- historique des imports ORION appliqués au stock ;
+- suppression d’un import appliqué par erreur ;
+- suppression des produits créés par cet import ;
+- restauration des produits modifiés par les nouveaux imports v8.4 ;
+- réactivation des produits archivés par les nouveaux imports v8.4 ;
+- blocage si un produit créé est déjà lié à une commande ;
+- journalisation de la suppression.
+
+Compatibilité :
+- Les imports antérieurs sont détectés grâce à la mention ORION dans les produits.
+- Pour un ancien import, GESTIONA peut supprimer les produits créés par le fichier.
+- Les anciennes modifications ne peuvent pas être restaurées automatiquement,
+  car les valeurs précédentes n'étaient pas encore enregistrées.

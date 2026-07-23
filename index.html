@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v8.3 — Réception intelligente</title>
+<title>GESTIONA ERP v8.4 — Gestion des imports stock</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -17,7 +17,7 @@
 <section id="authScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">ERP cloud — Créé par Marine Bruynbroeck</p><div id="authMsg"></div><div class="field"><label>Nom complet</label><input id="authName" placeholder="Marine Bruynbroeck"></div><div class="field"><label>Email</label><input id="authEmail" type="email"></div><div class="field"><label>Mot de passe</label><input id="authPassword" type="password" minlength="6"></div><div class="row"><button class="btn primary" id="loginBtn">Se connecter</button><button class="btn gold" id="signupBtn">Créer mon compte</button><button class="btn soft" id="changeConfigBtn">Modifier Supabase</button></div></div></section>
 <section id="onboardingScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">Création de votre espace professionnel</p><div id="onboardMsg"></div><div class="field"><label>Nom de l'organisation</label><input id="orgName" value="GESTIONA"></div><div class="field"><label>Votre nom complet</label><input id="ownerName" value="Marine Bruynbroeck"></div><div class="field"><label>Premier établissement</label><input id="venueOne" placeholder="Nom de l'établissement"></div><div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v8.3 — Réception intelligente</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
+<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v8.4 — Gestion des imports stock</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
 <main class="main"><header class="top"><h2 id="pageTitle">ORION Copilote</h2><div class="row"><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
 <section id="view-dashboard" class="view active">
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">Votre journée est analysée : priorités, risques et économies sont regroupés ici.</p></div><span class="orion-live">● ORION ACTIF</span></div>
@@ -112,6 +112,7 @@
       <select id="orionVenue" class="grow"><option value="">Choisir l’établissement</option></select>
       <input id="orionFile" type="file" accept=".xlsx,.xls">
       <button class="btn primary" id="orionAnalyzeBtn">Analyser le fichier</button>
+      <button class="btn soft" id="orionClearFileBtn" type="button">🧹 Vider le fichier chargé</button>
     </div>
     <p class="tiny">L’analyse ne modifie rien. Vous devrez confirmer avant la synchronisation.</p>
     <div id="orionMessage"></div>
@@ -130,6 +131,20 @@
       </div>
       <div class="table-wrap"><table class="table"><thead><tr><th>Action</th><th>Référence</th><th>Produit</th><th>Catégorie</th><th>Zone</th></tr></thead><tbody id="orionChangesBody"></tbody></table></div>
       <div class="actions"><button class="btn soft" id="orionCancelBtn">Annuler</button><button class="btn primary" id="orionApplyBtn">Valider la mise à jour</button></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:15px">
+    <div class="toolbar between">
+      <div>
+        <h3 style="margin:0">🗂️ Imports appliqués au stock</h3>
+        <p class="tiny">Supprimez un fichier importé par erreur. GESTIONA annule uniquement les changements liés à cet import.</p>
+      </div>
+      <button class="btn soft" id="refreshOrionImportsBtn" type="button">Actualiser</button>
+    </div>
+    <div id="orionImportHistory"></div>
+    <div class="notice warn" style="margin-top:12px">
+      Les commandes, bons de livraison et mouvements de stock ne sont jamais supprimés automatiquement.
+      Un import déjà utilisé sera protégé.
     </div>
   </div>
 </section>
