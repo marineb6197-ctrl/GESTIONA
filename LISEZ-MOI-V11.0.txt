@@ -1,0 +1,12 @@
+GESTIONA v11.0 — ORION Smart Reception
+
+Nouveautés :
+- Catalogue fournisseur intelligent construit depuis les prix réellement payés.
+- Comparaison du dernier prix, du prix moyen et du meilleur prix connu.
+- Détection des alternatives fournisseur moins chères.
+- Calcul indicatif de l'économie possible par unité.
+- Alertes de hausse de prix regroupées dans Réception.
+- Score de fiabilité fournisseur fondé sur les livraisons et écarts enregistrés.
+- Aucune migration Supabase supplémentaire : cette version réutilise product_prices et l'historique des réceptions.
+
+Installation : remplacez les fichiers de la version précédente, puis rechargez complètement Safari.

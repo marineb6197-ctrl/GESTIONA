@@ -166,3 +166,8 @@
 .reception-step>span{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--gold,#c5a15a);color:#fff;font-weight:800;flex:0 0 auto}
 .reception-step p{margin:4px 0 0}
 @media(max-width:760px){.reception-flow{grid-template-columns:1fr}.doc-head{align-items:flex-start;gap:12px}.doc-actions{width:100%;flex-direction:column}.doc-actions .btn{width:100%}}
+/* GESTIONA v11.0 — Catalogue fournisseur intelligent */
+.supplier-kpis .metric strong{font-size:28px;color:var(--wine,#6f1735)}
+.price-up{color:#b42318;font-weight:800}.price-down{color:#067647;font-weight:800}.price-flat{color:#667085;font-weight:700}
+.supplier-option{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.supplier-option .badge{white-space:nowrap}
+.catalog-product small{display:block;margin-top:3px}.reliability-score{font-weight:800}.reliability-score.bad{color:#b42318}.reliability-score.warn{color:#b54708}.reliability-score.ok{color:#067647}

@@ -1412,3 +1412,44 @@ document.getElementById('openReceptionFromStockBtn')?.addEventListener('click',(
 document.querySelectorAll('[data-view="reception"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(()=>{renderReceptionIssuesSummary();renderBackorders()},0)));
 const _saveSupplierDocumentsV10=saveSupplierDocuments;saveSupplierDocuments=function(){_saveSupplierDocumentsV10();renderReceptionIssuesSummary();renderBackorders()};
 setTimeout(()=>{renderReceptionIssuesSummary();renderBackorders()},0);
+
+/* ===== GESTIONA v11.0 — ORION Smart Reception & catalogue fournisseur ===== */
+function supplierNameById(id){return suppliers.find(s=>s.id===id)?.name||'Fournisseur inconnu'}
+function productNameById(id){return products.find(p=>p.id===id)?.name||'Produit inconnu'}
+function normalizedPriceRow(r){const units=Math.max(num(r.units_per_package),1);return num(r.unit_price_excl_vat)||num(r.package_price_excl_vat)/units}
+function productSupplierPriceMap(){
+ const map=new Map();
+ priceHistoryRows.forEach(r=>{if(!r.product_id||!r.supplier_id)return;const price=normalizedPriceRow(r);if(price<=0)return;const key=r.product_id+'::'+r.supplier_id;if(!map.has(key))map.set(key,[]);map.get(key).push({...r,price})});
+ map.forEach(rows=>rows.sort((a,b)=>new Date(b.effective_at||b.created_at)-new Date(a.effective_at||a.created_at)));
+ return map;
+}
+function supplierCatalogRows(){
+ const priceMap=productSupplierPriceMap(),byProduct=new Map();
+ priceMap.forEach((rows,key)=>{const [productId,supplierId]=key.split('::');if(!byProduct.has(productId))byProduct.set(productId,[]);const prices=rows.map(x=>x.price);byProduct.get(productId).push({supplierId,supplierName:supplierNameById(supplierId),latest:prices[0],previous:prices[1]||prices[0],average:prices.reduce((a,b)=>a+b,0)/prices.length,min:Math.min(...prices),count:prices.length,date:rows[0].effective_at||rows[0].created_at})});
+ return [...byProduct.entries()].map(([productId,offers])=>{offers.sort((a,b)=>new Date(b.date)-new Date(a.date));const current=offers[0],best=[...offers].sort((a,b)=>a.latest-b.latest)[0],all=offers.flatMap(o=>[o.average]);const avg=all.reduce((a,b)=>a+b,0)/Math.max(all.length,1),pct=current.previous>0?(current.latest-current.previous)/current.previous*100:0,saving=Math.max(0,current.latest-best.latest);return {productId,product:products.find(p=>p.id===productId),offers,current,best,avg,pct,saving}}).filter(x=>x.product);
+}
+function supplierReliability(supplierId){
+ const docs=supplierDocuments.filter(d=>d.supplierId===supplierId&&d.kind==='delivery');if(!docs.length)return null;
+ const issue=docs.filter(d=>d.status==='issue'||(d.missingProducts||[]).length).length;
+ return Math.max(0,Math.round((1-issue/docs.length)*100));
+}
+function renderSupplierCatalog(){
+ const body=$('supplierCatalogBody');if(!body)return;
+ const term=($('supplierCatalogSearch')?.value||'').toLowerCase(),filter=$('supplierCatalogFilter')?.value||'all';let rows=supplierCatalogRows().filter(r=>(r.product.name+' '+r.offers.map(o=>o.supplierName).join(' ')).toLowerCase().includes(term));
+ if(filter==='increase')rows=rows.filter(r=>r.pct>0.5);if(filter==='saving')rows=rows.filter(r=>r.saving>0.001);
+ rows.sort((a,b)=>b.saving-a.saving||b.pct-a.pct);
+ body.innerHTML=rows.length?rows.map(r=>{const alt=r.best.supplierId!==r.current.supplierId?`<span class="badge ok">${esc(r.best.supplierName)} · ${money(r.best.latest)}</span>`:'<span class="tiny">Déjà au meilleur prix</span>';const cls=r.pct>0.5?'price-up':r.pct<-0.5?'price-down':'price-flat',arrow=r.pct>0.5?'▲':r.pct<-0.5?'▼':'•';return `<tr><td class="catalog-product"><b>${esc(r.product.name)}</b><small>${r.offers.length} fournisseur(s) · ${r.offers.reduce((n,o)=>n+o.count,0)} prix enregistré(s)</small></td><td>${esc(r.current.supplierName)}</td><td><b>${money(r.current.latest)}</b></td><td>${money(r.avg)}</td><td>${money(r.best.latest)}</td><td><div class="supplier-option">${alt}${r.saving>0?`<span class="tiny">Économie ${money(r.saving)}/unité</span>`:''}</div></td><td class="${cls}">${arrow} ${Math.abs(r.pct).toFixed(1)} %</td></tr>`}).join(''):'<tr><td colspan="7" class="empty">Aucun historique de prix fournisseur disponible.</td></tr>';
+ const all=supplierCatalogRows(),increases=all.filter(r=>r.pct>0.5),savings=all.reduce((s,r)=>s+r.saving,0),issues=supplierDocuments.filter(d=>d.kind==='delivery'&&(d.status==='issue'||(d.missingProducts||[]).length)).length;
+ if($('supplierCatalogProducts'))$('supplierCatalogProducts').textContent=all.length;if($('supplierCatalogIncreases'))$('supplierCatalogIncreases').textContent=increases.length;if($('supplierCatalogSavings'))$('supplierCatalogSavings').textContent=money(savings);if($('supplierDeliveryIssues'))$('supplierDeliveryIssues').textContent=issues;
+}
+function renderReceptionPriceWatch(){
+ const box=$('receptionPriceWatch');if(!box)return;const alerts=[];
+ supplierDocuments.filter(d=>d.kind==='delivery').forEach(d=>(d.priceAlerts||[]).forEach(a=>alerts.push({...a,supplierName:d.supplierName,date:d.date,document:d.number})));
+ alerts.sort((a,b)=>num(b.percent)-num(a.percent));box.innerHTML=alerts.length?alerts.slice(0,12).map(a=>`<div class="item"><div><b>${esc(a.description||productNameById(a.productId))}</b><small>${esc(a.supplierName||'Fournisseur')} · ${esc(a.document||'Bon')} · ${a.date?new Date(a.date).toLocaleDateString('fr-BE'):''}<br>${money(a.oldPrice)} → ${money(a.newPrice)}</small></div><span class="badge ${num(a.percent)>=10?'bad':'warn'}">+${num(a.percent).toFixed(1)} %</span></div>`).join(''):'<div class="empty">Aucune augmentation de prix détectée dans les réceptions.</div>';
+}
+const _renderSuppliersV11=renderSuppliers;renderSuppliers=function(){
+ const term=$('supplierSearch').value.toLowerCase(),list=suppliers.filter(s=>(s.name+' '+(s.contact_name||'')).toLowerCase().includes(term));$('suppliersBody').innerHTML=list.length?list.map(s=>{const score=supplierReliability(s.id),cls=score==null?'':score>=95?'ok':score>=80?'warn':'bad';return `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.contact_name||'—')}</td><td>${esc(s.email||'—')}</td><td>${esc(s.phone||'—')}</td><td>${esc(s.delivery_days||'—')}</td><td>${score==null?'<span class="tiny">Pas assez de données</span>':`<span class="reliability-score ${cls}">${score} %</span>`}</td><td><button class="btn soft" onclick="editSupplier('${s.id}')">Ouvrir</button></td></tr>`}).join(''):'<tr><td colspan="7" class="empty">Aucun fournisseur.</td></tr>';renderSupplierCatalog()}
+const _renderAllV11=renderAll;renderAll=function(){_renderAllV11();renderSupplierCatalog();renderReceptionPriceWatch()}
+$('supplierCatalogSearch')?.addEventListener('input',renderSupplierCatalog);$('supplierCatalogFilter')?.addEventListener('change',renderSupplierCatalog);
+document.querySelectorAll('[data-view="suppliers"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderSupplierCatalog,0)));
+document.querySelectorAll('[data-view="reception"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderReceptionPriceWatch,0)));
