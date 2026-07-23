@@ -1,0 +1,11 @@
+GESTIONA v15.3 — Rafraîchissement UI grenat & doré
+
+Cette version modernise l’interface sans modifier les fonctions métier :
+- identité grenat dominante ;
+- nom GESTIONA doré ;
+- cartes, boutons, formulaires et tableaux harmonisés ;
+- meilleure hiérarchie visuelle ;
+- affichage amélioré sur ordinateur, tablette et téléphone ;
+- menu sans signature superposée.
+
+Aucune migration Supabase n’est nécessaire.
