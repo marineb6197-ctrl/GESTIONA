@@ -1,4 +1,4 @@
-const CACHE='gestiona-v9-6-auto-order';
+const CACHE='gestiona-v9-7-delete-all-stock';
 const FILES=['./','./index.html','./assets/css/app.css','./assets/js/app.js','./orion-import.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/apple-touch-icon.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

@@ -1,0 +1,13 @@
+GESTIONA ERP v9.7 — SUPPRESSION TOTALE DU STOCK
+
+NOUVEAUTÉ
+- Nouveau bouton « ⚠️ Tout supprimer du stock » dans Produits & stocks.
+- Le bouton archive en une seule fois tous les produits actifs.
+- Double sécurité : confirmation puis saisie obligatoire du mot SUPPRIMER.
+- Les produits ne sont pas détruits définitivement : ils restent disponibles avec le filtre « Archivés ».
+- La sélection en cours est automatiquement vidée après l'opération.
+- L'action est enregistrée dans le journal d'activité.
+
+INSTALLATION
+Remplacez votre ancienne version par cette archive puis rechargez complètement la page.
+Aucune modification Supabase n'est nécessaire.
