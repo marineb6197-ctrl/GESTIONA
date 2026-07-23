@@ -1,0 +1,18 @@
+GESTIONA V23.0 — MOTEUR DE STOCK PROFESSIONNEL
+
+Cette version ajoute un véritable écran « Mouvements & inventaires » :
+- journal complet des entrées, sorties, pertes, corrections et inventaires ;
+- filtres par établissement, type, produit et période ;
+- indicateurs d’entrées, sorties et valeur des écarts ;
+- export CSV du journal ;
+- analyse ORION des pertes et mouvements inhabituels ;
+- transfert de stock entre deux établissements avec double écriture ;
+- accès direct à l’inventaire rapide.
+
+INSTALLATION
+1. Remplacez les fichiers de la version précédente par ceux de ce dossier.
+2. Dans Supabase > SQL Editor, exécutez migration_v23_stock_engine.sql.
+3. Rechargez GESTIONA puis ouvrez « Mouvements & inventaires ».
+
+TRANSFERTS
+Le produit doit exister dans les deux établissements avec le même nom ou la même référence interne. Le transfert diminue le stock d’origine et augmente le stock destinataire, puis crée deux mouvements liés par une référence commune.
