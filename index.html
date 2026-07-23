@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#64142a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<title>GESTIONA ERP v8.5.1 — Retrait stock visible</title>
+<title>GESTIONA ERP v9.0 — Recettes intelligentes</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="orion-import.js"></script>
@@ -17,7 +17,7 @@
 <section id="authScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">ERP cloud — Créé par Marine Bruynbroeck</p><div id="authMsg"></div><div class="field"><label>Nom complet</label><input id="authName" placeholder="Marine Bruynbroeck"></div><div class="field"><label>Email</label><input id="authEmail" type="email"></div><div class="field"><label>Mot de passe</label><input id="authPassword" type="password" minlength="6"></div><div class="row"><button class="btn primary" id="loginBtn">Se connecter</button><button class="btn gold" id="signupBtn">Créer mon compte</button><button class="btn soft" id="changeConfigBtn">Modifier Supabase</button></div></div></section>
 <section id="onboardingScreen" class="screen center hidden"><div class="panel"><h1 class="logo">GESTIONA</h1><p class="sub">Création de votre espace professionnel</p><div id="onboardMsg"></div><div class="field"><label>Nom de l'organisation</label><input id="orgName" value="GESTIONA"></div><div class="field"><label>Votre nom complet</label><input id="ownerName" value="Marine Bruynbroeck"></div><div class="field"><label>Premier établissement</label><input id="venueOne" placeholder="Nom de l'établissement"></div><div class="field"><label>Deuxième établissement (facultatif)</label><input id="venueTwo" placeholder="Nom de l'établissement"></div><button class="btn primary block" id="createOrgBtn">Créer mon espace</button></div></section>
 <section id="appScreen" class="screen hidden">
-<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v8.5.1 — Retrait stock visible</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
+<div class="app"><aside class="side"><h1>GESTIONA</h1><p class="version">ERP v9.0 — Recettes intelligentes</p><select id="venueSelect" class="venue-select"></select><nav class="nav"><button data-view="dashboard" class="active">🧠 ORION Copilote</button><button data-view="products">📦 Produits & stocks</button><button data-view="recipes">🍽️ Recettes</button><button data-view="suppliers">🚚 Fournisseurs</button><button data-view="orders">🛒 Commandes</button><button data-view="finance">💶 ORION Finance</button><button data-view="orion">🤖 ORION Import</button><button data-view="settings">⚙️ Paramètres</button></nav><div class="signature">Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés</div></aside>
 <main class="main"><header class="top"><h2 id="pageTitle">ORION Copilote</h2><div class="row"><span id="userLabel" class="tiny"></span><button class="btn soft" id="logoutBtn">Déconnexion</button></div></header><div class="content">
 <section id="view-dashboard" class="view active">
 <div class="welcome orion-welcome"><div><h2 id="hello">Bonjour 👋</h2><p id="orionHeadline">Votre journée est analysée : priorités, risques et économies sont regroupés ici.</p></div><span class="orion-live">● ORION ACTIF</span></div>
@@ -48,6 +48,39 @@
 <div class="grid two" style="margin-top:15px"><div class="card"><h3>Commandes en cours</h3><div id="dashboardOrders" class="list"></div></div><div class="card"><h3>Dernière activité</h3><div id="activityList" class="list"></div></div></div>
 </section>
 <section id="view-products" class="view"><div class="card orion-card" style="margin-bottom:15px"><div class="row between"><div><h3 style="margin-bottom:4px">🧠 ORION Stock Intelligent</h3><div class="tiny">Analyse locale des stocks, consommations et mouvements récents. Toute modification reste soumise à votre validation.</div></div><button class="btn gold" id="stockIntelAnalyzeBtn">Actualiser l’analyse</button></div><div class="stock-intel-grid" style="margin-top:13px"><div class="stock-intel-kpi"><span>Ruptures</span><b id="stockIntelOut">0</b></div><div class="stock-intel-kpi"><span>À commander</span><b id="stockIntelLow">0</b></div><div class="stock-intel-kpi"><span>Sans mouvement 30 j</span><b id="stockIntelDormant">0</b></div><div class="stock-intel-kpi"><span>Minimums à optimiser</span><b id="stockIntelMin">0</b></div></div><div id="stockIntelSummary" class="stock-intel-note" style="margin-top:12px">L’analyse sera disponible après le chargement des produits.</div><div id="stockIntelList" class="stock-intel-list"></div></div><div class="card"><div class="product-kpis"><div class="product-kpi"><span>Produits affichés</span><b id="catalogCount">0</b></div><div class="product-kpi"><span>Fiches complètes</span><b id="catalogComplete">0 %</b></div><div class="product-kpi"><span>Sans prix d’achat</span><b id="catalogNoCost">0</b></div><div class="product-kpi"><span>Sans stock minimum</span><b id="catalogNoMin">0</b></div></div><div class="toolbar"><input id="productSearch" class="grow" placeholder="Rechercher par nom, référence, code-barres ou catégorie"><div class="catalog-filters"><select id="productFilter"><option value="all">Tous les stocks</option><option value="low">À commander</option><option value="ok">Stock suffisant</option><option value="favorite">Favoris</option><option value="incomplete">Fiches incomplètes</option><option value="archived">Archivés</option></select><select id="productCategoryFilter"><option value="all">Toutes les catégories</option></select><select id="productSupplierFilter"><option value="all">Tous les fournisseurs</option></select><select id="productLocationFilter"><option value="all">Tous les emplacements</option></select></div><button class="btn soft" id="exportCatalogBtn">Exporter CSV</button><button class="btn danger" id="openStockRemovalBtn" type="button">🗑 Retirer un produit du stock</button><button class="btn primary" id="addProductBtn">+ Ajouter un produit</button></div><div class="table-wrap"><table class="table"><thead><tr><th>Produit</th><th>Référence</th><th>Catégorie</th><th>Stock</th><th>Coût unitaire</th><th>Prix vente</th><th>Marge</th><th>Complétude</th><th>État</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table></div></div></section>
+
+<section id="view-recipes" class="view">
+  <div class="recipe-kpis">
+    <div class="product-kpi"><span>Recettes affichées</span><b id="recipeCount">0</b></div>
+    <div class="product-kpi"><span>Coût matière moyen</span><b id="recipeAvgCost">0,00 €</b></div>
+    <div class="product-kpi"><span>Marge moyenne</span><b id="recipeAvgMargin">0 %</b></div>
+    <div class="product-kpi"><span>À surveiller</span><b id="recipeLowMargin">0</b></div>
+  </div>
+
+  <div class="card orion-card" style="margin-bottom:15px">
+    <div class="row between">
+      <div>
+        <h3 style="margin-bottom:4px">🤖 ORION — Analyse des recettes</h3>
+        <div class="tiny">Les coûts sont recalculés à partir des prix actuels des produits du stock.</div>
+      </div>
+      <button class="btn gold" id="refreshRecipeAnalysisBtn" type="button">Actualiser l’analyse</button>
+    </div>
+    <div id="recipeOrionSummary" class="stock-intel-note" style="margin-top:12px"></div>
+    <div id="recipeOrionList" class="stock-intel-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <input id="recipeSearch" class="grow" placeholder="Rechercher une recette">
+      <select id="recipeCategoryFilter">
+        <option value="all">Toutes les catégories</option>
+      </select>
+      <button class="btn primary" id="addRecipeBtn" type="button">+ Nouvelle recette</button>
+    </div>
+    <div id="recipesGrid" class="recipes-grid"></div>
+  </div>
+</section>
+
 <section id="view-suppliers" class="view"><div class="card"><div class="toolbar"><input id="supplierSearch" class="grow" placeholder="Rechercher un fournisseur"><button class="btn primary" id="addSupplierBtn">+ Ajouter</button></div><div class="table-wrap"><table class="table"><thead><tr><th>Nom</th><th>Contact</th><th>Email</th><th>Téléphone</th><th>Livraison</th><th></th></tr></thead><tbody id="suppliersBody"></tbody></table></div></div></section>
 <section id="view-orders" class="view">
 <div class="card order-builder-card">
@@ -150,7 +183,7 @@
 </section>
 <section id="view-settings" class="view"><div class="grid two"><div class="card"><h3>Cloud Supabase</h3><p class="muted">Connexion active. Les données enregistrées dans cette version sont partagées entre vos appareils connectés au même compte.</p><p class="tiny" id="projectInfo"></p><button class="btn soft" id="resetConfig">Modifier la connexion Supabase</button></div><div class="card"><h3>Envoi des commandes</h3><p class="muted">GESTIONA prépare le message et l’ouvre dans la messagerie de l’utilisateur. Aucun compte Resend, domaine vérifié ou clé API n’est nécessaire.</p><div id="emailConfigStatus" class="notice success">Prêt : envoi depuis votre propre boîte mail.</div><button class="btn primary" id="openEmailConfigBtn" style="margin-top:12px">Voir le fonctionnement</button></div><div class="card"><h3>Propriété</h3><p><b>GESTIONA ERP</b><br>Créé par Marine Bruynbroeck<br>© 2026–2027 Marine Bruynbroeck – Tous droits réservés.</p></div></div></section>
 </div></main></div>
-<nav class="mobile-nav"><button data-view="dashboard" class="active">🧠<br>Copilote</button><button data-view="products">📦<br>Produits</button><button data-view="suppliers">🚚<br>Fournisseurs</button><button data-view="orders">🛒<br>Commandes</button><button data-view="finance">💶<br>Finance</button><button data-view="orion">🤖<br>ORION</button><button data-view="settings">⚙️<br>Réglages</button></nav></section>
+<nav class="mobile-nav"><button data-view="dashboard" class="active">🧠<br>Copilote</button><button data-view="products">📦<br>Produits</button><button data-view="recipes">🍽️<br>Recettes</button><button data-view="suppliers">🚚<br>Fournisseurs</button><button data-view="orders">🛒<br>Commandes</button><button data-view="finance">💶<br>Finance</button><button data-view="orion">🤖<br>ORION</button><button data-view="settings">⚙️<br>Réglages</button></nav></section>
 
 <div id="supplierDocumentModal" class="modal-bg"><div class="modal doc-modal"><div class="modal-head"><h3 id="supplierDocumentTitle">Nouveau document fournisseur</h3><button class="btn soft" data-close="supplierDocumentModal">✕</button></div>
 <form id="supplierDocumentForm"><input type="hidden" id="docEditId"><input type="hidden" id="docKind" value="invoice">
@@ -201,6 +234,53 @@
 <div class="field full"><label>Notes</label><textarea id="pNotes" rows="3"></textarea></div>
 <div class="field full"><label>Historique des prix d’achat</label><div id="priceHistory" class="history-list"><div class="empty">Enregistrez le produit pour créer son historique.</div></div></div>
 </div><div class="actions"><button type="button" class="btn soft hidden" id="duplicateProductBtn">Dupliquer</button><button type="button" class="btn danger hidden" id="deleteProductBtn">Archiver</button><button class="btn primary" type="submit">Enregistrer</button></div></form></div></div>
+
+<div id="recipeModal" class="modal-bg"><div class="modal recipe-modal" style="max-width:980px">
+  <div class="modal-head">
+    <h3 id="recipeModalTitle">Nouvelle recette</h3>
+    <button class="btn soft" data-close="recipeModal">✕</button>
+  </div>
+  <form id="recipeForm">
+    <input type="hidden" id="recipeId">
+    <div class="form-grid">
+      <div class="field"><label>Nom de la recette</label><input id="rName" required></div>
+      <div class="field"><label>Établissement</label><select id="rVenue"></select></div>
+      <div class="field"><label>Catégorie</label><select id="rCategory"><option>Entrée</option><option>Plat</option><option>Dessert</option><option>Boisson</option><option>Cocktail</option><option>Accompagnement</option><option>Autre</option></select></div>
+      <div class="field"><label>Nombre de portions</label><input id="rPortions" type="number" min="0.001" step="0.001" value="1" required></div>
+      <div class="field"><label>Prix de vente TVAC</label><input id="rSalePrice" type="number" min="0" step="0.01" value="0"></div>
+      <div class="field"><label>TVA vente</label><select id="rVat"><option value="6">6 %</option><option value="12" selected>12 %</option><option value="21">21 %</option></select></div>
+      <div class="field"><label>Temps de préparation (minutes)</label><input id="rPrepTime" type="number" min="0" step="1" value="0"></div>
+      <div class="field"><label>Photo (URL, facultatif)</label><input id="rImage" type="url" placeholder="https://..."></div>
+      <div class="field full"><label>Description / méthode</label><textarea id="rNotes" rows="3"></textarea></div>
+    </div>
+
+    <div class="row between" style="margin-top:18px">
+      <h3 style="margin:0">Ingrédients</h3>
+      <button class="btn gold" id="addRecipeIngredientBtn" type="button">+ Ajouter un ingrédient</button>
+    </div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table class="table recipe-ingredients-table">
+        <thead><tr><th>Produit du stock</th><th>Quantité</th><th>Unité</th><th>Coût</th><th></th></tr></thead>
+        <tbody id="recipeIngredientsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="recipe-cost-panel">
+      <div><span>Coût total de la recette</span><b id="recipeCalcTotalCost">0,00 €</b></div>
+      <div><span>Coût par portion</span><b id="recipeCalcPortionCost">0,00 €</b></div>
+      <div><span>Prix de vente HTVA</span><b id="recipeCalcSaleEx">0,00 €</b></div>
+      <div><span>Marge brute / portion</span><b id="recipeCalcMarginEuro">0,00 €</b></div>
+      <div><span>Marge sur vente</span><b id="recipeCalcMarginPct">0,0 %</b></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn danger hidden" id="deleteRecipeBtn" type="button">Supprimer</button>
+      <button class="btn soft hidden" id="prepareRecipeBtn" type="button">🍳 Enregistrer une préparation</button>
+      <button class="btn primary" type="submit">Enregistrer la recette</button>
+    </div>
+  </form>
+</div></div>
+
 <div id="supplierModal" class="modal-bg"><div class="modal"><div class="modal-head"><h3 id="supplierModalTitle">Ajouter un fournisseur</h3><button class="btn soft" data-close="supplierModal">✕</button></div><form id="supplierForm"><input type="hidden" id="supplierId"><div class="form-grid"><div class="field"><label>Nom</label><input id="sName" required></div><div class="field"><label>Contact</label><input id="sContact"></div><div class="field"><label>Email</label><input id="sEmail" type="email"></div><div class="field"><label>Téléphone</label><input id="sPhone"></div><div class="field"><label>Jours de livraison</label><input id="sDays"></div><div class="field"><label>Conditions de paiement</label><input id="sTerms"></div><div class="field full"><label>Notes</label><textarea id="sNotes" rows="3"></textarea></div></div><div class="actions"><button type="button" class="btn danger hidden" id="deleteSupplierBtn">Supprimer</button><button class="btn primary" type="submit">Enregistrer</button></div></form></div></div>
 
 <div id="orderModal" class="modal-bg"><div class="modal"><div class="modal-head"><h3 id="orderModalTitle">Nouvelle commande</h3><button class="btn soft" data-close="orderModal">✕</button></div><form id="orderForm"><input type="hidden" id="orderId"><div class="form-grid"><div class="field"><label>N° de commande</label><input id="oNumber" readonly placeholder="Attribué à l’enregistrement"></div><div class="field"><label>Statut</label><select id="oStatus"><option value="draft">Brouillon</option><option value="sent">Envoyée</option><option value="confirmed">Confirmée</option><option value="partially_received">Partiellement reçue</option><option value="received">Reçue</option><option value="cancelled">Annulée</option></select></div><div class="field"><label>Fournisseur</label><select id="oSupplier" required></select></div><div class="field"><label>Établissement</label><select id="oVenue"></select></div><div class="field"><label>Date de livraison souhaitée</label><input id="oExpected" type="date"></div><div class="field"><label>Référence interne</label><input id="oReference"></div><div class="field full"><label>Adresse de livraison</label><textarea id="oAddress" rows="2"></textarea></div><div class="field full"><label>Notes</label><textarea id="oNotes" rows="2"></textarea></div><div class="full"><div class="row between"><h3 style="margin:0">Produits commandés</h3><button type="button" class="btn gold" id="addOrderLineBtn">+ Ajouter une ligne</button></div><div class="table-wrap" style="margin-top:10px"><table class="table" style="min-width:760px"><thead><tr><th>Produit</th><th>Quantité</th><th>Unité</th><th>Prix HTVA</th><th>TVA</th><th>Total</th><th></th></tr></thead><tbody id="orderLinesBody"></tbody></table></div><div class="calc-box" style="margin-top:12px"><div class="row between"><b>Total HTVA</b><b id="orderTotalEx">0,00 €</b></div><div class="row between"><span>TVA estimée</span><span id="orderTotalVat">0,00 €</span></div><div class="row between"><b>Total TVAC</b><b id="orderTotalIncl">0,00 €</b></div></div></div></div><div class="actions"><button type="button" class="btn gold hidden" id="emailOrderBtn">Ouvrir dans ma messagerie</button><button type="button" class="btn soft hidden" id="printOrderBtn">Imprimer / PDF</button><button type="button" class="btn danger hidden" id="deleteOrderBtn">Annuler la commande</button><button class="btn primary" type="submit">Enregistrer</button></div></form></div></div>

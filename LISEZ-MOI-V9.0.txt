@@ -1,0 +1,18 @@
+GESTIONA v9.0 — Recettes intelligentes ORION
+
+Fonctionnalités réellement intégrées :
+- nouveau menu « Recettes » sur ordinateur et mobile ;
+- création, modification et suppression de recettes ;
+- catégories, établissement, portions, prix de vente, TVA, temps de préparation, photo et méthode ;
+- ingrédients directement liés aux produits du stock ;
+- calcul en temps réel du coût total, coût par portion, vente HTVA, marge en euros et pourcentage ;
+- fiche visuelle de chaque recette ;
+- calcul des portions réalisables avec le stock actuel ;
+- analyse ORION : faibles marges, recettes impossibles à préparer et meilleure rentabilité ;
+- bouton « Préparer » : contrôle des quantités puis retrait automatique des ingrédients du stock ;
+- journal d'audit lors de la création, modification, suppression et préparation ;
+- migration Supabase fournie pour préparer une future synchronisation cloud des recettes.
+
+Important :
+Dans cette version, les fiches recettes sont enregistrées localement dans le navigateur afin que le module fonctionne immédiatement sans migration obligatoire.
+Les mouvements de stock, eux, restent enregistrés dans Supabase.

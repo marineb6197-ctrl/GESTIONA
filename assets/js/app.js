@@ -1,8 +1,8 @@
-const LS_URL='gestiona_supabase_url',LS_KEY='gestiona_supabase_key',LS_SCHEDULES='gestiona_order_schedules_v1',LS_NOTIF_STATE='gestiona_notification_state_v1';let sb=null,user=null,profile=null,orgId=null,venues=[],products=[],suppliers=[],orders=[],orderItems=[],activity=[],movements=[],priceHistoryRows=[],selectedVenue='all';let quickOrder={quantities:{},notes:{}};let orionOrderSuggestions=[];
+const LS_URL='gestiona_supabase_url',LS_KEY='gestiona_supabase_key',LS_SCHEDULES='gestiona_order_schedules_v1',LS_NOTIF_STATE='gestiona_notification_state_v1';let sb=null,user=null,profile=null,orgId=null,venues=[],products=[],suppliers=[],orders=[],orderItems=[],activity=[],movements=[],priceHistoryRows=[],selectedVenue='all';let quickOrder={quantities:{},notes:{}};let orionOrderSuggestions=[];let recipes=[];let recipeIngredientDraft=[];const RECIPES_KEY='gestiona_recipes_v90';
 const $=id=>document.getElementById(id);const money=n=>new Intl.NumberFormat('fr-BE',{style:'currency',currency:'EUR'}).format(Number(n||0));const num=n=>Number(n||0);const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 function show(id){['setupScreen','authScreen','onboardingScreen','appScreen'].forEach(x=>$(x).classList.add('hidden'));$(id).classList.remove('hidden')}function msg(id,text,type='notice'){$(id).innerHTML=text?`<div class="notice ${type}">${esc(text)}</div>`:''}function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2400)}
 function initClient(){const url=localStorage.getItem(LS_URL),key=localStorage.getItem(LS_KEY);if(!url||!key)return false;try{sb=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});return true}catch(e){return false}}
-async function boot(){loadOrionImportHistory();loadSupplierDocuments();if(!initClient()){show('setupScreen');return}const {data:{session}}=await sb.auth.getSession();if(!session){show('authScreen');return}user=session.user;await loadProfile()}
+async function boot(){loadOrionImportHistory();loadSupplierDocuments();loadRecipes();if(!initClient()){show('setupScreen');return}const {data:{session}}=await sb.auth.getSession();if(!session){show('authScreen');return}user=session.user;await loadProfile()}
 async function loadProfile(){const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();if(error){msg('authMsg',error.message,'error');show('authScreen');return}profile=data;if(!profile?.organization_id){$('ownerName').value=profile?.full_name||user.user_metadata?.full_name||'';show('onboardingScreen');return}orgId=profile.organization_id;await loadApp()}
 async function loadApp(){show('appScreen');$('userLabel').textContent=profile?.full_name||user.email;$('hello').textContent=`Bonjour ${(profile?.full_name||'').split(' ')[0]||''} 👋`;$('projectInfo').textContent=localStorage.getItem(LS_URL)||'';await Promise.all([loadVenues(),loadSuppliers(),loadProducts(),loadMovements(),loadPriceHistoryRows(),loadOrders(),loadActivity()]);renderAll()}
 async function loadVenues(){const {data,error}=await sb.from('venues').select('*').order('name');if(error)throw error;venues=data||[];const opts=['<option value="all">Tous les établissements</option>',...venues.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`)];$('venueSelect').innerHTML=opts.join('');$('venueSelect').value=selectedVenue}
@@ -13,7 +13,7 @@ async function loadPriceHistoryRows(){const {data,error}=await sb.from('product_
 async function loadOrders(){const {data,error}=await sb.from('purchase_orders').select('*,suppliers(name),venues(name),purchase_order_items(*)').order('created_at',{ascending:false});if(error)throw error;orders=data||[]}
 async function loadActivity(){const {data}=await sb.from('audit_log').select('*').order('created_at',{ascending:false}).limit(8);activity=data||[]}
 function visibleProducts(includeArchived=false){return products.filter(p=>(includeArchived||p.active!==false)&&(selectedVenue==='all'||!p.venue_id||p.venue_id===selectedVenue))}function unitCost(p){return num(p.package_price_excl_vat)/Math.max(num(p.units_per_package),1)}function saleEx(p){return num(p.sale_price_incl_vat)/(1+num(p.sale_vat)/100)}function marginPct(p){const c=unitCost(p),s=saleEx(p);return s>0?((s-c)/s)*100:0}function status(p){if(num(p.stock)<=0)return['Rupture','bad'];if(num(p.stock)<=num(p.minimum_stock))return['À commander','warn'];return['En stock','ok']}
-function renderAll(){renderDashboard();renderCopilot();renderSmartNotifications();renderCatalogFilters();renderProducts();renderStockIntelligence();renderFinance();renderSupplierDocuments();renderSuppliers();renderOrders();renderSupplierOptions();renderOrderOptions();fillQuickOrderOptions();fillSupplierDocumentOptions()}
+function renderAll(){renderDashboard();renderCopilot();renderSmartNotifications();renderCatalogFilters();renderProducts();renderRecipes();renderStockIntelligence();renderFinance();renderSupplierDocuments();renderSuppliers();renderOrders();renderSupplierOptions();renderOrderOptions();fillQuickOrderOptions();fillSupplierDocumentOptions()}
 function renderDashboard(){
  const list=visibleProducts(),low=list.filter(p=>num(p.stock)<=num(p.minimum_stock)),value=list.reduce((a,p)=>a+num(p.stock)*unitCost(p),0),margins=list.filter(p=>num(p.sale_price_incl_vat)>0).map(marginPct);
  const openOrders=orders.filter(o=>o.status&&!['received','cancelled'].includes(o.status)&&(selectedVenue==='all'||!o.venue_id||o.venue_id===selectedVenue));
@@ -425,11 +425,234 @@ function exportCatalogCsv(){const list=catalogFilteredProducts();if(!list.length
 function resetProduct(){ $('productForm').reset();$('productId').value='';$('pUnit').value='pièce';$('pUnits').value='1';$('pPurchaseVat').value='21';$('pSaleVat').value='21';$('pFavorite').value='false';$('deleteProductBtn').classList.add('hidden');$('duplicateProductBtn').classList.add('hidden');renderImagePreview();$('productModalTitle').textContent='Ajouter un produit';renderSupplierOptions();loadPriceHistory(null);updateProductCalculations()}
 window.editProduct=async id=>{const p=products.find(x=>x.id===id);if(!p)return;resetProduct();$('productId').value=p.id;$('pName').value=p.name;$('pImage').value=p.image_url||'';$('pSku').value=p.sku||'';$('pBarcode').value=p.barcode||'';$('pCategory').value=p.category||'';$('pSubcategory').value=p.subcategory||'';$('pSupplier').value=p.supplier_id||'';$('pUnit').value=p.unit||'pièce';$('pStock').value=p.stock;$('pMin').value=p.minimum_stock;$('pPackage').value=p.package_price_excl_vat;$('pUnits').value=p.units_per_package;$('pPurchaseVat').value=p.purchase_vat;$('pSale').value=p.sale_price_incl_vat;$('pSaleVat').value=p.sale_vat;$('pTargetMargin').value=p.target_margin_percent??'';$('pLocation').value=p.location||'';$('pFavorite').value=String(!!p.favorite);$('pNotes').value=p.notes||'';$('deleteProductBtn').classList.remove('hidden');$('duplicateProductBtn').classList.remove('hidden');renderImagePreview();$('productModalTitle').textContent='Fiche produit';updateProductCalculations();await loadPriceHistory(id);openModal('productModal')}
 function resetSupplier(){ $('supplierForm').reset();$('supplierId').value='';$('deleteSupplierBtn').classList.add('hidden');$('supplierModalTitle').textContent='Ajouter un fournisseur'}window.editSupplier=id=>{const s=suppliers.find(x=>x.id===id);if(!s)return;resetSupplier();$('supplierId').value=s.id;$('sName').value=s.name;$('sContact').value=s.contact_name||'';$('sEmail').value=s.email||'';$('sPhone').value=s.phone||'';$('sDays').value=s.delivery_days||'';$('sTerms').value=s.payment_terms||'';$('sNotes').value=s.notes||'';$('deleteSupplierBtn').classList.remove('hidden');$('supplierModalTitle').textContent='Modifier le fournisseur';openModal('supplierModal')}
+
+function loadRecipes(){
+  try{
+    recipes=JSON.parse(localStorage.getItem(RECIPES_KEY)||'[]');
+    if(!Array.isArray(recipes))recipes=[];
+  }catch(e){recipes=[]}
+}
+function saveRecipes(){
+  localStorage.setItem(RECIPES_KEY,JSON.stringify(recipes));
+  renderRecipes();
+}
+function recipeVisible(r){
+  return selectedVenue==='all'||!r.venue_id||r.venue_id===selectedVenue;
+}
+function recipeIngredientCost(line){
+  const p=products.find(x=>x.id===line.product_id);
+  return p?num(line.quantity)*unitCost(p):0;
+}
+function recipeTotalCost(r){
+  return (r.ingredients||[]).reduce((sum,line)=>sum+recipeIngredientCost(line),0);
+}
+function recipePortionCost(r){
+  return recipeTotalCost(r)/Math.max(num(r.portions),1);
+}
+function recipeSaleEx(r){
+  return num(r.sale_price_incl_vat)/(1+num(r.sale_vat||12)/100);
+}
+function recipeMarginPct(r){
+  const sale=recipeSaleEx(r),cost=recipePortionCost(r);
+  return sale>0?(sale-cost)/sale*100:0;
+}
+function recipeMarginEuro(r){
+  return recipeSaleEx(r)-recipePortionCost(r);
+}
+function recipeStockCapacity(r){
+  const ingredients=r.ingredients||[];
+  if(!ingredients.length)return 0;
+  return Math.floor(Math.min(...ingredients.map(line=>{
+    const p=products.find(x=>x.id===line.product_id);
+    return p&&num(line.quantity)>0?num(p.stock)/num(line.quantity):0;
+  }))*Math.max(num(r.portions),1));
+}
+function fillRecipeVenueOptions(){
+  if(!$('rVenue'))return;
+  $('rVenue').innerHTML='<option value="">Tous / recette commune</option>'+venues.map(v=>`<option value="${v.id}">${esc(v.name)}</option>`).join('');
+}
+function renderRecipes(){
+  if(!$('recipesGrid'))return;
+  const q=($('recipeSearch')?.value||'').trim().toLowerCase();
+  const cat=$('recipeCategoryFilter')?.value||'all';
+  const visible=recipes.filter(recipeVisible);
+  const cats=[...new Set(visible.map(r=>r.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+  const current=$('recipeCategoryFilter')?.value||'all';
+  $('recipeCategoryFilter').innerHTML='<option value="all">Toutes les catégories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  $('recipeCategoryFilter').value=cats.includes(current)?current:'all';
+
+  const list=visible.filter(r=>(cat==='all'||r.category===cat)&&(!q||`${r.name} ${r.category||''}`.toLowerCase().includes(q)));
+  const margins=list.filter(r=>num(r.sale_price_incl_vat)>0).map(recipeMarginPct);
+  $('recipeCount').textContent=list.length;
+  $('recipeAvgCost').textContent=money(list.length?list.reduce((a,r)=>a+recipePortionCost(r),0)/list.length:0);
+  $('recipeAvgMargin').textContent=(margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0).toFixed(1)+' %';
+  $('recipeLowMargin').textContent=list.filter(r=>num(r.sale_price_incl_vat)>0&&recipeMarginPct(r)<65).length;
+
+  $('recipesGrid').innerHTML=list.length?list.map(r=>{
+    const cost=recipePortionCost(r),margin=recipeMarginPct(r),capacity=recipeStockCapacity(r);
+    const venue=venues.find(v=>v.id===r.venue_id)?.name||'Recette commune';
+    const image=r.image_url?`<img src="${esc(r.image_url)}" alt="" onerror="this.style.display='none'">`:`<div class="recipe-placeholder">🍽️</div>`;
+    return `<article class="recipe-card">
+      <div class="recipe-image">${image}</div>
+      <div class="recipe-card-body">
+        <div class="row between"><span class="badge ok">${esc(r.category||'Autre')}</span><span class="tiny">${esc(venue)}</span></div>
+        <h3>${esc(r.name)}</h3>
+        <div class="recipe-metrics">
+          <div><span>Coût/portion</span><b>${money(cost)}</b></div>
+          <div><span>Vente TVAC</span><b>${money(r.sale_price_incl_vat)}</b></div>
+          <div><span>Marge</span><b class="${margin<65?'text-danger':''}">${margin.toFixed(1)} %</b></div>
+          <div><span>Portions possibles</span><b>${capacity}</b></div>
+        </div>
+        <div class="tiny">${(r.ingredients||[]).length} ingrédient(s) · ${num(r.prep_time_minutes)} min</div>
+        <div class="actions recipe-actions">
+          <button class="btn soft mini" onclick="editRecipe('${r.id}')">Modifier</button>
+          <button class="btn primary mini" onclick="prepareRecipe('${r.id}')">🍳 Préparer</button>
+        </div>
+      </div>
+    </article>`;
+  }).join(''):'<div class="empty" style="grid-column:1/-1">Aucune recette. Cliquez sur « Nouvelle recette » pour commencer.</div>';
+
+  renderRecipeOrion(list);
+}
+function renderRecipeOrion(list=recipes.filter(recipeVisible)){
+  if(!$('recipeOrionSummary'))return;
+  if(!list.length){
+    $('recipeOrionSummary').textContent='Ajoutez vos premières recettes pour obtenir une analyse de rentabilité.';
+    $('recipeOrionList').innerHTML='';
+    return;
+  }
+  const low=list.filter(r=>num(r.sale_price_incl_vat)>0&&recipeMarginPct(r)<65).sort((a,b)=>recipeMarginPct(a)-recipeMarginPct(b));
+  const impossible=list.filter(r=>(r.ingredients||[]).length&&recipeStockCapacity(r)<=0);
+  const best=list.filter(r=>num(r.sale_price_incl_vat)>0).sort((a,b)=>recipeMarginPct(b)-recipeMarginPct(a))[0];
+  $('recipeOrionSummary').innerHTML=`ORION analyse <b>${list.length} recette(s)</b> : <b>${low.length}</b> marge(s) sous 65 % et <b>${impossible.length}</b> recette(s) impossible(s) à préparer avec le stock actuel.`;
+  const rows=[];
+  low.slice(0,4).forEach(r=>rows.push(`<div class="item"><b>⚠️ ${esc(r.name)}</b><span class="muted">Marge ${recipeMarginPct(r).toFixed(1)} % · coût ${money(recipePortionCost(r))}</span></div>`));
+  impossible.slice(0,4).forEach(r=>rows.push(`<div class="item"><b>📦 ${esc(r.name)}</b><span class="muted">Un ingrédient est en rupture ou insuffisant.</span></div>`));
+  if(best)rows.push(`<div class="item"><b>🏆 ${esc(best.name)}</b><span class="muted">Meilleure marge actuelle : ${recipeMarginPct(best).toFixed(1)} %.</span></div>`);
+  $('recipeOrionList').innerHTML=rows.join('')||'<div class="empty">Aucune alerte particulière.</div>';
+}
+function resetRecipe(){
+  $('recipeForm').reset();
+  $('recipeId').value='';
+  $('recipeModalTitle').textContent='Nouvelle recette';
+  $('rPortions').value='1';$('rVat').value='12';$('rSalePrice').value='0';$('rPrepTime').value='0';
+  $('rVenue').value=selectedVenue==='all'?'':selectedVenue;
+  recipeIngredientDraft=[];
+  $('deleteRecipeBtn').classList.add('hidden');
+  $('prepareRecipeBtn').classList.add('hidden');
+  renderRecipeIngredients();
+}
+function recipeProductOptions(selected=''){
+  const venueId=$('rVenue')?.value||'';
+  return products.filter(p=>p.active!==false&&(!venueId||!p.venue_id||p.venue_id===venueId)).sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(p=>`<option value="${p.id}" ${p.id===selected?'selected':''}>${esc(p.name)} · ${money(unitCost(p))}/${esc(p.unit||'unité')}</option>`).join('');
+}
+function addRecipeIngredient(productId='',quantity=1){
+  recipeIngredientDraft.push({id:'line-'+Date.now()+'-'+Math.random().toString(16).slice(2),product_id:productId,quantity:num(quantity)||1});
+  renderRecipeIngredients();
+}
+function renderRecipeIngredients(){
+  const body=$('recipeIngredientsBody');if(!body)return;
+  body.innerHTML=recipeIngredientDraft.length?recipeIngredientDraft.map((line,i)=>{
+    const p=products.find(x=>x.id===line.product_id);
+    return `<tr>
+      <td><select class="recipe-product-select" onchange="setRecipeIngredientProduct(${i},this.value)"><option value="">Choisir un produit</option>${recipeProductOptions(line.product_id)}</select></td>
+      <td><input type="number" min="0.001" step="0.001" value="${num(line.quantity)}" oninput="setRecipeIngredientQuantity(${i},this.value)"></td>
+      <td>${esc(p?.unit||'—')}</td>
+      <td class="money">${money(recipeIngredientCost(line))}</td>
+      <td><button class="btn danger mini" type="button" onclick="removeRecipeIngredient(${i})">✕</button></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="5" class="empty">Aucun ingrédient ajouté.</td></tr>';
+  updateRecipeCalculations();
+}
+window.setRecipeIngredientProduct=(i,value)=>{if(recipeIngredientDraft[i])recipeIngredientDraft[i].product_id=value;renderRecipeIngredients()};
+window.setRecipeIngredientQuantity=(i,value)=>{if(recipeIngredientDraft[i])recipeIngredientDraft[i].quantity=Math.max(num(value),0);updateRecipeCalculations();const row=$('recipeIngredientsBody')?.children[i];if(row)row.children[3].textContent=money(recipeIngredientCost(recipeIngredientDraft[i]))};
+window.removeRecipeIngredient=i=>{recipeIngredientDraft.splice(i,1);renderRecipeIngredients()};
+function currentRecipeDraft(){
+  return {
+    portions:Math.max(num($('rPortions')?.value),1),
+    sale_price_incl_vat:num($('rSalePrice')?.value),
+    sale_vat:num($('rVat')?.value||12),
+    ingredients:recipeIngredientDraft
+  };
+}
+function updateRecipeCalculations(){
+  if(!$('recipeCalcTotalCost'))return;
+  const r=currentRecipeDraft(),total=recipeTotalCost(r),portion=recipePortionCost(r),saleEx=recipeSaleEx(r),margin=saleEx-portion,pct=saleEx>0?margin/saleEx*100:0;
+  $('recipeCalcTotalCost').textContent=money(total);
+  $('recipeCalcPortionCost').textContent=money(portion);
+  $('recipeCalcSaleEx').textContent=money(saleEx);
+  $('recipeCalcMarginEuro').textContent=money(margin);
+  $('recipeCalcMarginPct').textContent=pct.toFixed(1)+' %';
+}
+window.editRecipe=id=>{
+  const r=recipes.find(x=>x.id===id);if(!r)return;
+  resetRecipe();
+  $('recipeId').value=r.id;$('recipeModalTitle').textContent='Modifier la recette';
+  $('rName').value=r.name||'';$('rVenue').value=r.venue_id||'';$('rCategory').value=r.category||'Autre';
+  $('rPortions').value=num(r.portions)||1;$('rSalePrice').value=num(r.sale_price_incl_vat);$('rVat').value=String(num(r.sale_vat)||12);
+  $('rPrepTime').value=num(r.prep_time_minutes);$('rImage').value=r.image_url||'';$('rNotes').value=r.notes||'';
+  recipeIngredientDraft=(r.ingredients||[]).map(x=>({...x,id:x.id||'line-'+Math.random().toString(16).slice(2)}));
+  $('deleteRecipeBtn').classList.remove('hidden');$('prepareRecipeBtn').classList.remove('hidden');
+  renderRecipeIngredients();openModal('recipeModal');
+};
+async function prepareRecipe(id,portions=null){
+  const r=recipes.find(x=>x.id===id);if(!r)return;
+  const count=portions===null?num(prompt(`Combien de portions de « ${r.name} » avez-vous préparées ?`,'1')):num(portions);
+  if(!(count>0))return;
+  const multiplier=count/Math.max(num(r.portions),1);
+  const shortages=(r.ingredients||[]).map(line=>{
+    const p=products.find(x=>x.id===line.product_id),needed=num(line.quantity)*multiplier;
+    return {p,needed,missing:p?Math.max(needed-num(p.stock),0):needed};
+  }).filter(x=>x.missing>0);
+  if(shortages.length){
+    alert('Préparation impossible :\n\n'+shortages.map(x=>`• ${x.p?.name||'Produit absent'} : manque ${x.missing.toFixed(3)} ${x.p?.unit||''}`).join('\n'));
+    return;
+  }
+  if(!confirm(`Enregistrer ${count} portion(s) de « ${r.name} » ?\n\nLes ingrédients seront retirés du stock.`))return;
+  try{
+    for(const line of (r.ingredients||[])){
+      const p=products.find(x=>x.id===line.product_id),qty=num(line.quantity)*multiplier;
+      if(!p||qty<=0)continue;
+      const {error}=await sb.rpc('record_stock_movement',{p_product_id:p.id,p_quantity:-qty,p_movement_type:'sale',p_note:`Recette : ${r.name} · ${count} portion(s)`});
+      if(error)throw error;
+    }
+    await audit('Préparation de recette','recipe',r.id,{name:r.name,portions:count,ingredients:(r.ingredients||[]).length});
+    await refresh();toast(`${count} portion(s) préparée(s) · stock mis à jour`);
+  }catch(e){toast('Préparation impossible : '+(e.message||e))}
+}
+window.prepareRecipe=prepareRecipe;
+
 async function refresh(){await Promise.all([loadSuppliers(),loadProducts(),loadMovements(),loadPriceHistoryRows(),loadOrders(),loadActivity()]);renderAll();fillOrionVenues()}
 $('saveConfig').onclick=()=>{const u=$('setupUrl').value.trim().replace(/\/$/,''),k=$('setupKey').value.trim();if(!u.includes('.supabase.co')||k.length<20){msg('setupMsg','Vérifiez l’URL et la clé publique.','error');return}localStorage.setItem(LS_URL,u);localStorage.setItem(LS_KEY,k);location.reload()};$('changeConfigBtn').onclick=()=>{localStorage.removeItem(LS_URL);localStorage.removeItem(LS_KEY);location.reload()};$('resetConfig').onclick=$('changeConfigBtn').onclick;
 $('loginBtn').onclick=async()=>{msg('authMsg','');const {error}=await sb.auth.signInWithPassword({email:$('authEmail').value.trim(),password:$('authPassword').value});if(error){msg('authMsg',error.message,'error');return}location.reload()};$('signupBtn').onclick=async()=>{msg('authMsg','');const email=$('authEmail').value.trim(),password=$('authPassword').value,name=$('authName').value.trim();const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});if(error){msg('authMsg',error.message,'error');return}if(!data.session){msg('authMsg','Compte créé. Confirmez votre adresse e-mail, puis connectez-vous.','success')}else location.reload()};$('logoutBtn').onclick=async()=>{await sb.auth.signOut();location.reload()};
 $('createOrgBtn').onclick=async()=>{msg('onboardMsg','');const {data,error}=await sb.rpc('bootstrap_organization',{organization_name:$('orgName').value.trim(),user_full_name:$('ownerName').value.trim()});if(error){msg('onboardMsg',error.message,'error');return}orgId=data;const names=[$('venueOne').value.trim(),$('venueTwo').value.trim()].filter(Boolean);if(names.length){const rows=names.map(name=>({organization_id:orgId,name}));const {error:e}=await sb.from('venues').insert(rows);if(e){msg('onboardMsg',e.message,'error');return}}location.reload()};
-$('venueSelect').onchange=()=>{selectedVenue=$('venueSelect').value;renderDashboard();renderProducts();renderStockIntelligence()};$('openStockRemovalBtn').onclick=openStockRemovalPicker;$('stockRemovalProductSelect').onchange=updateStockRemovalPickerInfo;$('continueStockRemovalBtn').onclick=()=>{const id=$('stockRemovalProductSelect').value;if(!id){toast('Choisissez un produit');return}closeModal('stockRemovalPickerModal');quickMovement(id,'removal')};$('orionPrepareOrderBtn').onclick=()=>{document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-orders').classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view==='orders'));$('pageTitle').textContent='Commandes fournisseurs';if(selectedVenue!=='all')$('quickOrderVenue').value=selectedVenue;loadQuickOrderDraft();$('quickOrderFilter').value='low';renderQuickOrderCatalog();setTimeout(()=>$('quickOrderSearch').focus(),100)};$('quickOrderVenue').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSupplier').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSearch').oninput=renderQuickOrderCatalog;$('quickOrderFilter').onchange=renderQuickOrderCatalog;$('createQuickOrderBtn').onclick=createOrderFromQuickDraft;$('clearQuickOrderBtn').onclick=()=>{if(!confirm('Vider toutes les quantités de ce brouillon ?'))return;quickOrder={quantities:{},notes:{}};saveQuickOrderDraft();renderQuickOrderCatalog()};$('orionAnalyzeOrderBtn').onclick=analyzeOrionOrder;$('orionApplyOrderBtn').onclick=applyOrionOrderSuggestions;$('orionClearSuggestionBtn').onclick=clearOrionOrderSuggestions;$('stockIntelAnalyzeBtn').onclick=()=>{renderStockIntelligence();toast('Analyse ORION Stock actualisée')};$('productSearch').oninput=renderProducts;$('productFilter').onchange=renderProducts;$('productCategoryFilter').onchange=renderProducts;$('productSupplierFilter').onchange=renderProducts;$('productLocationFilter').onchange=renderProducts;$('exportCatalogBtn').onclick=exportCatalogCsv;$('supplierSearch').oninput=renderSuppliers;$('orderSearch').oninput=renderOrders;$('orderFilter').onchange=renderOrders;$('addOrderBtn').onclick=()=>{resetOrder();openModal('orderModal')};$('addOrderLineBtn').onclick=()=>addOrderLine();$('addProductBtn').onclick=()=>{resetProduct();openModal('productModal')};$('addSupplierBtn').onclick=()=>{resetSupplier();openModal('supplierModal')};['pPackage','pUnits','pSale','pSaleVat','pTargetMargin','pStock'].forEach(id=>$(id).addEventListener('input',updateProductCalculations));$('pImage').addEventListener('input',renderImagePreview);$('scanBarcodeBtn').onclick=startBarcodeScan;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-'+v).classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('pageTitle').textContent={dashboard:'ORION Copilote',products:'Produits & stocks',suppliers:'Fournisseurs',orders:'Commandes fournisseurs',orion:'ORION Import',settings:'Paramètres'}[v];if(v==='orion')renderOrionImportHistory()});
+$('venueSelect').onchange=()=>{selectedVenue=$('venueSelect').value;renderDashboard();renderProducts();renderStockIntelligence();renderRecipes()};$('addRecipeBtn').onclick=()=>{fillRecipeVenueOptions();resetRecipe();openModal('recipeModal')};
+$('recipeSearch').oninput=renderRecipes;
+$('recipeCategoryFilter').onchange=renderRecipes;
+$('refreshRecipeAnalysisBtn').onclick=()=>{renderRecipes();toast('Analyse des recettes actualisée')};
+$('addRecipeIngredientBtn').onclick=()=>addRecipeIngredient();
+$('rVenue').onchange=renderRecipeIngredients;
+['rPortions','rSalePrice','rVat'].forEach(id=>$(id).addEventListener('input',updateRecipeCalculations));
+$('recipeForm').onsubmit=async e=>{
+  e.preventDefault();
+  const name=$('rName').value.trim();
+  if(!name){toast('Indiquez le nom de la recette');return}
+  if(!recipeIngredientDraft.length){toast('Ajoutez au moins un ingrédient');return}
+  if(recipeIngredientDraft.some(x=>!x.product_id||num(x.quantity)<=0)){toast('Complétez tous les ingrédients');return}
+  const id=$('recipeId').value||('recipe-'+Date.now());
+  const row={id,name,venue_id:$('rVenue').value||null,category:$('rCategory').value||'Autre',portions:Math.max(num($('rPortions').value),1),sale_price_incl_vat:num($('rSalePrice').value),sale_vat:num($('rVat').value||12),prep_time_minutes:num($('rPrepTime').value),image_url:$('rImage').value.trim()||null,notes:$('rNotes').value.trim()||null,ingredients:recipeIngredientDraft.map(x=>({id:x.id,product_id:x.product_id,quantity:num(x.quantity)})),updated_at:new Date().toISOString()};
+  const pos=recipes.findIndex(x=>x.id===id);
+  if(pos>=0)recipes[pos]=row;else recipes.push({...row,created_at:new Date().toISOString()});
+  saveRecipes();await audit(pos>=0?'Recette modifiée':'Recette créée','recipe',id,{name,ingredients:row.ingredients.length,cost:recipeTotalCost(row),margin:recipeMarginPct(row)});
+  closeModal('recipeModal');toast(pos>=0?'Recette mise à jour':'Recette créée');
+};
+$('deleteRecipeBtn').onclick=async()=>{
+  const id=$('recipeId').value,r=recipes.find(x=>x.id===id);if(!r)return;
+  if(!confirm(`Supprimer définitivement la recette « ${r.name} » ?`))return;
+  recipes=recipes.filter(x=>x.id!==id);saveRecipes();await audit('Recette supprimée','recipe',id,{name:r.name});closeModal('recipeModal');toast('Recette supprimée');
+};
+$('prepareRecipeBtn').onclick=()=>prepareRecipe($('recipeId').value);
+$('openStockRemovalBtn').onclick=openStockRemovalPicker;$('stockRemovalProductSelect').onchange=updateStockRemovalPickerInfo;$('continueStockRemovalBtn').onclick=()=>{const id=$('stockRemovalProductSelect').value;if(!id){toast('Choisissez un produit');return}closeModal('stockRemovalPickerModal');quickMovement(id,'removal')};$('orionPrepareOrderBtn').onclick=()=>{document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-orders').classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view==='orders'));$('pageTitle').textContent='Commandes fournisseurs';if(selectedVenue!=='all')$('quickOrderVenue').value=selectedVenue;loadQuickOrderDraft();$('quickOrderFilter').value='low';renderQuickOrderCatalog();setTimeout(()=>$('quickOrderSearch').focus(),100)};$('quickOrderVenue').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSupplier').onchange=()=>{loadQuickOrderDraft();orionOrderSuggestions=[];renderQuickOrderCatalog();renderOrionOrderSuggestions()};$('quickOrderSearch').oninput=renderQuickOrderCatalog;$('quickOrderFilter').onchange=renderQuickOrderCatalog;$('createQuickOrderBtn').onclick=createOrderFromQuickDraft;$('clearQuickOrderBtn').onclick=()=>{if(!confirm('Vider toutes les quantités de ce brouillon ?'))return;quickOrder={quantities:{},notes:{}};saveQuickOrderDraft();renderQuickOrderCatalog()};$('orionAnalyzeOrderBtn').onclick=analyzeOrionOrder;$('orionApplyOrderBtn').onclick=applyOrionOrderSuggestions;$('orionClearSuggestionBtn').onclick=clearOrionOrderSuggestions;$('stockIntelAnalyzeBtn').onclick=()=>{renderStockIntelligence();toast('Analyse ORION Stock actualisée')};$('productSearch').oninput=renderProducts;$('productFilter').onchange=renderProducts;$('productCategoryFilter').onchange=renderProducts;$('productSupplierFilter').onchange=renderProducts;$('productLocationFilter').onchange=renderProducts;$('exportCatalogBtn').onclick=exportCatalogCsv;$('supplierSearch').oninput=renderSuppliers;$('orderSearch').oninput=renderOrders;$('orderFilter').onchange=renderOrders;$('addOrderBtn').onclick=()=>{resetOrder();openModal('orderModal')};$('addOrderLineBtn').onclick=()=>addOrderLine();$('addProductBtn').onclick=()=>{resetProduct();openModal('productModal')};$('addSupplierBtn').onclick=()=>{resetSupplier();openModal('supplierModal')};['pPackage','pUnits','pSale','pSaleVat','pTargetMargin','pStock'].forEach(id=>$(id).addEventListener('input',updateProductCalculations));$('pImage').addEventListener('input',renderImagePreview);$('scanBarcodeBtn').onclick=startBarcodeScan;document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const v=b.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));$('view-'+v).classList.add('active');document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('pageTitle').textContent={dashboard:'ORION Copilote',products:'Produits & stocks',suppliers:'Fournisseurs',orders:'Commandes fournisseurs',recipes:'Recettes intelligentes',finance:'ORION Finance',orion:'ORION Import',settings:'Paramètres'}[v];if(v==='orion')renderOrionImportHistory();if(v==='recipes'){fillRecipeVenueOptions();renderRecipes()}});
 $('movementForm').onsubmit=async e=>{
  e.preventDefault();
  const productId=$('mProductId').value,p=products.find(x=>x.id===productId);if(!p)return;
